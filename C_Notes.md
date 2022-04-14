@@ -1,4 +1,5 @@
-# C NOTES
+# **C NOTES**
+
 ```C
 VirtualProtectEx(hProcess, (LPVOID)addr, 1024, 4, &oldprotect);
 printf("1 : %d\n", oldprotect);
@@ -43,11 +44,12 @@ int main(int argc, char* argv[], char* envp[])
 }
 ```
 
----
+***
 
 printf函数里面，`\n`是将光标移至下一行，`\r`是将光标移至本行行首，`\b`是将光标前移一位（`\b`不能再回退至上一行）。有输出之后会覆盖掉光标后面的内容。比如`printf("123456\b\b\bab"); `的输出就是123ab6。
 
----
+***
+
 字节模型: 
 + win32 ILP32模型（即int，long，pointer都为4字节）
 + win64 LLP64模型（即long long，pointer为8字节，long还是为4字节）
@@ -57,3 +59,7 @@ printf函数里面，`\n`是将光标移至下一行，`\r`是将光标移至本
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 平台 | Win32 API/Unix和Unix类的系统（Linux, Mac OS X) | Win16 API | Win16 API | Unix和Unix类的系统（Linux, Mac OS X) | Win64 API |
 
+***
+
+|test|table|
+|back|up|
