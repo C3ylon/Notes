@@ -61,6 +61,6 @@ printf函数里面，`\n`是将光标移至下一行，`\r`是将光标移至本
 
 ***
 
-|test|table|
-|---|---|
-|back|up|
+test|table
+---|---
+back|up
