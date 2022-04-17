@@ -309,3 +309,17 @@ int main()
 
 ***
 
+```C
+#include <stdio.h>
+
+int main(int argc, char *argv[])
+{
+    int a[4][3];
+    printf("%d\n", (int)(a[3] - a[1]));
+    return 0;
+}
+```
+
+注意该段代码输出的值是6而不是2。`a[1]`和`a[3]`两个地址的差值除以的量不是`3 * sizeof(int)`而是`sizeof(int)`。因此`a[3] - &a[1][2]`不会出现语义上的错误。`a[3]`的类型是`int [3]`即`int []`，`&a[1][2]`的类型是`int *`,两个类型兼容。
+
+***
