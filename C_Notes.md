@@ -130,7 +130,7 @@ GCC 编码格式及编码转换：
 
     + `-fwide-exec-charset`
 
-        即 wchar_t 类型字符，每个字符占用4个字节，例如：wchar_t wstr = L"字符串"。
+        即 wchar_t 类型字符，每个字符占用2个字节，例如：wchar_t wstr = L"字符串"。
 
 > `-finput`和`-fexec`两个选项可以理解为vscode编码选项中的`Reopen with Encoding `和`Save with Encoding `。
 >
