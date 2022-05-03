@@ -334,6 +334,12 @@ struct node {
 }
 ```
 
-若`a`地址为0，则`b`地址为4，`c`地址为5。(注意若c的类型为short则仍会受到内存对齐的影响，即`c`的相对地址为a+6)
+若`a`地址为0，则`b`地址为4，`c`地址为5(注意若c的类型为short则仍会受到内存对齐的影响，即`c`的相对地址为a+6)。`sizeof(struct node)`的值为8。
+
+在结构体中除了可变数组之外的最后一个变量无多余内存对齐时分配内存可以使用:
+
+```C
+struct node *p = malloc(sizeof(struct node) + sizeof_arr); // sizeof_arr即此处需要定义的可变数组的大小
+```
 
 ***
