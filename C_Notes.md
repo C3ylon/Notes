@@ -343,3 +343,9 @@ struct node *p = malloc(sizeof(struct node) + sizeof_arr); // sizeof_arr即此�
 ```
 
 ***
+
+C语言里整除为绝对值的向下取整，取余的计算公式是`x % y = x - ((x / y) * y)`。比如`10 % -3 = 1`。
+
+> Python的整除为向下取整。取余公式同上，但相对应的是`10 % -3 = -2`。
+
+***
