@@ -72,6 +72,6 @@ Python内置**容器**：
 
 ***
 
-较新版本python中可以实现用关键字`in`查询字符串子串。比如`if "aaa" in "abcaaadef"`其结果为`True`
+较新版本python中可以实现用关键字`in`查询字符串子串。比如`"aaa" in "abcaaadef"`其结果为`True`
 
 ***
