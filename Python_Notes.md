@@ -175,3 +175,33 @@ print(a(4))
 ```
 
 ***
+
+python循环中不包含域的概念。比如：
+
+```Python
+l = []
+for i in range(3):
+    def f(x):
+        return x * i
+    l.append(f)
+i = 9
+print(l[0](5))
+# 结果为45
+```
+
+修正方式是使用闭包：
+
+```Python
+l = []
+for i in range(3):
+    def f(i):
+        def f2(x):
+            return x * i
+        return f2
+    l.append(f(i))
+i = 9
+print(l[0](5))
+# 结果为0
+```
+
+***
