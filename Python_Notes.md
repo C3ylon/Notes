@@ -146,6 +146,32 @@ Python内置**容器**：
 
 ***
 
-`for...else`和`while...else`配对的代码块中，else代码块内的语句在循环体没有执行`break`语句时执行。
+`for...else`和`while...else`配对的代码块中，`else`代码块内的语句在循环体没有执行`break`语句时执行。
+
+***
+
+闭包（`nonlocal`关键字与`global`关键字对应，用于修改非全局的外部作用域变量; `globals()`和`locals()`内建函数分别用于输出全局变量和局部变量，以字典形式返回）
+
+```Python
+def f1(a):
+    def f2(b):
+        print(locals())
+        nonlocal a
+        a=4
+        print(locals())
+        return a*b
+    return f2
+
+a = f1(3)
+print(a(4))
+```
+
+执行结果：
+
+```Python
+{'b': 4, 'a': 3}
+{'b': 4, 'a': 4}
+16
+```
 
 ***
