@@ -410,7 +410,6 @@ C中的宏分为两类:
 #define CAT(x, y) x ## y
 CAT(FOO_, 1)
 
--> FOO_1
 -> 1
 //********************
 #define FOO_ 0
@@ -419,7 +418,6 @@ CAT(FOO_, 1)
 #define CAT(x, y) PRIMITIVE_CAT(x, y)
 CAT(FOO_, 1)
 
--> PRIMITIVE_CAT(0, 1)
 -> 01
 //********************
 #define f(a) a #a
