@@ -444,6 +444,22 @@ f()()
 
 -> f()
 //********************
+#define f() a()
+#define a() b()
+#define b() c() d()
+#define c() a() b()
+f()
+
+-> a() b() d()
+//********************
+#define f(x) x a
+#define a(x) x b
+#define b(x) x c
+#define c(x) a(x) b(x) a
+f(i)(j)(k)(l)(m)
+
+-> i j k l b l c m b
+//********************
 #define FOO(x, y) x + y
 #define BAZ(z) FOO(BAZ(0), FOO(1, 2)) + z
 BAZ(3)
