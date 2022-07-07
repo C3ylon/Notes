@@ -479,6 +479,25 @@ FOO(BAR())
 
 -> 1 BAR - 1 BAR()
 //********************
+// 黑魔法 宏的延迟展开
+#define EMPTY
+#define DEFER(id) id EMPTY
+#define FOO() macro
+DEFER(FOO)()
+
+-> FOO ()
+// DEFER(FOO)完成参数展开后为"FOO EMPTY"
+// 之后再用扫描器从头扫描"FOO EMPTY"，将其完全展开后为"FOO "
+// 此时扫描器所指为结尾的空白符，而空白符不会参与到函数宏解析的判断
+// 若要完整解析，则需要再套一层函数，如下:
+#define EMPTY
+#define DEFER(id) id EMPTY
+#define FOO() expanded
+#define EXPAND(a) a
+EXPAND(DEFER(FOO)())
+
+-> expanded
+//********************
 #define FOO(...) __VA_ARGS__
 // 展开后的结果为宏函数的全部参数
 ```
