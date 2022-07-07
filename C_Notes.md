@@ -482,7 +482,7 @@ FOO(BAR())
 // 黑魔法 宏的延迟展开
 #define EMPTY
 #define DEFER(id) id EMPTY
-#define FOO() macro
+#define FOO() expanded
 DEFER(FOO)()
 
 -> FOO ()
