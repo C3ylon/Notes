@@ -213,9 +213,9 @@ BOOL ReadProcessMemory(
 
 ```
 00000000004015A2             | mov eax,dword ptr ss:[rbp-4]
-00000000004015A5             | movzx edx,al					unsigned char
+00000000004015A5             | movzx edx,al                 unsigned char
 00000000004015A8             | mov eax,dword ptr ss:[rbp-8]
-00000000004015AB             | movsx eax,al					signed char
+00000000004015AB             | movsx eax,al                 signed char
 00000000004015AE             | cmp edx,eax
 ```
 
@@ -364,143 +364,29 @@ C中的宏分为两类:
     #define 宏名([标识符列表]) 替换列表 换行符
     // 注意宏名和表示参数的括号之间不能有空白符，否则会把函数宏误判为对象宏
     // 另注：
-    // #define f(a)\
-    // printf("[+]"#a"\n");
+    // #define f\
+    // (a) printf("[+]"#a"\n");
     // 以上换行方式是合法的，需要反斜杠另起的下一行起始不为空白符。
     ```
 
 宏的操作符: 
 
-+ 字符串化操作符 `#`
++ Stringizing操作符 `#`
 
     > 注意点: 
     >
     > 1. 字符串化操作符只能对函数宏的参数使用。
     > 2. 参数前后的空白符都会被忽略，中间的空白符会被压缩为一个，注释会被忽略并变成一个空白符。
 
-+ 合并Token操作符 `##`
++ Concatenation操作符 `##`
 
-对象宏的展开是**深度优先**的递归展开，并且需要满足: 
-
-1. 创建一个初始状态为空集的*限定集*
-2. 深度优先递归展开到最底层的过程中，把每层待展开的宏加入限定集
-3. 在展开每层宏时避开上一层限定集中的宏
-
-函数宏的展开需要: 
-
-1. 先将所有参数原封不动替换到函数中的各个位置
-2. 深度优先递归展开所有参数(连接着`#`或`##`的参数不会被展开，未后接括号的函数宏不会被展开)
-3. 待所有参数完成展开之后，将展开的宏函数名加入此层的限定集中(不包括参数展开过程中使用的限定集)
-4. 递归完成剩余部分的展开
-    > 注意: 如果剩余部分的最后一个名称(未后接括号)已经在限定集中，则将会被标记为不被展开，因此这种情况下如果该函数宏展开完成后的最后一个名称可以和接下来的括号再结合为一个函数宏，那么此时仍然不会展开该函数宏。如果剩余部分的最后一个名称(未后接括号)不在限定集中，则将会被标记为可能能够展开，因此这种情况下如果该函数宏展开完成后的最后一个名称可以和接下来的括号再结合为一个函数宏，那么会继续展开函数宏，且新展开的函数宏将使用新的限定集，而不会继承之前的限定集。
-    >
-    > 比如[GNU文档](https://gcc.gnu.org/onlinedocs/cppinternals/Macro-Expansion.html)中所述: 
-    > ```C
-    > #define foo(x) bar x
-    > foo(foo) (2)
-    >
-    > // 将会被展开为: bar foo (2)
-    > ```
-
-几个展开示例: 
+`...`用来接收任意数量的参数，`__VA_ARGS__`用来代替前者接收的参数。如: 
 
 ```C
-#define FOO_ 0
-#define FOO_1 1
-#define CAT(x, y) x ## y
-CAT(FOO_, 1)
+#define f(a, ...) a __VA_ARGS__
+f(1, 2, 3, 4)
 
--> 1
-//********************
-#define FOO_ 0
-#define FOO_1 1
-#define PRIMITIVE_CAT(x, y) x ## y
-#define CAT(x, y) PRIMITIVE_CAT(x, y)
-CAT(FOO_, 1)
-
--> 01
-//********************
-#define f(a) a #a
-#define ax MOV
-f(ax)
-
--> MOV "ax"
-//********************
-#define f(a) a #a
-f(f(a))
-
--> a "a" "f(a)"
-//********************
-#define f() ff
-#define ff() aa
-f()()
-
--> aa
-//********************
-#define f() f
-f()()
-
--> f()
-//********************
-#define f() a()
-#define a() b()
-#define b() c() d()
-#define c() a() b()
-f()
-
--> a() b() d()
-//********************
-#define f(x) x a
-#define a(x) x b
-#define b(x) x c
-#define c(x) a(x) b(x) a
-f(i)(j)(k)(l)(m)
-
--> i j k l b l c m b
-//********************
-#define FOO(x, y) x + y
-#define BAZ(z) FOO(BAZ(0), FOO(1, 2)) + z
-BAZ(3)
-
--> BAZ(0) + 1 + 2 + 3
-//********************
-#define FOO_(x) FOO_1(x)
-#define FOO_1(x) FOO_2(x) + 1
-#define FOO_2(x) FOO_1(x) - 1
-#define BAR(x) FOO_ ## x (12) FOO_2
-BAR(1) (5)
-
--> FOO_1(12) - 1 + 1 FOO_2(5) + 1 - 1
-//********************
-#define BAZ() BAR
-#define BAR() 1 BAZ()
-#define FOO(x) BAR() - x()
-FOO(BAR())
-
--> 1 BAR - 1 BAR()
-//********************
-// 黑魔法 宏的延迟展开
-#define EMPTY
-#define DEFER(id) id EMPTY
-#define FOO() expanded
-DEFER(FOO)()
-
--> FOO ()
-// DEFER(FOO)完成参数展开后为"FOO EMPTY"
-// 之后再用扫描器从头扫描"FOO EMPTY"，将其完全展开后为"FOO "
-// 此时扫描器所指为结尾的空白符，空白符再与后面的"()"相接自然也不会被解析为函数宏
-// 若要完整解析，则需要再套一层函数宏，使得"DEFER(FOO)()"的展开为某函数宏参数的展开
-// 外层函数宏参数展开之后，扫描器从头扫描整个外层函数宏，此时自然能够解析"FOO ()"
-#define EMPTY
-#define DEFER(id) id EMPTY
-#define FOO() expanded
-#define EXPAND(a) a
-EXPAND(DEFER(FOO)())
-
--> expanded
-//********************
-#define FOO(...) __VA_ARGS__
-// 展开后的结果为宏函数的全部参数
+// 1 2, 3, 4
 ```
 
 ***
@@ -565,6 +451,12 @@ a
     >
     > f(f(f(x)))
     > // x "x" "f(x)" "f(f(x))"
+    > /*=====================*/
+    > #define f(x) g(f(0),g(1, 2)) x
+    > #define g(x, y) x y
+    >
+    > f(3)
+    >// f(0) 1 2 3
     > ```
 4. 如果某支路完全展开后的最后一个对象为不带括号的函数宏名称，那么如何处理这种情况
     > + 若该函数名称在限定集中，则将会被标记为不被展开。如果可以和接下来的括号再结合为一个函数宏，那么仍然不会展开该函数宏
@@ -575,6 +467,111 @@ a
     >
     > f()()()
     > // f2
+    > /*=====================*/
+    > #define f(x) g() x()
+    > #define g() z()
+    > #define z() g
+    >
+    > f(g())
+    > // g g()
     > ```
+
+黑魔法 宏的延迟展开
+
+```C
+#define EMPTY
+#define f(func) func EMPTY
+#define g() expanded
+f(g)()
+
+// g ()
+// 若要完整解析，则需要再套一层函数宏，使得"f(g)()"的展开为某函数宏参数的展开
+#define EMPTY
+#define f(func) func EMPTY
+#define g() expanded
+#define EXPAND(a) a
+EXPAND(f(g)())
+
+// expanded
+```
+
+几个展开示例: 
+
+```C
+#define FOO_ 0
+#define FOO_1 1
+#define CAT(x, y) x ## y
+CAT(FOO_, 1)
+
+-> 1
+//********************
+#define FOO_ 0
+#define FOO_1 1
+#define PRIMITIVE_CAT(x, y) x ## y
+#define CAT(x, y) PRIMITIVE_CAT(x, y)
+CAT(FOO_, 1)
+
+-> 01
+//********************
+#define f(a) a #a
+#define ax MOV
+f(ax)
+
+-> MOV "ax"
+//********************
+#define f(a) a #a
+f(f(a))
+
+-> a "a" "f(a)"
+//********************
+#define f() ff
+#define ff() aa
+f()()
+
+-> aa
+//********************
+#define f() f
+f()()
+
+-> f()
+//********************
+#define f() a()
+#define a() b()
+#define b() c() d()
+#define c() a() b()
+f()
+
+-> a() b() d()
+//********************
+#define f(x) x a
+#define a(x) x b
+#define b(x) x c
+#define c(x) a(x) b(x) a
+f(i)(j)(k)(l)(m)
+
+-> i j k l b l c m b
+//********************
+#define FOO_(x) FOO_1(x)
+#define FOO_1(x) FOO_2(x) + 1
+#define FOO_2(x) FOO_1(x) - 1
+#define BAR(x) FOO_ ## x (12) FOO_2
+BAR(1) (5)
+//********************
+-> FOO_1(12) - 1 + 1 FOO_2(5) + 1 - 1
+#define cat(a,b) a ## b
+#define xcat(x, y) cat(x, y)
+xcat(xcat(1, 2), 3)
+
+-> 123
+//********************
+#define f a b
+#define a g
+#define b ()
+#define g() expanded
+#define h(a) a
+h(f)
+
+-> expanded
+```
 
 ***
