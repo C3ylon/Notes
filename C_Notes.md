@@ -604,6 +604,4 @@ struct tag_a {
 
 若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员
 
-```
-
 ***
