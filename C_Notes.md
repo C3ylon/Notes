@@ -575,3 +575,35 @@ h(f)
 ```
 
 ***
+
+在声明结构体时: 
+
+```C
+struct tag_a {
+    int a;
+    float b;
+    struct tag_b {
+        short c;
+        char d;
+    };
+};
+```
+
+若定义`struct tag_a a = { 0 };`则用`a.c`可以直接访问到`struct tag_b`中的成员
+
+```C
+struct tag_a {
+    int a;
+    float b;
+    struct tag_b {
+        short c;
+        char d;
+    } bb;
+};
+```
+
+若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员
+
+```
+
+***
