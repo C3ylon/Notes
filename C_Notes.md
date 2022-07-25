@@ -605,3 +605,27 @@ struct tag_a {
 若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员
 
 ***
+
+Ubuntu 16.4上执行以下代码会出现错误，输出结果为`result: hello world`。原因是经过编译器的优化导致`res`和`tmp`的起始地址为同一处。修正方法是像注释那样初始化`res`的值。
+
+```C
+#include<stdio.h>
+
+void test(char *p, int len)
+{
+	snprintf(p, len, "%s", "hello world");
+}
+int main()
+{
+	char res[512];
+    // char res[512] = { 0 };
+	{
+		char tmp[1024];
+		test(tmp, 1024);
+	}
+	printf("result: %s\n", res);
+	return 0;
+}
+```
+
+***
