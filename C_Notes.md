@@ -646,7 +646,7 @@ struct {
 
 ```C
 char *p1 = NULL;
-const char p2 = NULL;
+const char *p2 = NULL;
 p2 = p1; // 正确
 p1 = p2; // 错误，缺少限定符
 /*************************/
