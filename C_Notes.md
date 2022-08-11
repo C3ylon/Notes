@@ -644,8 +644,8 @@ int main()
     > ```
 2. 可以用`((void*)0)`赋值给任意类型指针，包括object pointer和function pointer。但如果是非零值则严格意义上只能赋值给object pointer。
     > ```C
-    > void*(*p)() = (void*)0; // 正确
-    > void*(*p)() = (void*)1; // 在-Wpedantic编译选项下警告: 
+    > void *(*p)() = (void*)0; // 正确
+    > void *(*p)() = (void*)1; // 在-Wpedantic编译选项下警告: 
     > // warning: ISO C forbids initialization between function pointer and 'void *'
     > ```
 
