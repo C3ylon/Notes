@@ -667,7 +667,7 @@ p1 = p2; // 错误，同上
 
 ***
 
-指针类型中包含**object pointer**和**function pointer**两种类型，object pointer之间可以互相转化，function pointer之间也可以互相转化，但是在C标准里object pointer不能和function pointer互相转化，既不能通过隐式转化直接赋值，也不能显式强制转化。
+指针类型中包含**object pointer**和**function pointer**两种类型，object pointer之间可以互相转化，function pointer之间也可以互相转化，但是在C标准里object pointer不能和function pointer互相转化，即: 既不能通过隐式转化直接赋值，也不能显式强制转化。但是把一个function pointer类型的变量再取值，得到的是pointer to pointer，这个指针是object pointer类型，即可作为function pointer到object pointer之间的桥梁。
 
 ```C
 void *p1 = NULL;
