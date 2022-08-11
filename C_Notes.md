@@ -630,17 +630,24 @@ int main()
 
 ***
 
-初始化复合类型变量时`= { 0 }`和`= { 非零值 }`不一样，如下是正确的，但是最后一行换成注释的内容后gcc编译时会触发警告：初始化时缺少括号。
+初始化时赋零值是一个特殊处理的情况。比如: 
 
-```C
-struct {
-    struct {
-        int a;
-    };
-    int b; 
-} a = { 0 };
-/* } a = { 1 }; */
-```
+1. 初始化复合类型变量时`= { 0 }`和`= { 非零值 }`不一样，如下是正确的，但是最后一行换成注释的内容后gcc编译时会触发警告：初始化时缺少括号。
+    > ```C
+    > struct {
+    >     struct {
+    >         int a;
+    >     };
+    >     int b; 
+    > } a = { 0 };
+    > /* } a = { 1 }; */
+    > ```
+2. 可以用`((void*)0)`赋值给任意类型指针，包括object pointer和function pointer。但如果是非零值则严格意义上只能赋值给object pointer。
+    > ```C
+    > void*(*p)() = (void*)0; // 正确
+    > void*(*p)() = (void*)1; // 在-Wpedantic编译选项下警告: 
+    > // warning: ISO C forbids initialization between function pointer and 'void *'
+    > ```
 
 ***
 
@@ -657,5 +664,19 @@ p1 = p2; // 错误，同上
 ```
 
 把一个指针变量赋值给另一个指针变量时，左值必须**至少**具备右值的全部`const`限定符，但是在强制转换的时候括号内的类型不需全部具备这些限定符。
+
+***
+
+指针类型中包含**object pointer**和**function pointer**两种类型，object pointer之间可以互相转化，function pointer之间也可以互相转化，但是在C标准里object pointer不能和function pointer互相转化，既不能通过隐式转化直接赋值，也不能显式强制转化。
+
+```C
+void *p1 = NULL;
+void *(*p2)() = p1; // 错误
+void *(*p3)() = (void*(*)())p1; // 错误
+`warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]`
+// 将p1赋值给一个函数指针的正确用法: 
+void *(*p4)() = NULL;
+*(void**)&p4 = p1;
+```
 
 ***
