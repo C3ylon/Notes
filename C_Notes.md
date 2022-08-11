@@ -675,7 +675,7 @@ void *(*p2)() = p1; // 错误
 void *(*p3)() = (void*(*)())p1; // 错误
 `warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]`
 // 将p1赋值给一个函数指针的正确用法: 
-void *(*p4)() = NULL;
+void *(*p4)() = NULL; // NULL的类型虽然是void*，但是由于赋零值的特殊性故可直接赋值.
 *(void**)&p4 = p1;
 ```
 
