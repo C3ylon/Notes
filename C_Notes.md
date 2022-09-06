@@ -690,12 +690,12 @@ union un {
         unsigned b : 3;
         unsigned c : 5;
         unsigned d : 7;
-    };
+    }; // warning: ISO C90 doesn't support unnamed structs/unions
     unsigned short val;
 };
 
 int main() {
-    union un a = { .a = 1, .b = 3, .c = 5, .d = 7 };
+    union un a = { .a = 1, .b = 3, .c = 5, .d = 7 }; // warning: ISO C90 forbids specifying subobject to initialize
     printf("%d %d %d %d\n", a.a, a.b, a.c, a.d); // 1 3 5 7
     printf("%X\n", a.val); // E57
     return 0;
