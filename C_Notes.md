@@ -680,3 +680,26 @@ void *(*p4)() = NULL; // NULL的类型虽然是void*，但是由于赋零值的�
 ```
 
 ***
+
+位域中的值由低位至高位排放。
+
+```C
+union un {
+    struct {
+        unsigned a : 1;
+        unsigned b : 3;
+        unsigned c : 5;
+        unsigned d : 7;
+    };
+    unsigned short val;
+};
+
+int main() {
+    union un a = { .a = 1, .b = 3, .c = 5, .d = 7 };
+    printf("%d %d %d %d\n", a.a, a.b, a.c, a.d); // 1 3 5 7
+    printf("%X\n", a.val); // E57
+    return 0;
+}
+```
+
+***
