@@ -589,7 +589,7 @@ struct tag_a {
 };
 ```
 
-若定义`struct tag_a a = { 0 };`则用`a.c`可以直接访问到`struct tag_b`中的成员
+若定义`struct tag_a a = { 0 };`则用`a.c`可以直接访问到`struct tag_b`中的成员。
 
 ```C
 struct tag_a {
@@ -602,7 +602,9 @@ struct tag_a {
 };
 ```
 
-若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员
+若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员。
+
+**注意**: 在C99及其以前的标准中不支持第一种做法。 // warning: ISO C90 doesn't support unnamed structs/unions
 
 ***
 
@@ -690,7 +692,7 @@ union un {
         unsigned b : 3;
         unsigned c : 5;
         unsigned d : 7;
-    }; // warning: ISO C90 doesn't support unnamed structs/unions
+    };
     unsigned short val;
 };
 
