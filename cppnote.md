@@ -75,3 +75,15 @@ constexpr const int *q = nullptr;
 ```
 
 ***
+
+```C++
+string line;
+while(getline(std::cin, line)) {
+    std::cout << line << endl;
+}
+```
+
+每次调用`getline`时从输入流中读取内容直到换行符为止，但是该换行符不会存入到string对象中去。
+
+***
+
