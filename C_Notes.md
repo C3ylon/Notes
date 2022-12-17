@@ -717,4 +717,15 @@ const pchar a = NULL;
 
 此处不能把a的声明等效为`const char *a`，a实际上是一个常量指针而非一个指向常量char的指针，即不能修改a的值，可以修改\*a的值。
 
+```C
+typedef int A[2][3];
+const A a = { {1, 2, 3}, {4, 5, 6} };
+```
+
+此处变量a的类型为`const int (*)[3]`，而非`int (* const)[3]`。
+
+> 第一段代码中a的声明等效于`char *const a = NULL;`
+>
+> 第二段代码中a的声明等效于`int const a[2][3] = { {1, 2, 3}, {4, 5, 6} }`
+
 ***
