@@ -442,6 +442,15 @@ a
     >
     > f(A)
     > // FOO_expanded
+    > g(A)
+    > // FOO_A
+    >
+    > // 下为在C89标准下常见的输出log行数的技巧：
+    > #define HERE "here is: " STR(__LINE__)
+    > #define STR(A) _STR(A)
+    > #define _STR(A) #A
+    > HERE
+    > // "here is: xxx"
     > ```
 3. 参数的限定集选取
     > 参数的限定集即为该函数宏展开前的限定集
