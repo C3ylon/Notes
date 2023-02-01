@@ -783,4 +783,11 @@ C/C++在开启O2及以上编译优化时因违背**strict aliasing**而产生的
 
 不定参数函数的传参过程中，不论是32位编译还是64位编译都会将float类型提升为double类型来传参。
 
+```
+.\test2.c:20:23: warning: 'float' is promoted to 'double' when passed through '...'
+     sum += va_arg(ap, float);
+                       ^
+.\test2.c:20:23: note: (so you should pass 'double' not 'float' to 'va_arg')
+```
+
 ***
