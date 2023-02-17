@@ -773,7 +773,81 @@ int main()
 
 ***
 
-C/C++在开启O2及以上编译优化时因违背**strict aliasing**而产生的优化代码之后无法按预期执行的问题，深坑待补...
+在开启O2及以上编译优化时需要注意因违背**strict aliasing**而产生的优化代码之后无法按预期执行的问题。
+
+> gcc和clang会出现，msvc暂未发现。推测是msvc采用了更为保守的优化策略。
+
+```C
+#include <stdio.h>
+
+size_t *arr[1000];
+
+// func1()期望因访问0地址内存而异常
+// 在开启O2及以上优化后，可以成功执行，
+// 原因是arr[0]的值只取了一次，在后续需要读取到该值时由于基于strict-aliasing规则的优化，
+// 省略了重复读arr地址储存的值的步骤
+void func1() {
+    for(int i = 0; i < 1000; i++) {
+        arr[0][i] = 0;
+    }
+}
+
+// func2()期望输出1078523331  3.140000
+// 在开启O2及以上优化后，输出3  3.140000
+void func2(int *a, float *b) {
+    *a = 3;
+    *b = 3.14;
+    printf("%d  %f\n", *a, *b);
+}
+
+int main() {
+    arr[0] = (size_t*)arr;
+    func1();
+    int a = 10;
+    func2(&a, (float*)&a);
+    return 0;
+}
+```
+
+`strict-aliasing`规则简言之即是：编译器为了提升效率，会假定**不相容**的指针不会指向同一处内存地址，某个指针对某一内存地址进行**读操作**时不需要考虑不相容的另一个指针是否已经对该地址进行了**写操作**。
+
+> 默认`char*`与所有类型的指针相容。
+
+解决strict-aliasing引起的编码执行效果不符合预期的问题有三种方法：
+
+1. 使用union进行合法的type punning。
+2. 在编译选项中添加上`-fno-strict-aliasing`。
+3. 使用`volatile`关键字，编译器将会对每次**读操作**或**写操作**进行取值。
+
+> 由于使用`volatile`关键字会使编译器每次对读写操作进行取值，所以编译出的汇编代码效率上比直接添加`-fno-strict-aliasing`开关选项之后编译出的代码效率相对更低。
+
+```C
+// 使用volatile关键字的实例如下
+// 此时gcc开启O3优化也会如实执行读写操作的每一次取值
+#include <stdio.h>
+
+size_t *volatile arr[1000];
+
+void func1() {
+    for(int i = 0; i < 1000; i++) {
+        arr[0][i] = 0;
+    }
+}
+
+void func2(volatile int *a, volatile float *b) {
+    *a = 3;
+    *b = 3.14;
+    printf("%d  %f\n", *a, *b);
+}
+
+int main() {
+    arr[0] = (size_t*)arr;
+    func1();
+    int a = 10;
+    func2(&a, (float*)&a);
+    return 0;
+}
+```
 
 ***
 
