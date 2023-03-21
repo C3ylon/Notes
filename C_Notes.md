@@ -862,3 +862,28 @@ int main() {
 ```
 
 ***
+
+关于赋值的一个小trick: 
+
+```C
+#include <stdio.h>
+
+struct st {
+    int i;
+    void *p;
+} a = {
+    .i = 1,
+    .p = &a
+};
+
+int main() {
+    printf("%p\n", a.p);
+    int *p = (void*)&p;
+    printf("%p\n", p);
+    return 0;
+}
+```
+
+以上操作皆合法，在CPython源码中常被用于初始化某个结构体变量。
+
+***
