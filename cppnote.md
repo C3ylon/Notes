@@ -1,4 +1,4 @@
-***
+# CPP_NOTES
 
 输入输出流：`cin`,`cout`,`cerr`,`clog`。
 
@@ -31,11 +31,12 @@ cpp标准库头文件通常不带后缀。
 2. 浮点型字面值默认为`double`。表现为小数或以科学计数法表示的指数(指数部分用E或e分隔)。
 
    > 指定字面值的类型:
-   > + 整型: 加后缀`U`指定为`unsigned`，加后缀`L`或`LL`指定为`long`或`long long`
-   > + 浮点型: 加后缀`F`指定为`float`，加后缀`L`指定为`long double`
-   > + 字符串型: 加前缀`L`指定为`wchart_t`，加前缀`u8`指定编码为`utf-8`，类型仍为`char`
    >
-   >   加前缀`u`指定为`char16_t`表示Unicode 16字符，加前缀`U`指定为`char32_t`表示Unicode 32字符
+   > + 整型: 加后缀`U`指定为`unsigned`，加后缀`L`指定可容纳值的最小宽度类型为`long`，加后缀`LL`指定为`long long`。
+   > + 浮点型: 加后缀`F`指定为`float`，加后缀`L`指定为`long double`。
+   > + 字符型和字符串型: 加前缀`L`指定为`wchart_t`，加前缀`u8`指定编码为`utf-8`，类型仍为`char`。
+   >
+   >   加前缀`u`指定为`char16_t`表示Unicode 16字符，加前缀`U`指定为`char32_t`表示Unicode 32字符。
 
 ***
 
@@ -95,4 +96,3 @@ while(getline(std::cin, line)) {
 每次调用`getline`时从输入流中读取内容直到换行符为止，但是该换行符不会存入到string对象中去。
 
 ***
-
