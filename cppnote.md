@@ -33,7 +33,9 @@ cpp标准库头文件通常不带后缀。
    > 指定字面值的类型:
    > + 整型: 加后缀`U`指定为`unsigned`，加后缀`L`或`LL`指定为`long`或`long long`
    > + 浮点型: 加后缀`F`指定为`float`，加后缀`L`指定为`long double`
-   > + 字符串型: 加前缀`L`指定为`wchart_t`，加前缀`u8`指定为`utf-8`
+   > + 字符串型: 加前缀`L`指定为`wchart_t`，加前缀`u8`指定编码为`utf-8`，类型仍为`char`
+   >
+   >   加前缀`u`指定为`char16_t`表示Unicode 16字符，加前缀`U`指定为`char32_t`表示Unicode 32字符
 
 ***
 
