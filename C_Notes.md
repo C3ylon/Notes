@@ -724,6 +724,13 @@ const pchar a = NULL;
 此处不能把a的声明等效为`const char *a`，a实际上是一个常量指针而非一个指向常量char的指针，即不能修改a的值，可以修改\*a的值。
 
 ```C
+typedef char *pchar;
+const pchar *a;
+```
+
+此处a是一个指针，指向的对象是一个常量指针，该常量指针指向的对象是char。
+
+```C
 typedef int A[2][3];
 const A a = { {1, 2, 3}, {4, 5, 6} };
 ```
@@ -732,7 +739,11 @@ const A a = { {1, 2, 3}, {4, 5, 6} };
 
 > 第一段代码中a的声明等效于`char *const a = NULL;`
 >
-> 第二段代码中a的声明等效于`int const a[2][3] = { {1, 2, 3}, {4, 5, 6} }`
+> 第二段代码中a的声明等效于`char *const *a`
+>
+> 第三段代码中a的声明等效于`int const a[2][3] = { {1, 2, 3}, {4, 5, 6} }`
+
+当某个变量的声明中一起出现const与typedef的类型时，一种简便的理解方式: 不妨将const和声明符(declarator)放在一起带入到原typedef语句中，替换掉该语句定义的类型名。
 
 ***
 
