@@ -140,6 +140,45 @@ auto关键字:
 
 ***
 
+与`auto`一样，`decltype`也是C++11新引入的可推导类型的关键字，但是特性略有区别。
+
+1. `decltype`会保留顶层const。
+  
+   > ```C++
+   > const int *const a = nullptr;
+   > auto b = a; // b的类型是 const int*
+   > decltype(a) c = nullptr; // c的类型是 const int* const
+   > ```
+
+2. 对于引用类型的变量，`decltype`得到的类型为该引用类型。对于引用类型的变量参与运算的表达式，`decltype`得到的类型为表达式结果的类型。
+  
+   > ```C++
+   > const int i, &r = i;
+   > decltype(r) a = i; // a的类型为 const int&
+   > decltype(r + 0) b; // b的类型为 int
+   > // 注意表达式运算之后失去了const限定符
+   > ```
+
+3. 若表达式得到的结果可为左值，则`decltype`得到的类型都为引用。
+
+   + 如果表达式的内容是解引用操作，`decltype`得到的类型为引用类型。
+
+     > ```C++
+     > const int i = 0, *p = &i;
+     > decltype(*p) = i; // a的类型为 const int&
+     > ```
+
+   + 变量名两边加上括号可以看作一个特殊的表达式，该表达式可以作为左值。
+
+     > ```C++
+     > const int i = 0;
+     > decltype(i) a = i; // a的类型是 const int
+     > decltype((i)) b = i; // b的类型是 const int&
+     > // decltype((variable)) 的结果永远是引用。
+     > ```
+
+***
+
 ```C++
 string line;
 while(getline(std::cin, line)) {
