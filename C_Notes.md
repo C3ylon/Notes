@@ -249,7 +249,7 @@ struct结构体的标签在单独的命名空间内。比如定义 `struct tag{�
 
 ***
 
-C语言链接属性有三种，`external`，`internal`，`none`。全局变量和函数声明的链接属性默认为`external`，其余皆为`none`。
+C语言链接属性有三种，`external`，`internal`，`none`。全局变量和(全局)函数声明的链接属性默认为`external`，其余皆为`none`。
 
 改变默认链接属性的方式有两种：
 
