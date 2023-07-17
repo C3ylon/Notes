@@ -71,7 +71,10 @@ cpp标准库头文件通常不带后缀。
 // foo1.h 该处为声明
 extern const int a;
 // foo1.cpp 该处为定义
-extern const int a = 1;
+const int a = 1;
+// foo2.cpp包含foo1.h，foo2可以使用变量名a
+// 或者也可直接定义 extern const int a = 1;
+// 上述定义在C中会报警告: 'a' initialized and declared 'extern'，但是对于C++来说这么使用没有问题
 ```
 
 > C语言中const对象在所有文件内都有效。
