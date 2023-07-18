@@ -939,6 +939,8 @@ int *a;
 float *b = 0;
 // (float*)a = b; 错误。(float*)a非lvalue
 a = (int*)b;
+// 或:
+*(float**)&a = b;
 ```
 
 ***
