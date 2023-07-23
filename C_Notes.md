@@ -944,3 +944,30 @@ a = (int*)b;
 ```
 
 ***
+
+`struct`和`union`里可以用一个语句同时定义一个类型名(`enum`，`struct`，`union`)并用该类型声明一个变量，定义的变量名只在结构或联合里可见，但定义的类型名可见范围与该结构或联合本身的可见范围相同。
+
+***
+
+C 中没有`enum`的前置声明(不同于`struct`或`union`)
+
+```C
+enum e;
+enum e {a, b, c};
+// ISO C forbids forward references to 'enum' types
+```
+
+`enum`如果定义在`struct`或`union`中，则其大括号内枚举常量的变量名作用域与`struct`或`union`自身变量名的作用域相同。
+
+```C
+struct Element {
+    enum State { SOLID, LIQUID, GAS } state;
+} oxygen = { GAS };
+// 类型 enum State 与其枚举常量于此保持可见，例如
+void foo(void) {
+    enum State e = LIQUID; // OK
+    printf("%d %d %d ", SOLID, e, oxygen.state); // 打印 0, 1, 2
+}
+```
+
+***
