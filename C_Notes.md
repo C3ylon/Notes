@@ -610,7 +610,7 @@ struct tag_a {
 
 若定义`struct tag_a a = { 0 };`此时必须用`a.bb.c`才可以访问到`struct tag_b`中的成员。
 
-**注意**: 在C99以前的标准中不支持第一种做法。 // warning: ISO C90 doesn't support unnamed structs/unions
+**注意**: 在C11以前的标准中不支持第一种做法。 // warning: ISO C99 doesn't support unnamed structs/unions
 
 ***
 
