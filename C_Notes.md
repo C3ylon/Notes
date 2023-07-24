@@ -956,6 +956,11 @@ float *b = 0;
 a = (int*)b;
 // 或:
 *(float**)&a = b;
+
+int *c = 0;
+float d = 0;
+// c = &(int)d; 错误。(int)d非lvalue
+c = (int*)&d;
 ```
 
 ***
