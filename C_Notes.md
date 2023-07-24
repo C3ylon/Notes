@@ -971,3 +971,20 @@ void foo(void) {
 ```
 
 ***
+
+数组类型与数组成员同等地拥有`const`限定。
+
+```C
+typedef int A[2][3];
+const A a = { 0 }; 
+void *p = a; // C23 前 OK ； C23 起错误
+// initializing 'void *' with an expression of type 'const A' (aka 'const int[2][3]') discards qualifiers
+// 正确用法: const void *p = a;
+
+const int (*b)[3] = 0;
+void *pb = b;
+// initializing 'void *' with an expression of type 'const int (*)[3]' discards qualifiers
+// 正确用法: const void *pb = b;
+```
+
+***
