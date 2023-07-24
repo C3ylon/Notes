@@ -759,10 +759,10 @@ const int a = 10, *pa = &a, *const cpa;
 >
 > `int`和`const int`视作两个基础类型，比如`int a, const b;` 就是一种错误的声明方式，因为它把`int`和`const int`两种不同的基础类型放在了同一个声明语句里。
 
-用typedef的类型来声明变量时用到`const`等限定词的情况:
+用typedef的类型来声明变量时用到`const`等限定符的情况:
 
-+ 如果typedef的类型是一个指针，则限定词作用于指针本身而不是指针所指的对象
-+ 如果typedef的类型是一个数组，则限定词作用于数组的基础成员(不论是一维数组还是多维数组)
++ 如果typedef的类型是一个指针，则限定符作用于指针本身而不是指针所指的对象
++ 如果typedef的类型是一个数组，则限定符作用于数组的基础成员(不论是一维数组还是多维数组)
 
 以上是数组和指针的一个重要区别。
 
@@ -778,6 +778,21 @@ const B *q = 0;
 typedef int *C[3][4];
 const C *r;
 // r的类型为 int* const (*)[3][4]
+```
+
+数组类型与数组成员同等地拥有`const`等限定符。
+
+```C
+typedef int A[2][3];
+const A a = { 0 }; 
+void *p = a; // C23 前 OK ； C23 起错误
+// initializing 'void *' with an expression of type 'const A' (aka 'const int[2][3]') discards qualifiers
+// 正确用法: const void *p = a;
+
+const int (*b)[3] = 0;
+void *pb = b;
+// initializing 'void *' with an expression of type 'const int (*)[3]' discards qualifiers
+// 正确用法: const void *pb = b;
 ```
 
 ***
@@ -968,23 +983,6 @@ void foo(void) {
     enum State e = LIQUID; // OK
     printf("%d %d %d ", SOLID, e, oxygen.state); // 打印 0, 1, 2
 }
-```
-
-***
-
-数组类型与数组成员同等地拥有`const`限定。
-
-```C
-typedef int A[2][3];
-const A a = { 0 }; 
-void *p = a; // C23 前 OK ； C23 起错误
-// initializing 'void *' with an expression of type 'const A' (aka 'const int[2][3]') discards qualifiers
-// 正确用法: const void *p = a;
-
-const int (*b)[3] = 0;
-void *pb = b;
-// initializing 'void *' with an expression of type 'const int (*)[3]' discards qualifiers
-// 正确用法: const void *pb = b;
 ```
 
 ***
