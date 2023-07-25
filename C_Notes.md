@@ -991,3 +991,25 @@ void foo(void) {
 ```
 
 ***
+
+早期版本gcc和clang的编译器bug:
+
+x86-64 gcc 4.9.4 和 x86-64 clang 5.0.2及其以往版本中，对于使用`= { 0 }` (*universal zero initializer*)初始化第一个成员为结构体或数组的结构体或数组，在开启`-Wall`的情况下会报错缺少括号，在开启`-Wextra`的情况下会额外报错其他变量缺少初始化器。
+
+```C
+struct a {
+    struct b {
+        int c;
+        float d;
+    } e;
+    int f;
+    float g;
+} a = { 0 };
+// warning: missing braces around initializer(near initialization for 'a.e')
+// warning: missing initializer for field 'f' of 'struct a'
+// 实际上这么使用没有任何问题，相关报错也在后续版本的gcc/clang中得到修正。
+```
+
+为防止编译器对以上情况错误报错，可以在静态储存期范围内定义`const struct a zero_st_a;`，在所有需要用到零初始化器的地方使用`struct a foo = zero_st_a`。
+
+***
