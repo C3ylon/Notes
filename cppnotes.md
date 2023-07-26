@@ -381,3 +381,15 @@ class cl {
 
 ***
 
+`mutable`修饰的成员变量即使是`const`类对象的成员依然可以修改。
+
+```C++
+void SomeClass::Const_mem_func() const {
+    ++mutable_var;
+}
+// 即使是const成员函数也能改变mutable修饰的成员变量
+```
+
+`mutable`不能用于修饰引用类型和`const`类型的成员变量。
+
+***
