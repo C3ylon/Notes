@@ -377,7 +377,35 @@ class cl {
 2. 其他类。
 3. 其他类的成员函数。(需先声明其他类的不完全类型，然后声明本类的友元函数，然后定义其他类的完全类型，再在完全类型中声明友元函数，最后再定义该友元函数)
 
-直接定义在类内的友元函数是隐式`inline`。
+```C++
+#include<stdio.h>
+
+class clb;
+class cla {
+public:
+    void prb(clb &b);
+};
+
+class clb {
+    friend void cla::prb(clb &b);
+    int b = 1;
+public:
+    void pra(cla &a);
+};
+
+void cla::prb(clb &b) {
+    printf("%d\n", b.b);
+}
+
+int main () {
+    cla a;
+    clb b;
+    a.prb(b);
+    return 0;
+}
+```
+
+直接定义在类内的非成员友元函数是隐式`inline`。
 
 ***
 
