@@ -364,6 +364,73 @@ class cl {
     int a;
     cl(int a) : a(a) {}
     // 或 : cl(int a) { this->a = a; }
+    // 或 : cl(int a) { cl::a = a; }
+}
+```
+
+上述代码中，`cl(int a) : a(a) {}`与`cl(int a) { this->a = a; }`两种构造函数不能等同。前者直接初始化成员变量，后者先对成员变量默认初始化再进行赋值。示例如下:
+
+```C++
+#include<stdio.h>
+
+class cla {
+public:
+    int a;
+    cla() { printf("in default\n"); }
+    cla(int a) : a(a) { }
+};
+
+class clb {
+public:
+    cla a;
+    clb(cla a) : a(a) { }
+    // clb(cla a) { clb::a = a; }
+};
+
+int main () {
+    clb a(cla(1));
+    // 当使用构造函数初始值列表时，不会打印"in default"
+    // 当采用先初始化后赋值的方式时，会打印"in default"
+    return 0;
+}
+```
+
+> 如果某一类的成员中有引用或const或不具备默认构造函数的另一类对象，那么在定义该类的构造函数时就不能用先对成员变量默认初始化再进行赋值的方式。
+>
+> 因此除了效率问题之外，也有必须在某些类的构造函数中使用初始值列表的情况。尽量优先使用构造函数初始值列表。
+
+构造函数初始值列表进行初始化的顺序**并不是**按照逗号从左至右的结合性依次初始化，而是与成员变量在类定义中出现的顺序一致。
+
+```C++
+class cl {
+    int i;
+    int j;
+public:
+    cl(int val) : j(val), i(j) { }
+};
+// warning: field 'j' will be initialized after field 'i'
+// 最好不要随意更改初始值列表变量顺序。
+```
+
+如果把某个构造函数中原本是初始值列表的地方替换为调用另一个构造函数，则该构造函数即为C++11新引入的委托构造函数。
+
+> 当一个构造函数委托给另一个构造函数时，受委托的构造函数的初始值列表和**函数体**会被依次执行。
+
+```C++
+#include<stdio.h>
+
+class cl {
+    int a;
+public:
+    cl(int a) : a(a) { printf("in 1  "); }
+    cl() : cl(1) { printf("in 2  "); }
+    cl(float a) : cl() { printf("in 3 : %f %d", a, cl::a); }
+};
+
+int main () {
+    cl a(3.14f);
+    //printf : in 1  in 2  in 3 : 3.140000 1
+    return 0;
 }
 ```
 
@@ -457,5 +524,23 @@ void SomeClass::Const_mem_func() const {
 ```
 
 `mutable`不能用于修饰引用类型和`const`类型的成员变量。
+
+***
+
+类的成员函数的返回值类型和参数列表的形参类型必须确保在使用前可见，而定义在类内的函数体中用到的类成员变量可以定义在该函数后。
+
+> 需要特别注意的是，如果某个类成员先使用了外层作用域中的某个类型名，则不能再在类中重新定义该类型名。
+>
+> ```C++
+> typedef int a;
+> 
+> class cl {
+> public:
+>     a b;
+>     typedef int a;
+> // warning: declaration of 'typedef int cl::a' changes meaning of 'a'
+> // 即使重新定义的类型相同也是不合规则的。应当把typedef语句放在类内最前方。
+> };
+> ```
 
 ***
