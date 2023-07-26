@@ -597,7 +597,7 @@ int main () {
 
 ***
 
-类的非`const`静态成员变量不能类内初始化.(如下变量a)
+类的非`const`静态成员变量不能类内初始化。(如下变量a)
 
 类的`const`静态成员变量可以在类内初始化，也可以在类外定义并初始化。(只能选择一个地方赋初始值，如下变量b和c)
 
@@ -621,8 +621,7 @@ constexpr int cl::d;
 
 int main () {
     const int &f= cl::a;
-    const int &g= cl::e; // 错误，未定义cl::e
-    // error: undefined reference to `cl::e'
+    // const int &g= cl::e; error: undefined reference to `cl::e'
     return 0;
 }
 
