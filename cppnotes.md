@@ -405,7 +405,35 @@ int main () {
 }
 ```
 
-直接定义在类内的非成员友元函数是隐式`inline`。
+直接定义在类内的非成员友元函数是隐式`inline`。即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
+
+```C++
+class cl {
+public:
+    friend void func1() { printf("in func1\n"); }
+    void func2() { func1(); } // error: use of undeclared identifier 'func1'.
+};
+
+/************************************************/
+
+#include<stdio.h>
+
+class cl {
+public:
+    friend void func1() { printf("in func1\n"); }
+    void func2();
+};
+
+void func1(); // 单独声明，使func1可见。且func1不属于cl域内。
+void cl::func2() { func1(); }
+
+int main () {
+    cl a;
+    a.func2();
+    return 0;
+}
+
+```
 
 ***
 
