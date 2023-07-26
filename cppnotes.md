@@ -544,3 +544,7 @@ void SomeClass::Const_mem_func() const {
 > ```
 
 ***
+
+函数参数若为普通引用则需要接收一个lvalue的实参，因此该实参若是临时变量则会报错。若为`const`引用，则可以接收一个非lvalue的实参，此时可以传递临时变量。
+
+***
