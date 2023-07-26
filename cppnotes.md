@@ -288,7 +288,7 @@ int main() {
 
 ***
 
-C++和C不同的一点:
+C++和C不同之处:
 
 ```C++
 // 以下为在C++中的用法，都正确
@@ -299,6 +299,10 @@ void func2( ... ) { }
 1. C++在定义函数时可以有匿名形参，而C不能。(unnamed prototyped parameters not allowed when body is present)
 2. C++在表示可变参数的`...`前可以没有参数，而C至少要有一个参数。
 3. C++在表示可变参数的`...`前可以没有逗号，而C必须要有逗号。
+
+C++里不能直接对函数名使用`sizeof`(error: invalid application of 'sizeof' to a function type)，而C可以。
+
+> C++里`sizeof(func);` `sizeof(*func);`都是错误的，需要用`sizeof(&func);`，而对于C来说都可行。
 
 ***
 
