@@ -397,7 +397,9 @@ int main () {
 
 > 如果某一类的成员中有引用或const或不具备默认构造函数的另一类对象，那么在定义该类的构造函数时就不能用先对成员变量默认初始化再进行赋值的方式。
 >
-> 因此除了效率问题之外，也有必须在某些类的构造函数中使用初始值列表的情况。尽量优先使用构造函数初始值列表。
+> 对于`constexpr`构造函数，也需要用初始值列表来初始化成员变量。
+>
+> 因此除了效率问题之外，也有必须在某些类的构造函数中使用初始值列表的情况。应当尽量优先使用构造函数初始值列表。
 
 构造函数初始值列表进行初始化的顺序**并不是**按照逗号从左至右的结合性依次初始化，而是与成员变量在类定义中出现的顺序一致。
 
@@ -546,5 +548,102 @@ void SomeClass::Const_mem_func() const {
 ***
 
 函数参数若为普通引用则需要接收一个lvalue的实参，因此该实参若是临时变量则会报错。若为`const`引用，则可以接收一个非lvalue的实参，此时可以传递临时变量。
+
+***
+
+只需一个实参就可以调用的构造函数定义一条从该参数类型向类类型隐式转换的规则。
+
+类类型的隐式转换只允许一步。
+
+```C++
+#include<stdio.h>
+#include<string>
+
+using std::string;
+
+class cla {
+public:
+    string s;
+    int a;
+    cla(const string &s, int a = 0) : s(s), a(a) { printf("in cla default\n"); }
+    // const引用，可以用临时变量赋值
+};
+
+class clb {
+    cla a;
+public:
+    clb (const cla &a) : a(a) { printf("%s\n", this->a.s.c_str()); }
+    // const引用，可以用临时变量赋值
+};
+
+int main () {
+    clb(string("abc"));
+    clb(cla("def"));
+    // clb("ghi"); 错误，类类型隐式转换只允许一步，不能从char *到string再到cla
+    clb(static_cast<cla>("jkl"));
+    clb((cla)"mn");
+    // 以上两种显示转换都转换了两步，从char *到string再到cla
+    return 0;
+}
+```
+
+取消类类型的隐式转换可以将对应构造函数声明为`explicit`，该关键字只对只需一个实参就可以调用的构造函数有效。
+
+只能在类内声明构造函数时使用`explicit`关键字，在类外定义函数时不能重复使用。(类比`inline`, `friend`, `static`)
+
+`explicit`构造函数只能用于直接初始化，不能用于使用`=`的拷贝初始化。
+
+尽管`explicit`构造函数不会被用于隐式的类类型转换，但是仍然可以用`static_cast<>`进行显示转换。
+
+***
+
+类的非`const`静态成员变量不能类内初始化.(如下变量a)
+
+类的`const`静态成员变量可以在类内初始化，也可以在类外定义并初始化。(只能选择一个地方赋初始值，如下变量b和c)
+
+`static`只用于静态成员变量在类定义中的声明，而不用于该变量自身的定义，因此需要在类外定义该变量。(类比于`extern`)
+
+```C++
+class cl {
+public:
+    static int a;
+    static const int b;
+    static const int c = 3;
+    static constexpr int d = 4;
+    // constexpr修饰的变量必须在声明时赋一个常量值。
+    static const int e = 5;
+};
+
+int cl::a = 1;
+const int cl::b = 2;
+const int cl::c;
+constexpr int cl::d;
+
+int main () {
+    const int &f= cl::a;
+    const int &g= cl::e; // 错误，未定义cl::e
+    // error: undefined reference to `cl::e'
+    return 0;
+}
+
+```
+
+静态成员可用于普通成员不能用的场景:
+
++ 静态成员变量可以是不完全类型(比如在类内定义一个该类的静态对象，又如在cl类内声明`static int a[];`，在类外定义`int cl::a[10];`)
++ 静态成员变量可以作为该类成员函数的默认实参
+
+***
+
+```C++
+class cl {
+    static int init_a() { printf("init a\n"); return 1; }
+public:
+    static int a;
+};
+
+int cl::a = init_a(); // 从类名开始，这条定义语句的剩余部分都在类的作用域之内，因此可以直接调用类的私有成员函数。
+// int a = cl::init_a(); error: 'init_a' is a private member of 'cl'
+```
 
 ***
