@@ -476,13 +476,15 @@ int main () {
 
 某个友元函数的其他重载函数如果没有单独做友元声明则依然无法访问私有成员。
 
-直接定义在类内的非成员友元函数是隐式`inline`。即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
+直接定义在类内的非成员友元函数是隐式`inline`，具有外部链接属性。即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
 
 ```C++
 class cl {
 public:
     friend void func1() { printf("in func1\n"); }
     void func2() { func1(); } // error: use of undeclared identifier 'func1'.
+    void func1();
+    void func3() { func1(); } // 先声明后使用，正确
 };
 
 /************************************************/
