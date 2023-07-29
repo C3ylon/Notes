@@ -657,6 +657,8 @@ public:
 
 auto cl::func(int_ a) -> int_ { return a; }
 // 尾置的返回类型声明也在cl的域内，即使int_是私有的类型名也可以使用。
+// cl::int_ cl::func(int_ a) -> int_ { return a; } 也可行，因为是类成员函数的定义，所以可以访问到私有的类型名
+// 但是如果直接用cl::int_在类外定义变量则会报错。
 ```
 
 ***
