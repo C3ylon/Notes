@@ -647,6 +647,16 @@ public:
 
 int cl::a = init_a(); // 从类名开始，这条定义语句的剩余部分都在类的作用域之内，因此可以直接调用类的私有成员函数。
 // int a = cl::init_a(); error: 'init_a' is a private member of 'cl'
+/******************************************************************/
+
+class cl {
+    using int_ = int;
+public:
+    int_ func(int_ a);
+};
+
+auto cl::func(int_ a) -> int_ { return a; }
+// 尾置的返回类型声明也在cl的域内，即使int_是私有的类型名也可以使用。
 ```
 
 ***
