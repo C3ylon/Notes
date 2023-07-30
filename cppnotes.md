@@ -641,8 +641,7 @@ int main () {
 ```C++
 class cl {
     static int init_a() { printf("init a\n"); return 1; }
-public:
-    static int a;
+    static int a; // 私有的静态成员变量也可以在类外定义。
 };
 
 int cl::a = init_a(); // 从类名开始，这条定义语句的剩余部分都在类的作用域之内，因此可以直接调用类的私有成员函数。
