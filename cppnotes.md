@@ -640,6 +640,10 @@ int main () {
 
 与类有关的变量名/函数名/类型名的查找优先级关系:
 
+类外定义类的静态成员变量时，变量类型名可以是类的私有类型名。
+
+类外定义类的成员函数时，函数返回值类型、函数参数类型以及函数大括号内的类型名和变量名，都可以是类的私有名称，且都优先从类域内查找，再从类外查找。
+
 ```C++
 class cl {
     typedef int int_;
@@ -687,6 +691,25 @@ int main () {
     cl a;
     printf("%d\n", a.func(10));
     // 打印11。
+    return 0;
+}
+```
+
+***
+
+有默认参数的函数应该在函数声明时带上默认值，而在函数定义时不带默认值。
+
+```C++
+#include<stdio.h>
+
+void func(int a = 1);
+void func(int a = 1) {
+    printf("%d\n", a);
+}
+// error: default argument given for parameter 1 of 'void func(int)'
+// 正确 : void func(int a) {
+int main () {
+    func();
     return 0;
 }
 ```
