@@ -605,7 +605,7 @@ int main () {
 
 `static`只用于静态成员变量在类定义中的声明，而不用于该变量自身的定义，因此需要在类外定义该变量。(类比于`extern`)
 
-> 类中的`static`相当于只声明不定义，而`friend`相当于(即使有定义也)不声明。
+> 类中的`static`对于成员变量相当于只声明不定义，而`friend`对于友元函数相当于(即使有定义也)不声明。
 
 ```C++
 class cl {
@@ -642,11 +642,13 @@ int main () {
 
 ```C++
 class cl {
-    static int init_a() { printf("init a\n"); return 1; }
-    static int a; // 私有的静态成员变量也可以在类外定义。
+    typedef int int_;
+    static int_ init_a() { printf("init a\n"); return 1; }
+    static int_ a; // 私有的静态成员变量也可以在类外定义。
 };
 
-int cl::a = init_a(); // 从类名开始，这条定义语句的剩余部分都在类的作用域之内，因此可以直接调用类的私有成员函数。
+cl::int_ cl::a = init_a();
+// 从类名作用域定义的变量名或函数名开始，这条定义语句的剩余部分都在类的作用域之内，因此可以直接调用类的私有成员函数。
 // 即使全局作用域内有init_a()同名函数，此处也会调用cl域内的函数，除非显式说明作用域::init_a()
 // int a = cl::init_a(); error: 'init_a' is a private member of 'cl'
 /******************************************************************/
