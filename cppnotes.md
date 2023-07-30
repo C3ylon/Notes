@@ -662,6 +662,31 @@ auto cl::func(int_ a) -> int_ { return a; }
 // cl::int_ cl::func(int_ a) { return a; } 也可行，因为是类成员函数的定义，所以可以访问到私有的类型名
 // 此时从形参类型名到大括号内出现的非形参变量名都会优先从类的作用域内查找，然后才在全局作用域查找
 // 如果直接用cl::int_在类外定义变量则会报错。
+/******************************************************************/
+
+#include<stdio.h>
+
+class cl {
+    using int_ = int;
+    int_ p = 1;
+public:
+    int_ func(int_ a);
+};
+
+int p = 2;
+using int_ = float;
+
+cl::int_ cl::func(int_ a) {
+    int_ res = 0; res = a + p; return res;
+    // int_和p都优先从cl域内查找。
+}
+
+int main () {
+    cl a;
+    printf("%d\n", a.func(10));
+    // 打印11。
+    return 0;
+}
 ```
 
 ***
