@@ -750,10 +750,10 @@ const A a = { {1, 2, 3}, {4, 5, 6} };
 同一语句内多个变量的声明由一个 **基础类型(base type)** 和紧随其后的一个 **声明符(declarator)列表** 组成，比如:
 
 ```C
-const int a = 10, *pa = &a, *const cpa;
+const int a = 10, *pa = &a, *const cpa, *i[1], **p = i;
 ```
 
-上述基础类型为`const int`，声明符列表为`a, *pa, *const cpa`。
+上述基础类型为`const int`，声明符列表为`a, *pa, *const cpa, *i[1], **p`。
 
 > 指针所指对象的限定符算在基础类型中，指针本身的限定符算在声明符中。
 >
