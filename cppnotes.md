@@ -153,8 +153,8 @@ auto关键字:
 > // 此处j和k的类型都是一样的，都是const int &
 >
 > const int a = 1;
-> auto b = 2, c = &a;
-> // 在c处报错 : 'auto' type is "const int *" for this entity, but was previously implied to be "int"
+> auto b = 2, &c = a;
+> // 在c处报错 : 'auto' type is "const int" for this entity, but was previously implied to be "int"
 > ```
 
 ***
