@@ -150,7 +150,7 @@ auto关键字:
 > const int i = 1;
 > auto &j = i;
 > const auto &k = i;
-> // 此处j和k的类型都是一样的，都是const int
+> // 此处j和k的类型都是一样的，都是const int &
 >
 > const int a = 1;
 > auto b = 2, c = &a;
