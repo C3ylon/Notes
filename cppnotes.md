@@ -184,7 +184,7 @@ auto关键字:
 
      > ```C++
      > const int i = 0, *p = &i;
-     > decltype(*p) = i; // a的类型为 const int&
+     > decltype(*p) a = i; // a的类型为 const int&
      > ```
 
    + 变量名两边加上括号可以看作一个特殊的表达式，该表达式可以作为左值。
