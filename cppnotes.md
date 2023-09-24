@@ -448,32 +448,30 @@ int main () {
 
 1. 普通的非成员函数。
 2. 其他类。
-3. 其他类的成员函数。(需先声明其他类的不完全类型，然后声明本类的友元函数，然后定义其他类的完全类型，再在完全类型中声明友元函数，最后再定义该友元函数)
+3. 其他类的成员函数。(需先声明本类的不完全类型，然后声明其他类的成员函数，然后定义本类的完全类型，再在完全类型中声明友元函数，最后再定义该友元函数)
 
 ```C++
 #include<stdio.h>
 
-class clb;
-class cla {
-public:
-    void prb(clb &b);
-};
-
+class cla;
 class clb {
-    friend void cla::prb(clb &b);
-    int b = 1;
 public:
     void pra(cla &a);
 };
 
-void cla::prb(clb &b) {
-    printf("%d\n", b.b);
+class cla {
+    friend void clb::pra(cla &a);
+    int a = 1;
+};
+
+void clb::pra(cla &a) {
+    printf("%d\n", a.a);
 }
 
 int main () {
     cla a;
     clb b;
-    a.prb(b);
+    b.pra(a);
     return 0;
 }
 ```
