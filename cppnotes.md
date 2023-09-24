@@ -478,7 +478,9 @@ int main () {
 
 某个友元函数的其他重载函数如果没有单独做友元声明则依然无法访问私有成员。
 
-直接定义在类内的非成员友元函数是隐式`inline`，具有外部链接属性。即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
+直接定义在类内的非成员友元函数是隐式`inline`，具有内部链接属性。即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
+
+友元声明不具有传递性(友元的友元不是友元)，也不会继承(父类的友元不是友元，友元的父类不是友元)
 
 ```C++
 #include<stdio.h>
@@ -497,6 +499,40 @@ int main () {
     a.func2();
     return 0;
 }
+```
+
+gcc/clang/msvc都有的关于友元的问题：
+
+```C++
+#include<stdio.h>
+
+class a {
+    friend void func1(const a&) { }
+public:
+    void func2() { func1(a()); }
+};
+
+int main () {
+    a a;
+    a.func2();
+    return 0;
+}
+// 以上可以成功编译
+#include<stdio.h>
+
+class a {
+    friend void func1() { }
+public:
+    void func2() { func1(); }
+};
+
+int main () {
+    a a;
+    a.func2();
+    return 0;
+}
+// 以上不能成功编译
+// error: use of undeclared identifier 'func1'
 ```
 
 ***
