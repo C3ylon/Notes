@@ -793,3 +793,41 @@ cl a((cl())); // 加上括号可消除歧义，此处(cl())明确指代匿名创
 ```
 
 ***
+
+模板中`<>`的`>`导致的大于号或右移操作运算符歧义问题
+
+```C++
+#include<stdio.h>
+
+template<int N>
+class cl {
+    int arr[N];
+    public:
+    void sz() {
+        printf("N : %d\n", N);
+    }
+};
+
+template<typename T>
+void fn(T &a) {
+    a.sz();
+}
+
+template<int N>
+void fn2() {
+    printf("in fn2 N : %d\n", N);
+}
+
+int main() {
+    cl<2>a;
+    fn<cl<(4>>1)>>(a);
+    // fn<cl<4>>1>>(a); 错误，会解析为(fn<cl<4>>) 1>>(a);
+    fn2<2<1>();
+    fn2<2>=1>();
+    fn2<(2>1)>();
+    // fn2<2>1>(); 错误，会解析为(fn2<2>) 1>();
+    return 0;
+}
+```
+
+***
