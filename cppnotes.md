@@ -831,3 +831,175 @@ int main() {
 ```
 
 ***
+
+在模板定义中模板参数列表不能为空。
+
+***
+
+在实例化函数模板时，可以不必在尖括号内指明全部模板参数值，可以只指明前一部分，然后利用自动推导得出后一部分的值。
+
+> 指明的值称为显式模板实参。
+
+```C++
+
+#include<stdio.h>
+
+template<typename T, T M>
+void func(const char(&p)[M]){
+    printf("%p\n", static_cast<const void*>(p));
+}
+int main() {
+    func<int>("123");
+    // 自动推导出模板参数M的值为4
+    return 0;
+}
+```
+
+***
+
+类模板的成员函数只有在被使用到时才会实例化。这一特性使得即使某一特定类型不能符合该类模板的所有成员函数的操作要求，也可以实例化该类型的类模板，只是不去使用那些不符合操作要求的成员函数即可。
+
+***
+
+函数模板实例的使用优先级与链接顺序有关。
+
+```C++
+// 1.cpp
+#include<stdio.h>
+
+template<typename T>
+void func(T a) {
+    printf("1 : %d\n", a);
+}
+
+void func();
+int main() {
+    func(5);
+    func();
+    return 0;
+}
+```
+
+```C++
+// 2.cpp
+#include <stdio.h>
+
+template<typename T>
+void func(T a) {
+    printf("2 : %d\n", a);
+}
+
+void func() {
+    func(5);
+}
+```
+
+如上，使用`g++ .\1.cpp -c`，`g++ .\2.cpp -c`分别得到`1.o`和`2.o`后：
+
++ 如果使用`g++ .\1.o .\2.o -o .\main.exe`，则程序输出结果为`1 : 5\n1 : 5\n`
++ 如果使用`g++ .\2.o .\1.o -o .\main.exe`，则程序输出结果为`2 : 5\n2 : 5\n`
+
+> C++11中新加入了显式实例化。
+>
+> 一个显式实例化包含实例化声明和实例化定义。实例化声明形式为`extern template declaration`，实例化定义形式为`template declaration`。
+>
+> 实例化声明可能有多个，实例化定义有且只有一个。
+>
+> 如果在1.cpp加入声明`extern template void func(int);`，在2.pp中加入定义`template void func(int);`，则函数模板的实例化采用的是2.cpp中的函数模板。
+>
+> 执行`g++ .\1.cpp .\2.cpp -o main.exe`，得到的程序输出为`2 : 5\n2 : 5\n`
+>
+> (或也可声明为`extern template void func<int>(int);`，定义为`template void func<int>(int);`)
+>
+> 类模板的实例化定义会实例化该类模板的所有成员，因此显式实例化一个类模板时，必须确保类模板的所有成员符合操作要求。
+
+***
+
+在类模板外定义类模板的成员时，需注意从类名作用域定义的变量名或函数名开始才表示剩余部分都在类的作用域之内，此时不用指定模板实参，而在进入类的作用域之前都需要提供模板实参。
+
+```C++
+#include<stdio.h>
+
+template<typename T>
+class cl {
+    public:
+    const cl * func() const;
+};
+
+
+// 类外定义类模板成员函数时返回值类型需要提供模板实参
+template<typename T>
+const cl<T> *cl<T>::func() const {
+    return this;
+}
+
+int main() {
+    cl<int> a;
+    printf("%p\n", static_cast<const void*>(a.func()));
+    return 0;
+}
+```
+
+***
+
+C++11开始可以将模板类型参数声明为友元。
+
+```C++
+template<typename T>
+class cl {
+    friend T;
+    // friend int;
+};
+```
+
+> 友元声明的对象通常是函数或类，但是为了能用基础类型实例化上述类，也可以将基础类型作为友元声明的对象。
+>
+> ```C++
+> // non-class friend type 'int' is a C++11 extension
+> ```
+
+***
+
+`using`比`typedef`泛用性更广的一点体现在，`using`可以创建类模板的别名，而`typedef`不可以。
+
+```C++
+template <typename T, typename U>
+class cl {
+};
+
+template <typename T>
+using clt = cl<T, T>;
+clt<int> a;
+
+// template <typename T>
+// typedef cl<T, T> U;
+// error: a typedef cannot be a template.
+```
+
+注意模板声明不能用于局部作用域，因此如上用`using`创建类模板的类型别名时也不可在局部作用域中。
+
+> ```C++
+> // template declarations are only permitted at global, namespace, or class scope.
+> ```
+
+***
+
+C++11开始可以为函数模板参数提供默认实参，在其之前只能为类模板参数提供默认实参。
+
+> 即使一个类模板的所有模板参数都提供了默认实参，在使用类模板时都必须在类模板后接上一对尖括号。
+>
+> ```C++
+> template <typename T = int, typename U = int>
+> class cl {
+> };
+> 
+> int main() {
+> 
+>     // cl a; 
+>     // error: use of class template 'cl' requires template arguments
+>     cl<> a;
+>     return 0;
+> }
+> ```
+
+***
