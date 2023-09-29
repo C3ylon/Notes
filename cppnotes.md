@@ -1003,3 +1003,57 @@ C++11开始可以为函数模板参数提供默认实参，在其之前只能为
 > ```
 
 ***
+
+模板匹配中遇到的问题：
+
+```C++
+#include <stdio.h>
+
+template <typename T>
+void forward(T &a) {
+    printf("in func1\n");
+}
+
+template <typename T>
+void forward(T &&a) {
+    printf("in func2\n");
+}
+
+template void forward<int&>(int&);
+```
+
+上述代码在进行显式实例化模板的操作时，由于推导出的函数原型出现重复，理应出现报错的情况。在gcc 13.2编译下确实会报错` error: ambiguous template specialization 'forward<int&>' for 'void forward(int&)' `，但是在Clang17.0.1和msvc v19.37编译下都无任何报错提示。
+
+```C++
+#include <stdio.h>
+
+template <typename T>
+T && forward(T &a) {
+    printf("in func1\n");
+    return (T &&)a;
+}
+
+template <typename T>
+T && forward(T &&a) {
+    printf("in func2\n");
+    return (T &&)a;
+}
+
+template int& forward<int&>(int&);
+```
+
+上述代码相较于前一段只修改了返回值类型，但是现在用GCC编译器可以成功编译，实例化后的函数会匹配到第二个函数模板。而Clang和msvc编译出的代码会匹配到第一个函数模板。
+
+```C++
+int main() {
+    int a = 1;
+    forward<int&>(a);
+    return 0;
+}
+```
+
+若将上述代码添加于前一段代码之后，则此处函数调用所使用的实例，无论是GCC还是Clang还是msvc编译出的代码都是使用第一个函数模板实例化出的函数。
+
+综上，在代码编写中，应当尽量避免出现函数模板特例化之后的函数原型出现重复的情况，否则函数匹配的情况是未知的，既有可能匹配向重复的原型中任意一个函数实现，也有可能无法匹配到任何函数实现。
+
+***
