@@ -1057,3 +1057,50 @@ int main() {
 综上，在代码编写中，应当尽量避免出现函数模板特例化之后的函数原型出现重复的情况，否则函数匹配的情况是未知的，既有可能匹配向重复的原型中任意一个函数实现，也有可能无法匹配到任何函数实现。
 
 ***
+
+函数模板在自动推导模板参数的时候可以运用引用折叠。
+
+```C++
+template <typename T>
+void fn(T &&) {
+};
+
+int main() {
+    int a = 0;
+    fn(a);
+    // void fn<int&>(int&)
+}
+```
+
+类模板在进行特化模板选择的时候，不会运用引用折叠。
+
+```C++
+#include<stdio.h>
+template <typename T>
+struct rm {
+    static void pr(){ printf("1\n"); }
+};
+
+template <typename T>
+struct rm<T&> {
+    static void pr(){ printf("2\n"); }
+};
+
+template <typename T>
+struct rm<T&&> {
+    static void pr(){ printf("3\n"); }
+};
+
+int main() {
+    using a = int&;
+    using b = a&&;
+    using c = rm<void>&&;
+    rm<b>::pr();
+    rm<c>::pr();
+    // 打印2 3
+    // 若注释掉第二个模板，则打印1 3而不是打印3 3
+    return 0;
+}
+```
+
+***
