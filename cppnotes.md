@@ -1166,3 +1166,42 @@ int main() {
 ```
 
 ***
+
+`std::vector`在realloc扩容的时候，转移旧成员到新地址用的是`std::move_if_noexcept`，即如果成员的移动函数定义为了`noexcept`则调用移动函数，否则调用拷贝函数。
+
+```C++
+#include <stdio.h>
+#include <utility>
+class cl;
+const cl & move_if_noexcept(cl & a) { return (cl&&)a; } 
+
+class cl {
+    public:
+    cl() { 
+        printf("normal init %p\n", (void*)this); 
+    }
+    cl(const cl &) {
+        printf("copy init %p\n", (void*)this);
+    }
+    // remove noexcept
+    cl(cl &&) {
+        printf("move init %p\n", (void*)this);
+    }
+    ~cl() {
+        printf("distruct %p\n", (void*)this);
+    }
+
+};
+
+int main()
+{
+    cl a;                              // normal init
+    cl b = std::move(a);               // move init
+    cl c = std::move_if_noexcept(a);   // copy init
+    cl d = move_if_noexcept(a);        // copy init
+    cl e = (const cl &)(cl &&)a;       // copy init
+    return 0;
+}
+```
+
+***
