@@ -1205,3 +1205,22 @@ int main()
 ```
 
 ***
+
+函数模板可以被另一个同名函数模板或非模板函数重载。在进行匹配时，如果函数调用处与一个非模板函数和若干个函数模板都达到了最佳匹配，则选择非模板函数。若都未达到最佳匹配，而是在转换的优先级上相同，则也**不会**选择非模板函数，而是会出现二义性调用报错。
+
+```C++
+#include <stdio.h>
+
+void fn(char, char) { printf("1\n"); }
+
+template <typename T>
+void fn(short, T) { printf("2\n"); }
+
+int main(void) {
+    fn(char(1), short(1));
+    // error: call of overloaded 'fn(char, short int)' is ambiguous.
+    return 0;
+}
+```
+
+***
