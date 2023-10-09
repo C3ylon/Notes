@@ -1226,3 +1226,61 @@ int main(void) {
 ```
 
 ***
+
+`catch`接受的参数类型要能严格匹配到`throw`抛出的类型，否则会运行时错误。
+
+> 此处 "严格匹配" 指的是第一级和第二级匹配(即精确匹配 / 接收方比抛出方多出底层`const`)，从第三级开始(即类型提升 / 算术类型转换 / 类类型转换)就不被允许匹配。
+
+***
+
+`catch`时接受的异常参数类型若不为引用，对接受到的异常值做出任何修改之后再`throw`到上层调用处，上层调用处仍为最原始的值，相当于只是修改了临时变量。
+
+```C++
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+class cl {
+    public:
+    int a;
+    cl(int a) : a(a) { }
+};
+
+void fn3() {
+    throw cl(3);
+}
+
+void fn2() {
+    try {
+        fn3();
+    } catch(cl a) {
+    // 若上行改为cl &a则最终输出2
+        a.a = 2;
+        throw;
+    }
+}
+
+void fn1() {
+    try {
+        fn2();
+    } catch(cl a) {
+        printf("%d\n", a.a);
+    // 输出3
+    }
+}
+
+int main() {
+    fn1();
+    return 0;
+}
+```
+
+***
+
+`cin`，`cout`的效率提升办法:
+
++ `std::ios_base::sync_with_stdio(false);` 用于解绑`iostream`和`stdio`，使用此语句之后不能再混用这两个库中的函数。
++ `std::cin.tie(nullptr);` 用于解除每次`cin`前的强制`fflush`操作，使用此语句之后可能会在执行`cin`时看不到本该`cout`出现的内容。
+
+执行以上操作后`cin`，`cout`与`scanf`，`printf`的效率基本不相上下，甚至更快，因为不用再在运行时解析字符串来确定参数数量和格式。
+
+***
