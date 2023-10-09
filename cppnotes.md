@@ -1292,10 +1292,15 @@ int main() {
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <string>
+int count = 0;
 class cl {
     public:
     int a;
-    cl(int a) : a(a) { }
+    int c;
+    cl(int a = 0) : a(a), c(count++) {  }
+    cl(const cl& a) : a(a.a), c(count++) { }
+    ~cl() { printf("distruct %d\n", c); }
 };
 
 void fn3() {
@@ -1323,6 +1328,10 @@ void fn1() {
 
 int main() {
     fn1();
+    // 输出distruct 1\n3\ndistruct 2\ndistruct 0\n
+    // 相当于以逗号连接的连续函数调用 fnx1(cl(3)), fnx2(cl(3));
+    // 连续函数调用在整个语句执行完之后才销毁临时变量实参
+    // 因此最外层捕获不再继续抛出时才会析构最初传入的临时变量
     return 0;
 }
 ```
