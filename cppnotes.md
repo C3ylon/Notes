@@ -1227,9 +1227,61 @@ int main(void) {
 
 ***
 
-`catch`接受的参数类型要能严格匹配到`throw`抛出的类型，否则会按函数调用栈逐级向上检查可以捕获异常的地方，如果异常最终也未被捕获则会触发运行时错误。
++ `catch`接受的参数类型要能严格匹配到`throw`抛出的类型，否则会按函数调用栈逐级向上检查可以捕获异常的地方，如果异常最终也未被捕获则会触发运行时错误。
 
-> 此处 "严格匹配" 指的是第一级和第二级匹配(即精确匹配 / 接收方比抛出方多出底层`const`)，从第三级开始(即类型提升 / 算术类型转换 / 类类型转换)就不被允许匹配。
+  > 此处 "严格匹配" 指的是第一级和第二级匹配(即精确匹配 / 接收方比抛出方多出底层`const`)，从第三级开始(即类型提升 / 算术类型转换 / 类类型转换)就不被允许匹配。
+
++ 类类型异常对象将在与其对应的`catch`结束处被销毁。
+
+  > 理解异常的生命周期可以把`throw` - `catch`理解为函数传参的过程，`throw`处即为传递实参，`catch`执行完时即为函数调用完成时。
+
+```C++
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+int count = 0;
+class cl {
+    public:
+    int a;
+    int c;
+    cl(int a = 0) : a(a), c(count++) {  }
+    cl(const cl& a) : a(a.a), c(count++) { }
+    ~cl() { printf("distruct %d\n", c); }
+};
+
+void fn3() {
+    throw cl(3);
+    // throw cl(3).a;
+    // 若是 throw cl(3).a; 则此时临时变量cl(3)已经被销毁
+}
+
+void fn2() {
+    try {
+        fn3();
+    } catch(const char *a) {
+        printf("%s\n", a);
+    } catch(const std::string &e) {
+        std::cout << e.c_str() << "\n"; 
+    }
+}
+
+void fn1() {
+    try {
+        fn2();
+    } catch(int a) {
+        printf("%d\n", a);
+    } catch(cl a) {
+        printf("%d\n", a.a);
+        // 先销毁局部变量a，再销毁异常抛出处的cl(3)
+    }
+}
+
+int main() {
+    fn1();
+    return 0;
+}
+```
 
 ***
 
