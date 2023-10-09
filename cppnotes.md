@@ -1338,6 +1338,70 @@ int main() {
 
 ***
 
+异常参数生命周期：
+
+```C++
+#include <stdio.h>
+#include <iostream>
+#include <string>
+int count = 0;
+class cl {
+    public:
+    int a;
+    int c;
+    cl(int a = 0) : a(a), c(count++) { printf("init %d\n", c); }
+    cl(const cl& a) : a(a.a), c(count++) { printf("copy %d\n", c); }
+    ~cl() { printf("distruct %d\n", c); }
+};
+
+void fn3() {
+    cl a(3);
+    bool cond;
+    std::cin >> cond;
+    if(cond) {
+        throw a;
+    }
+    else {
+        printf("%d\n", a.a);
+    }
+}
+
+void fn2() {
+    try {
+        fn3();
+    } catch(cl a) {
+        printf("fn2 %d\n", a.a);
+        throw;
+    }
+}
+
+void fn1() {
+    try {
+        fn2();
+    } catch(cl a) {
+        printf("fn1 %d\n", a.a);
+    }
+}
+
+int main() {
+    fn1();
+    return 0;
+}
+// 输出结果为:
+// init 0
+// copy 1---------------将异常参数复制到一个既不在栈也不在堆的空间上
+// distruct 0-----------执行到throw处类比于函数执行到return处，在将返回值赋予临时量后会析构该函数内的所有局部变量
+// copy 2
+// fn2 3
+// distruct 2-----------若catch语块末有throw; 则不会析构最开始的异常参数
+// copy 3
+// fn1 3
+// distruct 3
+// distruct 1-----------若catch语块末没有throw; 则编译器会在此生成最初传入的异常参数的析构函数
+```
+
+***
+
 `cin`，`cout`的效率提升办法:
 
 + `std::ios_base::sync_with_stdio(false);` 用于解绑`iostream`和`stdio`，使用此语句之后不能再混用这两个库中的函数。
