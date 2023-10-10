@@ -1536,21 +1536,33 @@ int main() {
 ```C++
 #include <iostream>
 
+class cl2 {
+    int a;
+    public:
+    cl2(int a) : a(a) { }
+    friend std::ostream &operator<<(std::ostream &, const cl2&);
+};
+
 template <typename T>
 class cl {
 public:
     T *a;
     int size;
-    cl(int n) : size(n) { a = new T[n]; for(int i = 0; i < n; i++) a[i] = T(i); }
+    cl(int n) : size(n) { a = (T*)malloc(sizeof(T) * size); for(int i = 0; i < n; i++) a[i] = T(i); }
     const T *begin() const { return a; }
     const T *end() const { return a + size; }
     cl(const cl&) = delete;
     cl operator=(const cl&) = delete;
-    ~cl() { delete[] a; }
+    ~cl() { free(a); }
 };
 
+std::ostream & operator<<(std::ostream &o, const cl2& a) {
+    std::cout << a.a;
+    return o;
+}
+
 int main () {
-    cl<int> a(4);
+    cl<cl2> a(4);
     for(const auto &i : a) {
         std::cout << i << "\n";
     }
