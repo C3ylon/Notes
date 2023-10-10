@@ -1129,6 +1129,7 @@ int main() {
 + 用`typedef`或`using`定义新类型时
 + 函数模板显式传入模板参数时
 + 函数模板推导模板参数类型时
++ `auto &&`自动推导类型时
 
 > 类模板显式传入模板参数时是在匹配最优选择，此时**不会**触发引用折叠(否则不能实现`remove_reference`)
 
@@ -1505,5 +1506,55 @@ int main() {
       return 0;
   }
   ```
+
+***
+
+在被声明为不抛出异常的函数中，`noexcept`等价于`throw()`。
+
+`noexcept`应当出现在函数的所有声明语句和定义语句中，否则一次也不应当出现。可以在函数指针的声明中说明`noexcept`。
+
+`noexcept`说明符需要在`const`之后，在类的构造函数的初始化列表、函数尾置返回类型、`overrride`和`final`说明符及虚函数的`=0`之前。
+
+> ```C++
+> //==============1==============
+> cl(int a) noexcept : a(a) { }
+>
+> //==============2==============
+> struct Base {
+>     virtual void vfn();
+> };
+> 
+> struct A : Base {
+>     auto vfn() noexcept ->void override = 0;
+> };
+> ```
+
+***
+
+自定义范围表达式的实现要点：必须要有名为`begin`和`end`的成员函数，返回指针。
+
+```C++
+#include<stdio.h>
+
+class cl {
+public:
+    int *a;
+    int size;
+    cl(int n) : size(n) { a = new int[n]; for(int i = 0; i < n; i++) a[i] = i; }
+    const int *begin() const { return a; }
+    const int *end() const { return a + size; }
+    cl(const cl&) = delete;
+    cl operator=(const cl&) = delete;
+    ~cl() { delete[] a; }
+};
+
+int main () {
+    cl a(4);
+    for(const auto &i : a) {
+        printf("%d\n", i);
+    }
+    return 0;
+}
+```
 
 ***
