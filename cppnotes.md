@@ -1404,9 +1404,106 @@ int main() {
 
 `cin`，`cout`的效率提升办法:
 
-+ `std::ios_base::sync_with_stdio(false);` 用于解绑`iostream`和`stdio`，使用此语句之后不能再混用这两个库中的函数。
-+ `std::cin.tie(nullptr);` 用于解除每次`cin`前的强制`fflush`操作，使用此语句之后可能会在执行`cin`时看不到本该`cout`出现的内容。
++ `std::ios_base::sync_with_stdio(false);` 用于解绑`iostream`和`stdio.h`，使用此语句之后不能再混用这两个库中的函数。
++ `std::cin.tie(nullptr);` 用于解除每次`std::cin`前的强制`std::flush`操作，使用此语句之后可能会在执行`cin`时看不到本该`cout`出现的内容。
++ 用"\n"替代`std::endl`，注意最后需要手动添加`std::flush`，否则可能会无法显示全部内容。
 
 执行以上操作后`cin`，`cout`与`scanf`，`printf`的效率基本不相上下，甚至更快，因为不用再在运行时解析字符串来确定参数数量和格式。
+
+***
+
+类模板和友元：
+
++ 一对一友好关系：
+
+  ```C++
+  #include <stdio.h>
+  
+  template <typename T>
+  struct st1;
+  template <typename T>
+  void fn(const st1<T> &);
+  template <typename T>
+  struct st2;
+  
+  template <typename T>
+  struct st1 {
+      friend void fn<T>(const st1<T>&);
+      friend st2<T>;
+      st1(int a) : a(a) { }
+      private:
+      int a;
+  };
+  
+  template <typename T>
+  struct st2 {
+      template <typename U>
+      void fn(const st1<T> &);
+  };
+  
+  template <typename T>
+  template <typename U>
+  void st2<T>::fn(const st1<T> &a) { printf("%d\n", a.a); }
+  
+  template <typename T>
+  void fn(const st1<T> &a) {
+      printf("%d\n", a.a);
+  }
+  
+  int main() {
+      st1<int> a(3);
+      fn(a);
+      st2<int> b;
+      b.fn<float>(a);
+      return 0;
+  }
+  ```
+
++ 一对多友好关系：
+
+  ```C++
+  #include <stdio.h>
+  
+  template <typename T>
+  void fn(const T&);
+  template <typename T>
+  struct st2;
+  
+  template <typename T>
+  struct st1 {
+      template <typename U>
+      friend void fn(const U&);
+      template <typename U>
+      friend struct st2;
+      // 注意这里不能声明为 template <typename U> friend st2<U>;
+      // error: friend type templates must use an elaborated type.
+      st1(int a) : a(a) { }
+      private:
+      int a;
+  };
+  
+  template <typename T>
+  void fn(const T& a) {
+      printf("%d\n", a.a);
+  }
+  
+  template <typename T>
+  struct st2 {
+      template <typename U>
+      void fn(const st1<U> &);
+  };
+  
+  template <typename T>
+  template <typename U>
+  void st2<T>::fn(const st1<U> &a) { printf("%d\n", a.a); }
+  
+  int main() {
+      st1<int> a(3);
+      fn(a);
+      st2<float> b;
+      b.fn(a);
+      return 0;
+  }
+  ```
 
 ***
