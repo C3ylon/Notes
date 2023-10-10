@@ -1534,25 +1534,27 @@ int main() {
 自定义范围表达式的实现要点：必须要有名为`begin`和`end`的成员函数，返回指针。
 
 ```C++
-#include<stdio.h>
+#include <iostream>
 
+template <typename T>
 class cl {
 public:
-    int *a;
+    T *a;
     int size;
-    cl(int n) : size(n) { a = new int[n]; for(int i = 0; i < n; i++) a[i] = i; }
-    const int *begin() const { return a; }
-    const int *end() const { return a + size; }
+    cl(int n) : size(n) { a = new T[n]; for(int i = 0; i < n; i++) a[i] = T(i); }
+    const T *begin() const { return a; }
+    const T *end() const { return a + size; }
     cl(const cl&) = delete;
     cl operator=(const cl&) = delete;
     ~cl() { delete[] a; }
 };
 
 int main () {
-    cl a(4);
+    cl<int> a(4);
     for(const auto &i : a) {
-        printf("%d\n", i);
+        std::cout << i << "\n";
     }
+    std::cout << std::flush;
     return 0;
 }
 ```
