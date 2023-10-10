@@ -1539,7 +1539,7 @@ int main() {
 class cl2 {
     int a;
     public:
-    cl2(int a) : a(a) { }
+    cl2(int a = 0) : a(a) { }
     friend std::ostream &operator<<(std::ostream &, const cl2&);
 };
 
@@ -1548,12 +1548,12 @@ class cl {
 public:
     T *a;
     int size;
-    cl(int n) : size(n) { a = (T*)malloc(sizeof(T) * size); for(int i = 0; i < n; i++) a[i] = T(i); }
+    cl(int n) : size(n) { a = new T[size]; for(int i = 0; i < size; i++) a[i] = T(i); }
     const T *begin() const { return a; }
     const T *end() const { return a + size; }
     cl(const cl&) = delete;
     cl operator=(const cl&) = delete;
-    ~cl() { free(a); }
+    ~cl() { delete[] a; }
 };
 
 std::ostream & operator<<(std::ostream &o, const cl2& a) {
