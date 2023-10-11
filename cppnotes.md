@@ -1176,7 +1176,7 @@ int main() {
 
 会触发引用折叠的地方：
 
-+ 用`typedef`或`using`定义新类型时
++ 用`typedef`或`using`定义的引用类型别名声明引用变量时
 + 函数模板显式传入模板参数时
 + `T &&`函数模板自动推导模板参数类型时
 + `auto &&`自动推导类型时
@@ -1197,6 +1197,16 @@ int main() {
     fn<int &>(a);
 }
 ```
+
+***
+
+注意对于模板形参`const T &&`而言，如果实参T的类型是`int &`，则形参类型不是`const int &`，而是`int &`。
+
+> 该模板形参可以写作`T const &&`这种形式，带入实参T的类型之后得到`int & const &&`，由于`&`类型默认顶层`const`，所以前式`const`相当于无效，再加上引用折叠，即得到`int &`。
+>
+> 在用`typedef`或`using`定义的引用类型别名声明引用变量时或函数模板显式传入模板参数时，可能会得到某个中间类型是有顶层`const`的引用类型，此时前者会给出warnning，后者完全合法。
+>
+> 不能单独声明有顶层`const`的引用变量，如`int && const a = 1; `(error: 'const' qualifier may not be applied to a reference)。
 
 ***
 
