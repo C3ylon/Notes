@@ -1207,6 +1207,18 @@ int main() {
 
 ***
 
+C风格类型转换后得到的表达式一般意义上都是右值，`(T &)`形式的类型转换可以得到左值表达式。
+
+允许左值向右值转换，但是不允许右值向左值转换。
+
+```C++
+int a = 1;
+int *p = &(int &)a;    // 正确
+int *q = &(int &&)a;   // error: cannot take the address of an rvalue of type 'int'.
+```
+
+***
+
 `std::vector`在realloc扩容的时候，转移旧成员到新地址用的是`std::move_if_noexcept`，即如果成员的移动函数定义为了`noexcept`则调用移动函数，否则调用拷贝函数。
 
 ```C++
