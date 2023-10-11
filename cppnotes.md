@@ -1075,6 +1075,43 @@ int main() {
 
 综上，在代码编写中，应当尽量避免出现函数模板实例化之后的函数原型出现重复的情况，否则函数匹配的情况是未知的，既有可能匹配向重复的原型中任意一个函数实现，也有可能无法匹配到任何函数实现。
 
+*据说*模板特例化程度排序是`const T&` > `T&` > `const T&&` > `T&&`，在显式传入模板实参后，如果得到的函数原型相同，则会按照以上优先级顺序进行模板选择。
+
+如下代码，由上至下依次注释每个函数模板，理应依次显式1，2，3，4。在gcc和msvc中确实如此，但是在clang17.0.1下，注释掉第一个之后会出现二义性调用报错，clang将第二个模板和第三个模板视为同等程度的特例化。
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct st {
+    int a;
+};
+
+template <typename T>
+void fun(const T&) {
+    std::cout << "1" << std::endl;
+}
+
+template <typename T>
+void fun(T&) {
+    std::cout << "2" << std::endl;
+}
+template <typename T>
+void fun(const T&&) {
+    std::cout << "3" << std::endl;
+}
+
+template <typename T>
+void fun(T&&) {
+    std::cout << "4" << std::endl;
+}
+
+int main() {
+    fun<const st&>(st{1});
+    return 0;
+}
+```
+
 ***
 
 函数模板在自动推导模板参数的时候可以运用引用折叠。
