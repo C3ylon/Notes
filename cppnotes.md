@@ -1009,12 +1009,16 @@ C++11开始可以为函数模板参数提供默认实参，在其之前只能为
 ```C++
 template <typename T>
 void func(T &) { }
+template <typename T>
+void func2(const T &) { }
 
 int main() {
     // func(1)
     // 错误，不能隐式推导类型T为const int
     func<const int>(1);
     // 正确，显式提供模板参数
+    func2(1);
+    // 正确，隐式推导类型T为int
     // ===========================
     const int a = 1;
     func(a);
@@ -1178,10 +1182,9 @@ int main() {
 
 ```C++
 template<class T>
-void fn(const T&&) { }
+void fn(const T &&) { }
  
-int main()
-{
+int main() {
     int a = 1;
     // fn(a);  错误，无法自动推导T类型为int &
     fn<int &>(a);
@@ -1263,8 +1266,7 @@ class cl {
 
 };
 
-int main()
-{
+int main() {
     cl a;                              // normal init
     cl b = std::move(a);               // move init
     cl c = std::move_if_noexcept(a);   // copy init
