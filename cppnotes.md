@@ -1249,10 +1249,12 @@ C风格类型转换后得到的表达式一般意义上都是右值，`(T &)`形
 
 ```C++
 int a = 1;
-int *p = &(int &)a;            // 正确
-int *q = &(int &&)a;           // error: cannot take the address of an rvalue of type 'int'.
-int b = (const int&)(int&&)a;  // 正确
-int c = (int&)(int&&)a;        // error: '&' requires l-value.
+int *p = &(int &)a;              // 正确
+int *q = &(int &&)a;             // error: cannot take the address of an rvalue of type 'int'.
+int b = (const int&)(int&&)a;    // 正确
+int c = (int&)(int&&)a;          // error: '&' requires l-value.
+const int *d = &(const int &)1;  // warning: temporary whose address is used as value of local variable 'd'
+                                    will be destroyed at the end of the full-expression.
 ```
 
 ***
