@@ -1204,7 +1204,7 @@ int main() {
 
 > 该模板形参可以写作`T const &&`这种形式，带入实参T的类型之后得到`int & const &&`，由于`&`类型默认顶层`const`，所以前式`const`相当于无效，再加上引用折叠，即得到`int &`。
 >
-> 在用`typedef`或`using`定义的引用类型别名声明引用变量时或函数模板显式传入模板参数时，可能会得到某个中间类型是有顶层`const`的引用类型，此时前者会给出warnning，后者完全合法。
+> 在用`typedef`或`using`定义的引用类型别名声明引用变量时或函数模板显式传入模板参数时，可能会得到某个中间类型是有顶层`const`的引用类型，此时前者会给出warning，后者完全合法。
 >
 > 不能单独声明有顶层`const`的引用变量，如`int && const a = 1; `(error: 'const' qualifier may not be applied to a reference)。
 
