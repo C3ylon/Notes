@@ -623,6 +623,7 @@ public:
 
 int main () {
     clb(string("abc"));
+    // 注意如果是拷贝初始化 clb tmp = string("abc"); 将报错no viable conversion from 'string' to 'clb'
     clb(cla("def"));
     // clb("ghi"); 错误，类类型隐式转换只允许一步，不能从char *到string再到cla
     clb(static_cast<cla>("jkl"));
@@ -643,6 +644,7 @@ int main () {
 > 1. 使用`=`的初始化
 > 2. 非引用类型的函数参数初始化
 > 3. 返回值为非引用类型的函数返回时会对临时变量拷贝初始化
+> 4. 按值抛出或捕获异常时
 
 尽管`explicit`构造函数不会被用于隐式的类类型转换，但是仍然可以用`static_cast<>`进行显示转换。
 
