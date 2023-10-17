@@ -1691,3 +1691,68 @@ int main() {
 ```
 
 ***
+
+列表初始化器的一种实现方式：
+
+```C++
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+template <typename T>
+class Initializer {
+private:
+    T* _List;
+    size_t len;
+
+public:
+    Initializer()
+        : _List(nullptr), len(0) {}
+    
+    template <typename... _Rest>
+    Initializer(T _first, _Rest... _rest)
+        : _List(new T[sizeof...(_rest) + 1]{_first, _rest...}), 
+          len(sizeof...(_rest) + 1) {}
+
+    Initializer<T>& operator=(Initializer<T> &&) = delete;
+    // move operator [Implement your own if you want.]
+
+    Initializer<T>& operator=(const Initializer<T>& ) = delete;
+    // copy operator [Implement your own if you want.]
+
+    const T operator[] (size_t index) const noexcept
+        { return _List[index]; }
+    T& operator[] (size_t index) noexcept
+        { return _List[index]; }
+
+    const T* begin() const noexcept
+        { return _List; }
+    T* begin() noexcept
+        { return _List; }
+
+    const T* end() const noexcept
+        { return &_List[len]; }
+    T* end() noexcept
+        { return &_List[len]; }
+
+    size_t length() const noexcept
+        { return len; }
+
+    ~Initializer() noexcept
+        { _List != nullptr ? delete[] _List : void(0); }
+};
+
+void func(Initializer<int> list) {
+    for(auto i : list) {
+        cout << i <<endl;
+    }
+}
+
+int main() {
+    func({ 1, 2, 3 });
+    return 0;
+}
+```
+
+***
