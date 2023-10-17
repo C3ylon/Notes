@@ -1664,3 +1664,30 @@ int main () {
 ```
 
 ***
+
+特化的函数模板只有在源模板被选中的时候才会考虑是否被选择。如下，虽然fn2相对来说是最适配的一个模板，但是由于fn1和fn3之间选择了fn3，因此不会再进一步匹配到fn2。
+
+```C++
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+template <typename T>
+void fn(T) { cout << "fn1" << endl; }
+
+template <>
+void fn(int *) { cout << "fn2" << endl; }
+
+template <typename T>
+void fn(T *) { cout << "fn3" << endl; }
+
+int main() {
+    int *p = nullptr;
+    fn(p);
+    // fn3
+    return 0;
+}
+```
+
+***
