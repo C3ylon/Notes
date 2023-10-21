@@ -1217,8 +1217,9 @@ int main() {
 已知"更特例化"的情况：
 
 + `T &`比`T &&`更特例化(因为右值引用模板可以实例化为左值引用或右值引用，相对更泛用)
-+ 模板参数更少的模板更特例化
 + `T *`比`const T&`更特例化
++ 模板参数更少的模板更特例化
++ 非可变参数模板比可变参数模板更特例化
 
 ```C++
 #include<stdio.h>
@@ -1751,6 +1752,49 @@ void func(Initializer<int> list) {
 
 int main() {
     func({ 1, 2, 3 });
+    return 0;
+}
+```
+
+***
+
+未出现在函数形参声明列表末尾的函数参数包不能自动推导对应的模板参数包类型。
+
+```C++
+template<typename T, typename U, typename ...Args>
+void fn(T, Args..., U) { }
+
+int main () {
+    // fn<int, int>(1, 2, 3);
+    // 错误，不能自动推导模板参数包Args的类型
+    // note: candidate function [with T = int, U = int, Args = <>] not viable.
+    fn<int, int, int>(1, 2, 3); // 正确
+    return 0;
+}
+/****************************************************************************/
+template<typename T, typename ...Args, typename U>
+void fn(T, Args..., U = 0) { }
+
+int main () {
+    // fn<int, int, int>(1, 2, 3);
+    // 错误，不能自动推导模板参数U的类型
+    // 第一个int是T的类型，第二个和第三个int是模板参数包Args的类型
+    // 模板参数包在模板参数列表中间，因此无法显式指定模板参数U的类型
+    fn<int, int, int>(1, 2, 3, 4); // 正确，自动推导出U的类型为int
+    return 0;
+}
+/****************************************************************************/
+template<typename R1, typename ...A1, typename R2, typename ...A2>
+void fn(R1(*)(A1...), R2(*)(A2...)) { }
+
+int main () {
+    using T1 = void(*)(int);
+    using T2 = double(*)(char *, float);
+    T1 p1 = nullptr;
+    T2 p2 = nullptr;
+    fn(p1, p2);
+    // void fn<void, int, double, char *, float>(void (*)(int), double (*)(char *, float))
+    // 无法显式指定模板实参，只能在使用模板函数的时候自动推导模板参数类型
     return 0;
 }
 ```
