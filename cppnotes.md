@@ -1257,7 +1257,7 @@ int *q = &(int &&)a;             // error: cannot take the address of an rvalue 
 int b = (const int&)(int&&)a;    // 正确
 int c = (int&)(int&&)a;          // error: '&' requires l-value.
 const int *d = &(const int &)1;  // warning: temporary whose address is used as value of local variable 'd'
-                                    will be destroyed at the end of the full-expression.
+                                 // will be destroyed at the end of the full-expression.
 ```
 
 ***
@@ -1797,6 +1797,22 @@ int main () {
     // 无法显式指定模板实参，只能在使用模板函数的时候自动推导模板参数类型
     return 0;
 }
+/****************************************************************************/
+template<typename T, typename U>
+struct st;
+
+template<typename R1, typename ...A1, typename R2, typename ...A2>
+struct st<R1(*)(A1...), R2(*)(A2...)> {
+    
+};
+
+using T1 = void(*)(int);
+using T2 = double(*)(char *, float);
+
+st<T1, T2> a;
+// 类模板偏特化选择。其源模板不需要完整实现，只需要声明即可。
+// 普通的类模板不能把模板参数包置于模板形参列表中间位置。
+// (普通的类模板)template parameter pack must be the last template parameter.
 ```
 
 ***
