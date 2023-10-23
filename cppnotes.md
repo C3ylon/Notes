@@ -1828,12 +1828,12 @@ void f(...) {
 template <typename T>
 int g(T &&a) {
     std::cout << a << " ";
-    return 1;
+    return 0;
 }
 
 template <typename ...Args>
 void fn(Args ...args) {
-    f(1 + g(args)...);
+    f(1 + g(args)...); // 或 f((g(args) + 1)...);
     // 参数包可以在函数实参/模板实参中展开
     // 展开后为 f(1 + g(arg_1), 1 + g(arg_2), ... 1 + g(arg_n));
     // 输出顺序由编译器对函数传参的求值顺序确定
