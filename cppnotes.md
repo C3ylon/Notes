@@ -1834,11 +1834,13 @@ int g(T &&a) {
 template <typename ...Args>
 void fn(Args ...args) {
     f(1 + g(args)...);
+    // 参数包可以在函数实参/模板实参中展开
     // 展开后为 f(1 + g(arg_1), 1 + g(arg_2), ... 1 + g(arg_n));
     // 输出顺序由编译器对函数传参的求值顺序确定
     std::cout << std::endl;
     int a[sizeof...(args)] = { (g(args), 0)... };
     // 参数包可以在括号初始化器内展开
+    // 展开后为 int a[] = { (g(arg_1), 0), (g(arg_2), 0), ... (g(arg_n), 0) }
     // 此时输出顺序确定，输出结果为 1 2 3.3 string
     (void)a;
     std::cout << std::endl;
