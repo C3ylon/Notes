@@ -1832,7 +1832,7 @@ int g(T &&a) {
 }
 
 template <typename ...Args>
-void fn(Args ...args) {
+void fn(Args &&...args) {
     f(1 + g(args)...); // 或 f((g(args) + 1)...);
     // 参数包可以在函数实参/模板实参中展开
     // 展开后为 f(1 + g(arg_1), 1 + g(arg_2), ... 1 + g(arg_n));
