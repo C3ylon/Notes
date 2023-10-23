@@ -1816,3 +1816,38 @@ st<T1, T2> a;
 ```
 
 ***
+
+参数包展开的两种形式：
+
+```C++
+#include <iostream>
+
+void f(...) {
+
+}
+template <typename T>
+int g(T &&a) {
+    std::cout << a << " ";
+    return 1;
+}
+
+template <typename ...Args>
+void fn(Args ...args) {
+    f(1 + g(args)...);
+    // 展开后为 f(1 + g(arg_1), 1 + g(arg_2), ... 1 + g(arg_n));
+    // 输出顺序由编译器对函数传参的求值顺序确定
+    std::cout << std::endl;
+    int a[sizeof...(args)] = { (g(args), 0)... };
+    // 参数包可以在括号初始化器内展开
+    // 此时输出顺序确定，输出结果为 1 2 3.3 string
+    (void)a;
+    std::cout << std::endl;
+}
+
+int main() {
+    fn(1, 2, 3.3, "string");
+    return 0;
+}
+```
+
+***
