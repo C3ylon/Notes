@@ -1862,7 +1862,8 @@ int print_rest(T &&arg) {
 template <typename First, typename ...Rest> 
 void print(First &&first, Rest &&...rest) {
     std::cout << first;
-    int unused[] = { print_rest(rest)... };
+    int unused[] = { 0, print_rest(rest)... };
+    // zero size arrays are an extension [-Wzero-length-array]
     (void)unused;
     std::cout << std::endl;
 }
