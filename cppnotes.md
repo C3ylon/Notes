@@ -1850,6 +1850,26 @@ int main() {
     fn(1, 2, 3.3, "string");
     return 0;
 }
+
+/*********************************************************/
+// print在C++中的实现: 
+template <typename T>
+int print_rest(T &&arg) {
+    std::cout << " " << arg;
+    return 0;
+}
+
+template <typename First, typename ...Rest> 
+void print(First &&first, Rest &&...rest) {
+    std::cout << first;
+    int unused[] = { print_rest(rest)... };
+    (void)unused;
+    std::cout << std::endl;
+}
+
+void print() {
+    std::cout << std::endl;
+}
 ```
 
 ***
