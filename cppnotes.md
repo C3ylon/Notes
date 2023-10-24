@@ -1874,3 +1874,27 @@ void print() {
 ```
 
 ***
+
+嵌套模板的用法：
+
+```C++
+#include <iostream>
+#include <vector>
+
+template <template<class, class> class V, class T, class A>
+void fn(V<T, A> &v) {
+    // This can be "typename V<T, A>::value_type",
+    // but we are pretending we don't have it
+    T temp = v.back();
+    v.pop_back();
+    std::cout << temp << std::endl;
+}
+
+int main() {
+    std::vector<int> a = { 1, 2, 3 };
+    fn(a);
+    return 0;
+}
+```
+
+***
