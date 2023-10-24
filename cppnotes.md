@@ -1881,7 +1881,7 @@ void print() {
 #include <iostream>
 #include <vector>
 
-template <template<class, class> class V, class T, class A>
+template <template<typename, typename> typename V, typename T, typename A>
 void fn(V<T, A> &v) {
     // This can be "typename V<T, A>::value_type",
     // but we are pretending we don't have it
