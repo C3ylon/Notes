@@ -1881,7 +1881,9 @@ void print() {
 #include <iostream>
 #include <vector>
 
-template <template<typename, typename> typename V, typename T, typename A>
+// 注意声明模板的模板类型形参时，在C++17前只能用class不能用typename
+// 如下行的关键字class换成typename之后会在不支持C++17的编译器上报错
+template <template<typename, typename> class V, typename T, typename A>
 void fn(V<T, A> &v) {
     // This can be "typename V<T, A>::value_type",
     // but we are pretending we don't have it
