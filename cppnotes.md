@@ -1900,3 +1900,10 @@ int main() {
 ```
 
 ***
+
+需要单独标注`template`和`typename`的地方：
+
++ `T::template fn<>();` 或 `Class<T>::template fn<>();`
++ `typename T::type var;` 或 `typename Class<T>::type var;`
+
+***
