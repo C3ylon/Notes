@@ -1882,7 +1882,7 @@ void print() {
 #include <vector>
 
 // 注意声明模板的模板类型形参时，在C++17前只能用class不能用typename
-// 如下行的关键字class换成typename之后会在不支持C++17的编译器上报错
+// 因为在C++11引入别名模板(alias template)之前，只有类模板能作为模板的模板类型实参
 template <template<typename, typename> class V, typename T, typename A>
 void fn(V<T, A> &v) {
     // This can be "typename V<T, A>::value_type",
