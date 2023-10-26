@@ -1911,16 +1911,18 @@ template<typename T, template<class,class...> class C, class... Args>
 std::ostream& operator <<(std::ostream& os, const C<T,Args...>& objs)
 {
     os << __PRETTY_FUNCTION__ << '\n';
+    // gcc/clang extention.
     os << '[';
-    if (!objs.empty()) {
-        auto i = objs.begin();
-        while(true) {
-            os << *i;
-            if (++i == objs.end())
-                break;
-            os << ", ";
-        }
+    if (objs.empty())
+        goto end;
+
+    for(auto i = objs.begin(); ; ) {
+        os << *i;
+        if (++i == objs.end())
+            break;
+        os << ", ";
     }
+end:
     os << ']';
     return os;
 }
