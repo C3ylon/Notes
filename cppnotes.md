@@ -1899,6 +1899,51 @@ int main() {
 }
 ```
 
+实际用到嵌套模板的地方：控制容器输出格式、实现策略模式等。
+
+```C++
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <list>
+
+template<typename T, template<class,class...> class C, class... Args>
+std::ostream& operator <<(std::ostream& os, const C<T,Args...>& objs)
+{
+    os << __PRETTY_FUNCTION__ << '\n';
+    os << '[';
+    if (!objs.empty()) {
+        auto i = objs.begin();
+        while(true) {
+            os << *i;
+            if (++i == objs.end())
+                break;
+            os << ", ";
+        }
+    }
+    os << ']';
+    return os;
+}
+
+int main()
+{
+    std::vector<float> vf { 1.1, 2.2, 3.3, 4.4 };
+    std::cout << vf << '\n';
+    std::list<char> lc { 'a', 'b', 'c', 'd' };
+    std::cout << lc << '\n';
+    std::deque<int> di { 1, 2, 3, 4 };
+    std::cout << di << '\n';
+    return 0;
+}
+// 输出
+// std::ostream& operator<<(std::ostream&, const C<T, Args ...>&) [with T = float; C = std::vector; Args = {std::allocator<float>}; std::ostream = std::basic_ostream<char>]
+// [1.1, 2.2, 3.3, 4.4]
+// std::ostream& operator<<(std::ostream&, const C<T, Args ...>&) [with T = char; C = std::__cxx11::list; Args = {std::allocator<char>}; std::ostream = std::basic_ostream<char>]
+// [a, b, c, d]
+// std::ostream& operator<<(std::ostream&, const C<T, Args ...>&) [with T = int; C = std::deque; Args = {std::allocator<int>}; std::ostream = std::basic_ostream<char>]
+// [1, 2, 3, 4]
+```
+
 ***
 
 需要单独标注`template`和`typename`的地方：
