@@ -1971,6 +1971,7 @@ int main()
 
 ```C++
 #include <iostream>
+#include <typeinfo>
 
 template <class T>
 struct rm_const {
