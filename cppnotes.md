@@ -1966,3 +1966,39 @@ int main()
 + `typename T::type var;` 或 `typename Class<T>::type var;`
 
 ***
+
+模板元做类型推断时可以循环递推。如标准库中的`std::remove_all_extents`，以及如下去除所有层级指针的模板：
+
+```C++
+#include <iostream>
+
+template <class T>
+struct rm_const {
+    typedef T type;
+};
+
+template <class T>
+struct rm_const<const T> {
+    typedef T type;
+};
+
+template <class T>
+struct rm_pointer {
+    typedef T type;
+};
+
+template <class T>
+struct rm_pointer<T*> {
+    typedef typename rm_pointer<typename rm_const<T>::type >::type type;
+};
+
+
+
+int main() {
+    std::cout << typeid(rm_pointer<int**const**>::type).name();
+    // i
+    return 0;
+}
+```
+
+***
