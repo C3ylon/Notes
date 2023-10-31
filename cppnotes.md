@@ -2003,3 +2003,144 @@ int main() {
 ```
 
 ***
+
+关于特化的一些结论：
+
+函数模板不能偏特化，否则由于重载决议等机制会引发复制的连锁反应。
+
+```C++
+template <typename T, int N>
+void fn(T, int(&)[N]) { }
+
+// ===================================
+// template <typename T>
+// void fn<T *, 3>(T *, int(&)[3]) { }
+// ===================================
+
+template <typename T, int N>
+void fn(T *, int(&)[N]) { }
+
+int main() {
+    int *a = nullptr;
+    int b[3] = { };
+    fn<int *,3>(a, b);
+    // 如果对fn偏特化之后，此处调用不能确定调用的是第二个函数还是第三个函数
+    return 0;
+}
+```
+
+对于类模板的一个成员函数，如果该成员函数是函数模板，则不能在未指定该类模板的模板实参时特化该函数模板。
+
+```C++
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+template <typename T>
+struct st {
+    template <typename U>
+    static void fn();
+};
+
+template <>
+struct st<int> {
+    template <typename U>
+    static void fn();
+};
+
+template <typename T>
+template <typename U>
+void st<T>::fn() { cout << 1; };
+
+// 注意：此处不能添加 template<>
+template <typename U>
+void st<int>::fn() { cout << 2; };
+
+// ================================== 
+// template <typename T>
+// template <>
+// void st<T>::fn<int> { cout << 3; };
+// ================================== 
+
+int main() {
+    st<int>::fn<int>();
+    // 如果第三个函数合法，则此处调用不能确定调用第二个函数还是调用第三个函数
+    return 0;
+}
+```
+
+不能在类内特化一个友元函数，需先声明友元，再在类外定义其特化函数。(cannot declare an explicit specialization in a friend)
+
+```C++
+
+#include <iostream>
+#include <typeinfo>
+
+using std::cout;
+using std::endl;
+
+template <typename T>
+struct st {
+    template <typename U>
+    struct rm;
+
+    template <typename U>
+    void fn();
+};
+
+// 定义rm
+template <typename T>
+template <typename U>
+struct st<T>::rm {
+    typedef U type;
+};
+
+// 偏特化rm
+template <typename T>
+template <typename U>
+struct st<T>::rm<U&> {
+    typedef U type;
+};
+
+// 定义fn
+template <typename T>
+template <typename U>
+void st<T>::fn() { }
+
+// 完全特化fn
+template <>
+template <>
+void st<int>::fn<int>() { }
+
+
+class cl {
+    int a;
+    public:
+    cl(int a) : a(a) { }
+    template<int N>
+    // 声明友元函数pr
+    friend void pr(cl&);
+
+};
+
+// 定义友元函数
+template<int N>
+void pr(cl&a) {
+    cout << "[" << N << "] " << a.a << endl;
+}
+// 定义友元函数的特化
+template<>
+void pr<3>(cl&a) {
+    cout << "[special 3] " << a.a << endl;
+}
+
+int main() {
+    cl a(1);
+    pr<1>(a);
+    pr<3>(a);
+    return 0;
+}
+```
+
+***
