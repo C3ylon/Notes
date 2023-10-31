@@ -2018,8 +2018,31 @@ void fn(T *, int(&)[N]) { }
 // ===================================
 // template <typename T>
 // void fn<T *, 3>(T *, int(&)[3]) { }
-// 如果能偏特化，则无法确定特化的源对象
+// 如果能偏特化，则无法确定特化的源模板
 // ===================================
+
+// -----------------------------------
+#include <iostream>
+
+template <typename T, int N>
+void fn(T, int(&)[N]) { std::cout << "1" << std::endl; }
+
+template <typename T, int N>
+void fn(T *, int(&)[N]) { std::cout << "2" << std::endl; }
+
+template <>
+void fn<int *, 3>(int *, int(&)[3]) { std::cout << "3" << std::endl; }
+// 此时该特化函数模板的源模板是模板1
+// 在调用 fn(a, b); 时由于模板2的特化程度比模板1更高，因此最终会输出2
+// 如果此处定义为 template<> void fn(int *, int(&)[3]) { }
+// 则特化的源模板是模板是模板2，因此最终会输出3
+
+int main() {
+    int *a = nullptr;
+    int b[3] = { };
+    fn(a, b);
+    return 0;
+}
 ```
 
 对于类模板的一个成员函数，如果该成员函数是函数模板，则不能在未指定该类模板的模板实参时特化该函数模板。
