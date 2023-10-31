@@ -2032,9 +2032,9 @@ void fn(T *, int(&)[N]) { std::cout << "2" << std::endl; }
 
 template <>
 void fn<int *, 3>(int *, int(&)[3]) { std::cout << "3" << std::endl; }
-// 此时该特化函数模板的源模板是模板1
+// 此时该特化模板的源模板是模板1
 // 在调用 fn(a, b); 时由于模板2的特化程度比模板1更高，因此最终会输出2
-// 如果此处定义为 template<> void fn(int *, int(&)[3]) { }
+// 如果此处定义为 template<> void fn(int *, int(&)[3]) { ... }
 // 则特化的源模板是模板是模板2，因此最终会输出3
 
 int main() {
