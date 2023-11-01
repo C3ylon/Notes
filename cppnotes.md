@@ -2175,14 +2175,14 @@ void fn<int>() { }
 对类模板进行特化时可以选择替换全部成员或只特化部分成员的实现。
 
 ```C++
-//=================base=================
+//=====================base=====================
 template<class T> struct A {
     struct B { };
     template<class U> struct C { };
     static void fn() { }
 };
 
-//===========specialization 1===========
+//===============specialization 1===============
 template<> struct A<int> {
     void fs();
 };
@@ -2193,7 +2193,7 @@ void A<int>::fs() { }
 // 注意定义前不能添加template<>前缀
 // 此处需要把A<int>当作一个完全的实体来处理
 
-//==========specialization 2.1==========
+//==============specialization 2.1==============
 template<> struct A<char>::B {
     template <class T> void fs();
 };
@@ -2202,7 +2202,7 @@ template <class T>
 void A<char>::B::fs() { }
 // 定义B的内部函数时也不能添加template<>前缀
 
-//==========specialization 2.2==========
+//==============specialization 2.2==============
 template<> template<class U>
 struct A<char>::C {
     void fs();
@@ -2212,12 +2212,12 @@ template<> template<class U>
 void A<char>::C<U>::fs() { }
 // 注意定义C的内部函数时必须添加template<>前缀
 
-//===========specialization 2.3===========
+//==============specialization 2.3==============
 // template<> struct A<char> { };
 // 由于之前A<char>特化过源模板的部分成员
 // 因此在这之后不能再定义A<char>自身
 
-//===========specialization 3===========
+//===============specialization 3===============
 template<> 
 struct A<short> {
     template<class U> struct C { void fs(); };
@@ -2229,6 +2229,17 @@ void A<short>::C<U>::fs() { }
 // 由于A<short>不是针对源模板的类模板C的部分特化
 // 因此需要把A<short>当作一个完全的实体来处理
 // 定义C的内部函数前不能添加template<>前缀
+
+//===============specialization 4===============
+template<>
+template<>
+struct A<long>::C<long> {
+    template<class T> void fs();
+};
+// A<long>特化了源模板的类模板C的特化
+template<class T>
+void A<long>::C<long>::fs() { }
+// 定义C的内部函数前不需要加template<> template<>
 ```
 
 ***
