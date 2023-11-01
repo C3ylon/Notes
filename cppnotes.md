@@ -2242,4 +2242,29 @@ void A<long>::C<long>::fs() { }
 // 定义C的内部函数前不需要加template<> template<>
 ```
 
+未完全特化的类模板里面可以有偏特化的类模板，不能有完全特化的类模板或函数模板。
+
+```C++
+template<class T>
+struct st1 {
+    // base
+    template<class U> struct st2 { };
+
+    // [partial template specialization]
+    template<class U> struct st2<U&> { };
+
+    // Wrong:
+    // [explicit (full) template specialization]
+    // template<> struct st2<int> { };
+    // error: explicit specialization in non-namespace scope 'struct st1<T>'
+
+    // base
+    template<class U> void fn() { }
+
+    // Wrong:
+    // template<> void fn<int>() { }
+    // error: explicit specialization in non-namespace scope 'struct st1<T>'
+};
+```
+
 ***
