@@ -2172,4 +2172,63 @@ void fn<int>() { }
 // 因此这也可以解释为什么必须要指明所有模板实参之后才能特化类模板的成员函数模板
 ```
 
+对类模板进行特化时可以选择替换全部成员或只特化部分成员的实现。
+
+```C++
+//=================base=================
+template<class T> struct A {
+    struct B { };
+    template<class U> struct C { };
+    static void fn() { }
+};
+
+//===========specialization 1===========
+template<> struct A<int> {
+    void fs();
+};
+// 替换源模板的全部成员
+// 此时如果调用 A<int>::fn(); 会报错
+void A<int>::fs() { }
+// 对特化后的A的成员函数fs的定义
+// 注意定义前不能添加template<>前缀
+// 此处需要把A<int>当作一个完全的实体来处理
+
+//==========specialization 2.1==========
+template<> struct A<char>::B {
+    template <class T> void fs();
+};
+// A<char>只特化了源模板的非类模板B
+template <class T>
+void A<char>::B::fs() { }
+// 定义B的内部函数时也不能添加template<>前缀
+
+//==========specialization 2.2==========
+template<> template<class U>
+struct A<char>::C {
+    void fs();
+};
+// A<char>再特化了源模板的类模板C
+template<> template<class U> 
+void A<char>::C<U>::fs() { }
+// 注意定义C的内部函数时必须添加template<>前缀
+
+//===========specialization 2.3===========
+// template<> struct A<char> { };
+// 由于之前A<char>特化过源模板的部分成员
+// 因此在这之后不能再定义A<char>自身
+
+//===========specialization 3===========
+template<> 
+struct A<short> {
+    template<class U> struct C { void fs(); };
+};
+// 重新定义A<short>，替换源模板的全部成员
+template<class U> 
+void A<short>::C<U>::fs() { }
+// 此处定义C的内部函数时
+// 由于A<short>不是针对源模板的类模板C的部分特化
+// 因此需要把A<short>当作一个完全的实体来处理
+// 定义C的内部函数前不能添加template<>前缀
+```
+
 ***
