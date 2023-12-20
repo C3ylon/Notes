@@ -1220,7 +1220,7 @@ int main() {
 >
 > 在用`typedef`或`using`定义的引用类型别名声明引用变量时或函数模板显式传入模板参数时，可能会得到某个中间类型是有顶层`const`的引用类型，此时前者会给出warning，后者完全合法。
 >
-> 不能单独声明有顶层`const`的引用变量，如`int && const a = 1; `(error: 'const' qualifier may not be applied to a reference)。
+> 不能单独声明有顶层`const`的引用变量，如`int && const a = 1;` (error: 'const' qualifier may not be applied to a reference)。
 
 ***
 
@@ -1337,7 +1337,7 @@ int main(void) {
 
   > 此处 "严格匹配" 指的是第一级和第二级匹配(即精确匹配 / 接收方比抛出方多出底层`const`)，从第三级开始(即类型提升 / 算术类型转换 / 类类型转换)就不被允许匹配。
 
-+ 类类型异常对象将在与其对应的`catch`结束处被销毁。(若`catch`结束处没有`throw; `)
++ 类类型异常对象将在与其对应的`catch`结束处被销毁。(若`catch`结束处没有`throw;`)
 
   > 理解异常的生命周期可以把`throw` - `catch`理解为函数传参的过程，`throw`处即为传递实参，`catch`执行完时即为函数调用完成时。
 
