@@ -77,7 +77,7 @@ struct _IMAGE_FILE_HEADER {
 
 ##### 3. OptionalHeader
 
-32位与64位结构略有不同。32位大小为0xE0，64位大小为0xF0。
+32位与64位结构略有不同。32位大小为0xE0，64位大小为0xF0。（假定`IMAGE_NUMBEROF_DIRECTORY_ENTRIES`值为通用的16的情况下）
 
 ```C
 struct _IMAGE_OPTIONAL_HEADER {
@@ -127,3 +127,18 @@ struct _IMAGE_OPTIONAL_HEADER {
 + `FileAlignment`: 节区在文件中的起始位置必为该值的整数倍。
 + `SizeOfImage`: 指定PE image在虚拟内存中所占空间大小。
 + `SizeOfHeaders`: 整个PE头在内存/文件中的大小。该值也必须是FileAlignment的整数倍。同时该值也指出了第一节区在文件中的起始位置。
++ `Subsystem`:
+  + 1: 驱动文件
+  + 2: GUI文件
+  + 3: CUI文件
++ `NumberOfRvaAndSizes`: 用于指定`IMAGE_NUMBEROF_DIRECTORY_ENTRIES`的大小，默认为16，但PE装载器仍会通过查看该值来识别数组大小。
++ `DataDirectory`:
+
+  由`_IMAGE_DATA_DIRECTORY`结构体组成的数组，数组的每项都有被定义的值。
+
+  ```C
+  struct _IMAGE_DATA_DIRECTORY {
+      DWORD VirtualAddress;
+      DWORD Size;
+  };
+  ```
