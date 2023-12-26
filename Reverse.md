@@ -120,6 +120,7 @@ struct _IMAGE_OPTIONAL_HEADER {
 重要字段：
 
 + `Magic`: 32位中为0x010B，64位中为0x020B。
+  > `*(WORD*)(0x00 + *(DWROD*)0x3C + 0x18) == 0x020B`说明该pe文件为64位。
 + `AddressOfEntryPoint`: EP的RVA值。
 + `ImageBase`: PE文件被加载入内存中时的优先装入位置。
 + `SectionAlignment`: 节区在内存中的起始位置必为该值的整数倍。
