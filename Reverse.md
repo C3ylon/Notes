@@ -77,6 +77,8 @@ struct _IMAGE_FILE_HEADER {
 
 ##### 3. OptionalHeader
 
+32位与64位结构略有不同。32位大小为0xE0，64位大小为0xF0。
+
 ```C
 struct _IMAGE_OPTIONAL_HEADER {
     WORD                 Magic;
@@ -103,10 +105,10 @@ struct _IMAGE_OPTIONAL_HEADER {
     DWORD                CheckSum;
     WORD                 Subsystem;
     WORD                 DllCharacteristics;
-    DWORD                SizeOfStackReserve;           // 64位为QWORD
-    DWORD                SizeOfStackCommit;            // 64位为QWORD
-    DWORD                SizeOfHeapReserve;            // 64位为QWORD
-    DWORD                SizeOfHeapCommit;             // 64位为QWORD
+    DWORD                SizeOfStackReserve;          // 64位为QWORD
+    DWORD                SizeOfStackCommit;           // 64位为QWORD
+    DWORD                SizeOfHeapReserve;           // 64位为QWORD
+    DWORD                SizeOfHeapCommit;            // 64位为QWORD
     DWORD                LoaderFlags;
     DWORD                NumberOfRvaAndSizes;
     IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
@@ -114,3 +116,13 @@ struct _IMAGE_OPTIONAL_HEADER {
 ```
 
 64位文件的可选头相较于32位文件的可选头，平替了两个双字的大小，并将四个双字扩展为四字，因此大小总体变大了0x10。
+
+重要字段：
+
++ `Magic`: 32位中为0x010B，64位中为0x020B。
++ `AddressOfEntryPoint`: EP的RVA值。
++ `ImageBase`: PE文件被加载入内存中时的优先装入位置。
++ `SectionAlignment`: 节区在内存中的起始位置必为该值的整数倍。
++ `FileAlignment`: 节区在文件中的起始位置必为该值的整数倍。
++ `SizeOfImage`: 指定PE image在虚拟内存中所占空间大小。
++ `SizeOfHeaders`: 整个PE头在内存/文件中的大小。该值也必须是FileAlignment的整数倍。同时该值也指出了第一节区在文件中的起始位置。
