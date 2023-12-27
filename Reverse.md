@@ -37,7 +37,7 @@ pe header与各节区的尾部存在NULL　padding。在文件／内存中节区
 
 #### 3. NT header
 
-##### 1. Signature
+NT header结构：
 
 ```C
 struct _IMAGE_NT_HEADERS {
@@ -46,6 +46,8 @@ struct _IMAGE_NT_HEADERS {
     IMAGE_OPTIONAL_HEADER   OptionalHeader; // pe和pe+在此区分
 };
 ```
+
+##### 1. Signature
 
 Signature在pe与pe+中都是4字节大小，其值为`50 45 00 00`("PE"00)。
 
@@ -64,6 +66,8 @@ struct _IMAGE_FILE_HEADER {
     WORD    Characteristics;        // important
 };
 ```
+
+重要字段：
 
 + `Machine`在32位中为0x014C，代表Intel 386。在64位中为0x8664。
 + `NumberOfSections`一定要大于0，且与实际节区数量不同时会发生运行错误。
@@ -123,6 +127,7 @@ struct _IMAGE_OPTIONAL_HEADER {
   > `*(WORD*)(0x00 + *(DWROD*)0x3C + 0x18) == 0x020B`说明该pe文件为64位。
 + `AddressOfEntryPoint`: EP的RVA值。
 + `ImageBase`: PE文件被加载入内存中时的优先装入位置。
+  > exe文件拥有自己的虚拟空间，能准确加载到ImageBase中；dll无法保证一定会被加载到ImageBase。
 + `SectionAlignment`: 节区在内存中的起始位置必为该值的整数倍。
 + `FileAlignment`: 节区在文件中的起始位置必为该值的整数倍。
 + `SizeOfImage`: 指定PE image在虚拟内存中所占空间大小。
@@ -142,3 +147,40 @@ struct _IMAGE_OPTIONAL_HEADER {
       DWORD Size;
   };
   ```
+
+#### 4. section header
+
+节区头是由`_IMAGE_SECTION_HEADER`结构体组成的数组，每个结构体对应一个节区。
+
+```C
+#define IMAGE_SIZEOF_SHORT_NAME 8
+
+struct _IMAGE_SECTION_HEADER {
+    BYTE  Name[IMAGE_SIZEOF_SHORT_NAME];
+    union {
+        DWORD PhysicalAddress;
+        DWORD VirtualSize;          // import
+    } Misc;
+    DWORD VirtualAddress;           // import
+    DWORD SizeOfRawData;            // import
+    DWORD PointerToRawData;         // import
+    DWORD PointerToRelocations;
+    DWORD PointerToLinenumbers;
+    WORD  NumberOfRelocations;
+    WORD  NumberOfLinenumbers;
+    DWORD Characteristics;          // import
+};
+```
+
+重要字段：
+
++ `VirtualSize`: 内存中节区大小(不算NULL padding)
++ `VirtualAddress`: 内存中节区起始地址(RVA)
++ `SizeOfRawData`: 文件中节区大小(算上NULL padding)
++ `PointerToRawData`: 文件中节区起始位置
++ `Characteristics`: 节区属性(bit OR)
+
+> `Name`字段中可以放入任意值，不一定以NULL结束，也可以全填充NULL值。
+>
+> `VirtualSize`可能比`SizeOfRawData`更大。此时无法根据内存地址(RVA)推算出文件地址(RAW)。
+
