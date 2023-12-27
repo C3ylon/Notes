@@ -913,9 +913,9 @@ void func() {
 + 如果使用`g++ .\1.o .\2.o -o .\main.exe`，则程序输出结果为`1 : 5\n1 : 5\n`
 + 如果使用`g++ .\2.o .\1.o -o .\main.exe`，则程序输出结果为`2 : 5\n2 : 5\n`
 
-> C++11中新加入了显式实例化。
+> C++11中新加入了实例化声明，在C++11之前已经有实例化定义。
 >
-> 一个显式实例化包含实例化声明和实例化定义。实例化声明形式为`extern template declaration`，实例化定义形式为`template declaration`。
+> 实例化声明形式为`extern template declaration`，实例化定义形式为`template declaration`。
 >
 > 实例化声明可能有多个，实例化定义有且只有一个。
 >
