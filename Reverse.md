@@ -148,6 +148,9 @@ struct _IMAGE_OPTIONAL_HEADER {
   };
   ```
 
+  + DataDirectory[0] = Export Directory
+  + DataDirectory[1] = Import Directory
+
 #### 4. section header
 
 节区头是由`_IMAGE_SECTION_HEADER`结构体组成的数组，每个结构体对应一个节区。
@@ -183,4 +186,3 @@ struct _IMAGE_SECTION_HEADER {
 > `Name`字段中可以放入任意值，不一定以NULL结束，也可以全填充NULL值。
 >
 > `VirtualSize`可能比`SizeOfRawData`更大。此时无法根据内存地址(RVA)推算出文件地址(RAW)。
-
