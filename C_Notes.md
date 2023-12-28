@@ -1026,3 +1026,8 @@ struct a {
 为防止编译器对以上情况错误报错，可以在静态储存期范围内定义`const struct a zero_st_a;`，在所有需要用到零初始化器的地方使用`struct a foo = zero_st_a`。
 
 ***
+
+test line;
+
+***
+
