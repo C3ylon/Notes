@@ -304,6 +304,27 @@ void func2( ... ) { }
 
 > 为了C++与C的兼容性，尽量不要在`struct`或`union`内部定义新的嵌套结构。
 
+C++支持匿名联合，不支持匿名结构。C11及其以后开始支持匿名联合/匿名结构。
+
+```C++
+struct /*或union*/ tag_a {
+    int a;
+    float b;
+    struct /*或union*/ /*tag_b*/ {
+        short c;
+        char d;
+    };
+};
+```
+
+若定义`struct /*或union*/ tag_a a;`:
+
++ 在C11及其以后的版本中，可以用`a.c`直接访问到内嵌的**匿名结构**或**匿名联合**中的成员。
+  > 在C11以前的标准中不支持。(warning: ISO C99 doesn't support unnamed structs/unions)
++ 在C++中，可以用`a.c`直接访问到内嵌的**匿名联合**中的成员。
+  > 在C++中不支持**匿名结构**。(warning: anonymous structs are a GNU extension)
++ 注释掉的*tag_b*不能添加，否则会报错。(error: 'struct tag_a' has no member named 'c')
+
 ***
 
 ```C++
