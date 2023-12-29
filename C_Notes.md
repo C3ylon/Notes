@@ -620,7 +620,9 @@ struct /*或union*/ tag_a {
 > **注意**
 >
 > + 在C11以前的标准中不支持。(warning: ISO C99 doesn't support unnamed structs/unions)
-> + 注释掉的tag_b不能添加，否则会报错。(error: 'struct tag_a' has no member named 'c')
+> + 注释掉的tag_b不能添加，否则访问`a.c`会报错。(error: 'struct tag_a' has no member named 'c')
+
+如果添加tag_b，则`sizeof(struct tag_a) == 8`，如果未添加tag_b，则`sizeof(struct tag_a) == 12`。
 
 ```C
 typedef struct _IMAGE_IMPORT_DESCRIPTOR {
