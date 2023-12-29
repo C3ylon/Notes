@@ -323,7 +323,9 @@ struct /*或union*/ tag_a {
   > 在C11以前的标准中不支持。(warning: ISO C99 doesn't support unnamed structs/unions)
 + 在C++中，可以用`a.c`直接访问到内嵌的**匿名联合**中的成员。
   > 在C++中不支持**匿名结构**。(warning: anonymous structs are a GNU extension)
-+ 注释掉的*tag_b*不能添加，否则会报错。(error: 'struct tag_a' has no member named 'c')
+  >
+  > 如果内嵌的是联合，则未添加tag_b时`sizeof(tag_a) == 12`,添加tag_b时`sizeof(tag_a) == 8`。
++ 注释掉的*tag_b*不能添加，否则访问`a.c`会报错。(error: 'struct tag_a' has no member named 'c')
 
 ***
 
