@@ -622,6 +622,21 @@ struct /*或union*/ tag_a {
 > + 在C11以前的标准中不支持。(warning: ISO C99 doesn't support unnamed structs/unions)
 > + 注释掉的tag_b不能添加，否则会报错。(error: 'struct tag_a' has no member named 'c')
 
+```C
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {
+    __C89_NAMELESS union {
+        DWORD Characteristics;
+        DWORD OriginalFirstThunk;
+    } DUMMYUNIONNAME;
+    DWORD TimeDateStamp;
+    DWORD ForwarderChain;
+    DWORD Name;
+    DWORD FirstThunk;
+} IMAGE_IMPORT_DESCRIPTOR;
+```
+
+比如以上是`Windows.h`中的IID结构体，里面出现了嵌套的匿名联合，为了避免在使用C89和C99时出现报错的情况，添加了`__C89_NAMELESS`宏用以规避编译器报错。
+
 ***
 
 Ubuntu 16.4上执行以下代码会出现错误，输出结果为`result: hello world`。原因是经过编译器的优化导致`res`和`tmp`的起始地址为同一处。修正方法是像注释那样初始化`res`的值。
