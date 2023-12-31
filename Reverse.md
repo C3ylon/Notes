@@ -186,3 +186,32 @@ struct _IMAGE_SECTION_HEADER {
 > `Name`字段中可以放入任意值，不一定以NULL结束，也可以全填充NULL值。
 >
 > `VirtualSize`可能比`SizeOfRawData`更大。此时无法根据内存地址(RVA)推算出文件地址(RAW)。
+
+### IAT
+
+#### 1. IID (IMAGE_IMPORT_DESCRIPTOR)
+
+```C
+struct _IMAGE_IMPORT_DESCRIPTOR {
+    union {
+      DWORD Characteristics;
+      DWORD OriginalFirstThunk;
+    };
+    DWORD TimeDateStamp;
+    DWORD ForwarderChain;
+    DWORD Name;
+    DWORD FirstThunk;
+};
+```
+
+导入多少个库就存在多少个IID结构体，这些结构体形成了数组，由optional header中的`DataDirectory[1].VirtualAddress`指定其在内存中的RVA，由RVA转换得到RAW，即为在文件中的储存地址。该结构体数组最后以NULL结构体结束。
+
+> 注意`DataDirectory[1].Size`中的大小不只是IID结构体数组的大小，这个大小是整个IAT的大小。
+
+重要字段：
+
++ `OriginalFirstThunk`: Import Name Table(INT) address.
++ `Name`: Library name string address.
++ `FirstThunk`: Import Address Table(IAT) address.
+
+> 以上地址都为RVA。
