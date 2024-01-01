@@ -327,6 +327,8 @@ struct /*或union*/ tag_a {
   > 如果内嵌的是联合，则未添加tag_b时`sizeof(tag_a) == 12`,添加tag_b时`sizeof(tag_a) == 8`。
 + 注释掉的*tag_b*不能添加，否则访问`a.c`会报错。(error: 'struct tag_a' has no member named 'c')
 
+C++创建`const`结构体时必须要初始化，比如若`struct st`是一个纯C类型的结构体，在C++中`static const struct st zero_st = { };`，在C中只需要`static const struct st zero_st;`。
+
 ***
 
 ```C++
