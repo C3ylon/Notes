@@ -195,12 +195,12 @@ struct _IMAGE_SECTION_HEADER {
 struct _IMAGE_IMPORT_DESCRIPTOR {
     union {
       DWORD Characteristics;
-      DWORD OriginalFirstThunk;
+      DWORD OriginalFirstThunk;   // import     INT
     };
     DWORD TimeDateStamp;
     DWORD ForwarderChain;
-    DWORD Name;
-    DWORD FirstThunk;
+    DWORD Name;                   // import     DLL name
+    DWORD FirstThunk;             // import     IAT
 };
 ```
 
@@ -215,3 +215,25 @@ struct _IMAGE_IMPORT_DESCRIPTOR {
 + `FirstThunk`: Import Address Table(IAT) address.
 
 > 以上地址都为RVA。
+
+#### 2. INT
+
+```C
+struct _IMAGE_IMPORT_BY_NAME {
+    WORD Hint;      // ordinal
+    BYTE Name[1];
+};
+```
+
+#### 3. IAT
+
+IAT装载顺序：
+
+1. 读取IID的`Name`成员，获取DLL名称字符串
+2. 装载相应DLL(`LoadLibrary`)
+3. 读取IDD的`OriginalFirstThunk`成员，获取INT地址
+4. 按顺序读取INT数组的值，获取相应`_IMAGE_IMPORT_BY_NAME`地址(RVA)
+5. 由`_IMAGE_IMPORT_BY_NAME`中的函数序列号或函数名获取相应函数的起始地址(`GetProcAddress()`)
+6. 读取IID的`FirstThunk`成员，获取IAT地址
+7. 按顺序将获得的函数地址装载入IAT数组
+8. 重复以上步骤4-7，直到INT结束(即遇到NULL结构体时)
