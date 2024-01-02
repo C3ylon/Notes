@@ -210,13 +210,15 @@ struct _IMAGE_IMPORT_DESCRIPTOR {
 
 重要字段：
 
-+ `OriginalFirstThunk`: Import Name Table(INT) address.
++ `OriginalFirstThunk`: Import Name Table(INT) address.(数组成员大小为`size_t`)
 + `Name`: Library name string address.
-+ `FirstThunk`: Import Address Table(IAT) address.
++ `FirstThunk`: Import Address Table(IAT) address.(数组成员大小为`size_t`)
 
 > 以上地址都为RVA。
 
 #### 2. INT
+
+IID中`OriginalFirstThunk`数组的每个成员都是一个指向`_IMAGE_IMPORT_BY_NAME`结构体的RVA的指针。
 
 ```C
 struct _IMAGE_IMPORT_BY_NAME {
@@ -226,6 +228,10 @@ struct _IMAGE_IMPORT_BY_NAME {
 ```
 
 #### 3. IAT
+
+IID中`FirstThunk`数组的每个成员都是一个指向导入函数地址的指针。
+
+> INT与IAT数组的大小通常相等(具有相同的成员个数，且成员大小都为`size_t`)。
 
 IAT装载顺序：
 
