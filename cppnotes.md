@@ -351,7 +351,7 @@ const string &func() {
 2. 确定可行函数:
 
    1. 形参数量与调用处实参数量匹配。
-   2. 每个形参的类型与调用处实参类型相同，或能由实参类型转化得到。
+   2. 每个形参的类型与调用处实参类型相同，或能由实参类型转换得到。
 
 3. 确定最佳匹配。有且只有一个函数满足，否则会报错无匹配函数或二义性调用。
 
@@ -2293,5 +2293,64 @@ struct st1 {
     // error: explicit specialization in non-namespace scope 'struct st1<T>'
 };
 ```
+
+***
+
+左值、右值与类型转换：
+
+对于类型转换`(T)var`：当类型`T`不比类型`decltype(var)`缺少底层cv限定符时，该表达式等效于`T tmp(var)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
+
+```C++
+struct st1 { };
+struct st2 { st2(st1 = st1()) { } };
+struct st3 { st3(st2 = st2()) { } };
+struct st4 { st4(st3 = st3()) { } };
+
+int main() {
+    (st3)st1();
+    // (st4)st1();
+    // error: no matching conversion for C-style cast from 'st1' to 'st4'
+    return 0;
+}
+```
+
+> 上述`(st3)st1()`等效于`st3 tmp(st1())`，其中`tmp`类型为右值。由于`tmp`的初始化方式为直接初始化而非拷贝初始化，因此在`st3`试图调用构造函数时其参数`st1()`类型会隐式转换为`st2`。最终表现的结果就是类型`st3`可由类型`st1`显式转换得到。
+>
+> `(st4)st1()`报错则是由于`st4`构造函数需要`st3`类型的参数，而`st3`类型无法由`st1`类型隐式转换得到。
+>
+> 综上，显示转换最多可以跨越两层类型。
+
+用右值初始化一个类型为`const T &`或`T &&`的引用变量时，等效于申请一个临时空间来存放该右值，然后再用该临时空间的地址来初始化该引用变量。当该引用变量生命周期结束时，再销毁该右值。
+
+```C++
+struct st {
+    int a;
+    st(int a = 0) : a(a) { }
+    ~st() { }
+
+};
+
+int main() {
+
+    const st* p =  &(const st &)(st)1;
+    // warning: temporary whose address is used as value of local variable 'p' 
+    // will be destroyed at the end of the full-expression
+    return 0;
+}
+```
+
+> `(const st &)(st)1`等效于`const st &tmp((st)1)`，其中`tmp`类型为右值，`tmp`作为用右值初始化的引用变量，其所指的临时空间为存放右值`(st)1`的空间。在`tmp`进行下一次操作后生命周期会结束，此时右值`(st)1`会销毁。对应于上述代码即是在指针赋值操作之前右值`(st)1`就会销毁。
+>
+> 在clang中对应汇编如下：
+>
+> ```C++
+> lea     rdi, [rbp - 20]               // [rbp - 20]为存放(st)1的临时空间
+> mov     esi, 1
+> call    st::st(int)                   // 初始化(st)1
+> lea     rdi, [rbp - 20]
+> call    st::~st()                     // 销毁(st)1
+> lea     rax, [rbp - 20]
+> mov     qword ptr [rbp - 16], rax     // 指针赋值
+> ```
 
 ***
