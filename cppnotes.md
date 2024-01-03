@@ -2320,7 +2320,7 @@ int main() {
 >
 > 综上，显示转换最多可以跨越两层类型。
 
-`const T &(val)`与`T &&(val)`的处理：
+`const T &var(val)`的处理：
 
 1. `val`是右值
 2. `val`是左值且`T`需要由`decltype(val)`隐式转换得到
