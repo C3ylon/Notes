@@ -2302,17 +2302,17 @@ struct st1 {
 
 左值、右值与类型转换：
 
-对于类型转换`(T)var`：
+对于类型转换`(T)val`：
 
-+ 普通情况下，该表达式等效于`T tmp(var)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
++ 普通情况下，该表达式等效于`T tmp(val)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
 
-+ 无法等效于`T tmp(var)`的三种情况：
++ 无法等效于`T tmp(val)`的三种情况：
   + 类型`T`是`void`
-    > 此时`var`的类型可以是任意类型，该类型转换无转换结果。
+    > 此时`val`的类型可以是任意类型，该类型转换无转换结果。
     >
     > 这种形式的类型转换主要目的是为了消除warning *unused*。
-  + 类型`T`比`var`的类型缺少底层cv限定符
-  + `T`是右值引用，`var`是左值
+  + 类型`T`比`val`的类型缺少底层cv限定符
+  + `T`是右值引用，`val`是左值
 
 ```C++
 struct st1 { };
@@ -2333,6 +2333,29 @@ int main() {
 > `(st4)st1()`报错则是由于`st4`构造函数需要`st3`类型的参数，而`st3`类型无法由`st1`类型隐式转换得到。
 >
 > 综上，显示转换最多可以跨越两层类型。
+
+```C++
+#include <iostream>
+using namespace std;
+struct st {
+    int a;
+    st(int a) : a(a) { cout << "init: " << this << "\n"; }
+    st(const st &a) : a(a.a) { cout << "copy init: " << this << "\n"; }
+    ~st() { cout << "dist: " << this << "\n"; }
+
+};
+void fn_rvalue(st&&) { }
+int main() {
+    st a(1);
+    // fn_rvalue(a);        // 错误，fn只接受右值
+    fn_rvalue((st)a);       // 类型转换 1
+    fn_rvalue((st&&)a);     // 类型转换 2
+}
+```
+
+> 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次拷贝构造及其析构。(即使是在未开启`-fno-elide-constructors`和开启`-O3`的情况下)
+>
+> 因此左值到右值的转换最好用`(T&&)val`的形式。
 
 `const T &var(val)`的处理：
 
