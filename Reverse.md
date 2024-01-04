@@ -12,7 +12,7 @@
 | 驱动 | sys |
 | 对象文件 | obj |
 
-### PE header
+### 1. PE header
 
 pe header包括dos header、dos stub、NT header、section header（节区头），剩下的节区称为pe体。各节区头定义了各节区在文件/内存中的大小、位置、属性等。
 
@@ -187,7 +187,7 @@ struct _IMAGE_SECTION_HEADER {
 >
 > `VirtualSize`可能比`SizeOfRawData`更大。此时无法根据内存地址(RVA)推算出文件地址(RAW)。
 
-### IAT
+### 2. IAT
 
 #### 1. IID (IMAGE_IMPORT_DESCRIPTOR)
 
@@ -243,3 +243,25 @@ IAT装载顺序：
 6. 读取IID的`FirstThunk`成员，获取IAT地址
 7. 按顺序将获得的函数地址装载入IAT数组
 8. 重复以上步骤4-7，直到INT结束(即遇到NULL结构体时)
+
+> 当PE装载器无法通过`OriginalFirstThunk`查找到INT时，就会尝试通过`FirstThunk`查找，此时INT与IAT是相同区域。
+
+### 3. EAT
+
+PE文件中仅有一个用来说明EAT的结构体。(区别于IAT的结构体数组)
+
+```C
+struct _IMAGE_EXPORT_DIRECTORY {
+    DWORD Characteristics;
+    DWORD TimeDateStamp;
+    WORD MajorVersion;
+    WORD MinorVersion;
+    DWORD Name;
+    DWORD Base;
+    DWORD NumberOfFunctions;
+    DWORD NumberOfNames;
+    DWORD AddressOfFunctions;
+    DWORD AddressOfNames;
+    DWORD AddressOfNameOrdinals;
+};
+```
