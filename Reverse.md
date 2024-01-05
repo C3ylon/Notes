@@ -258,10 +258,27 @@ struct _IMAGE_EXPORT_DIRECTORY {
     WORD MinorVersion;
     DWORD Name;
     DWORD Base;
-    DWORD NumberOfFunctions;
-    DWORD NumberOfNames;
-    DWORD AddressOfFunctions;
-    DWORD AddressOfNames;
-    DWORD AddressOfNameOrdinals;
+    DWORD NumberOfFunctions;        //import
+    DWORD NumberOfNames;            //import
+    DWORD AddressOfFunctions;       //import
+    DWORD AddressOfNames;           //import
+    DWORD AddressOfNameOrdinals;    //import
 };
 ```
+
+重要字段：
+
++ `NumberOfFunctions`: 实际导出函数个数。
++ `NumberOfNames`: 导出函数中具名函数的个数。
++ `AddressOfFunctions`: 导出函数地址数组(即EAT)，成员为导出函数地址的RVA，个数为`NumberOfFunctions`。
++ `AddressOfNames`: 函数名称地址数组，成员为函数名称字符串地址的RVA，个数为`NumberOfNames`。
++ `AddressOfNameOrdinals`: 序数数组，成员为`WORD`类型的函数序数，个数为`NumberOfNames`。
+
+`GetProcAddress`获取函数地址原理：
+
+1. 通过`AddressOfNames`找到函数名称字符串地址。
+2. 依次比较每个字符串，查找指定名称，记此时的数组索引为name_index
+3. 通过`AddressOfNameOrdinals`找到序数数组。
+4. 在序数数组中通过name_index查找指定函数的序数。
+5. 通过`AddressOfFunctions`找到EAT。
+6. 在EAT中用函数序数作数组索引，获得指定函数的起始地址。
