@@ -374,7 +374,7 @@ const string &func() {
 }
 ```
 
-在这段函数中有string对象创建和销毁的代码，该处返回等效于`const string tmp = "str"; return tmp;`。因此此处是返回了局部变量的引用，属于未定义行为。
+在这段函数中有string对象创建和销毁的代码，该处返回等效于`const string &tmp = "str"; return tmp;`。因此此处是返回了局部变量的引用，属于未定义行为。
 
 ***
 
