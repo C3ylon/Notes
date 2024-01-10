@@ -617,6 +617,10 @@ int main() {
 
   在本类内定义一个`operator TYPE();`函数，此函数不说明返回值类型，没有参数列表。该函数没有添加`explicit`修饰符时，可以由本类类型向`TYPE`类型隐式转换，如果`TYPE`是内置基础类型，则还可以向其他内置基础类型隐式转换。在C++11开始的标准中可以为该函数添加`explicit`修饰符，加了修饰符时只能显式转换。
 
+  > 添加`explicit`修饰符主要是用于`explicit operator bool();`，这样可以避免在不需要用到布尔值的地方错误地通过隐式类类型转换得到布尔类型，再由布尔类型转换到其他内置基础类型。在需要用到布尔值的地方(比如`if(condition)`等)不用显式地将本类类型转换为布尔类型，可以直接使用。(等效于编译器直接写好`if(bool(condition))`)
+
+一个类内可以创建多条*由其他类型向本类类型转换*和*由本类类型向其他类型转换*的规则，要注意类比于函数重载的匹配优先级区分出转换优先级，如果在需要用到类型转换的地方有多个同优先级转换规则则会报错。(error: conversion from 'type1' to 'type2' is ambiguous)
+
 ```C++
 struct st1 {
     int a;
@@ -649,6 +653,7 @@ int main() {
     
     fn(a);
     // 在不加explicit修饰符时，调用第一个fn
+    // 因为经过类类型转换后，整型提升的匹配优先级比算术类型转换更高
     // 添加explicit修饰符时，报错error: no matching function for call to 'fn(st1&)
     return 0;
 }
