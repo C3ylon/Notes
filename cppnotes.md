@@ -475,16 +475,108 @@ const st3 &a = { st1{} };
   > ```
   >
   > 上述callee中存在两种返回情况，一种是返回全局变量的引用，一种是返回局部临时变量的引用，若`const st &`可以延长函数返回值的生命周期，则编译器构建的callee一定会产生额外的资源损耗，因此统一约定为不能延长返回值生命周期。
+  >
+  > ```C++
+  > const string &func() {
+  >     return "str";
+  > }
+  > ```
+  >
+  > 在这段函数中有string对象创建和销毁的代码，该处返回等效于`const string &tmp = "str"; return tmp;`。因此此处是返回了局部变量的引用，属于未定义行为。
 
-***
+### 引用与类型转换
+
+对于类型转换`(T)val`：
+
++ 普通情况下，该表达式等效于`T tmp(val)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
+
++ 无法等效于`T tmp(val)`的三种情况：
+  + 类型`T`是`void`
+    > 此时`val`的类型可以是任意类型，该类型转换无转换结果。
+    >
+    > 这种形式的类型转换主要目的是为了消除warning *unused*。
+  + 类型`T`比`val`的类型缺少底层cv限定符
+  + `T`是右值引用，`val`是左值
 
 ```C++
-const string &func() {
-    return "str";
+struct st1 { };
+struct st2 { st2(st1 = st1()) { } };
+struct st3 { st3(st2 = st2()) { } };
+struct st4 { st4(st3 = st3()) { } };
+
+int main() {
+    (st3)st1();
+    // (st4)st1();
+    // error: no matching conversion for C-style cast from 'st1' to 'st4'
+    return 0;
 }
 ```
 
-在这段函数中有string对象创建和销毁的代码，该处返回等效于`const string &tmp = "str"; return tmp;`。因此此处是返回了局部变量的引用，属于未定义行为。
+> 上述`(st3)st1()`等效于`st3 tmp(st1())`，其中`tmp`类型为右值。由于`tmp`的初始化方式为直接初始化而非拷贝初始化，因此在`st3`试图调用构造函数时其参数`st1()`类型会隐式转换为`st2`。最终表现的结果就是类型`st3`可由类型`st1`显式转换得到。
+>
+> `(st4)st1()`报错则是由于`st4`构造函数需要`st3`类型的参数，而`st3`类型无法由`st1`类型隐式转换得到。
+>
+> 综上，显示转换最多可以跨越两层类型。
+
+左值与右值间的合法转换：
+
++ 左值到右值的转换：`(T &&)val`
+
+  ```C++
+  #include <iostream>
+  using namespace std;
+  struct st {
+      int a;
+      st(int a) : a(a) { cout << "init: " << this << "\n"; }
+      st(const st &a) : a(a.a) { cout << "copy init: " << this << "\n"; }
+      ~st() { cout << "dist: " << this << "\n"; }
+  
+  };
+  void fn_rvalue(st&&) { }
+  int main() {
+      st a(1);
+      // fn_rvalue(a);        // 错误，fn只接受右值
+      fn_rvalue((st)a);       // 类型转换 1
+      fn_rvalue((st &&)a);     // 类型转换 2
+  }
+  ```
+  
+  > 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次拷贝构造及其析构。(即使是在未开  启`-fno-elide-constructors`和开启`-O3`的情况下)
+  >
+  > 因此左值到右值的转换最好用`(T &&)val`的形式。
+
++ 右值到左值的转换：`(const T &)val`
+
+  ```C++
+  struct st {
+      int a;
+      st(int a = 0) : a(a) { }
+      ~st() { }
+  
+  };
+  
+  int main() {
+  
+      const st* p =  &(const st &)(st)1;
+      // warning: temporary whose address is used as value of local variable 'p' 
+      // will be destroyed at the end of the full-expression
+      return 0;
+  }
+  ```
+  
+  > `(const st &)(st)1`等效于`const st &tmp((st)1)`，其中`tmp`类型为左值，`tmp`所指的地址为临时变量`(st)1`的内存空间。在`tmp`进行下一次操作后生命周期会结束，此时临时变量`(st)1`会销毁。对应于上述代码即是在指针赋值操作之前右值`(st)1`就会销毁。
+  >
+  > 在clang中对应汇编如下：
+  >
+  > ```C++
+  > lea     rdi, [rbp - 20]               // [rbp - 20]为存放(st)1的临时空间
+  > mov     esi, 1
+  > call    st::st(int)                   // 初始化(st)1
+  > lea     rdi, [rbp - 20]
+  > call    st::~st()                     // 销毁(st)1
+  > lea     rax, [rbp - 20]
+  > mov     qword ptr [rbp - 16], rax     // 指针赋值
+  > ```
 
 ***
 
@@ -2442,105 +2534,5 @@ struct st1 {
     // error: explicit specialization in non-namespace scope 'struct st1<T>'
 };
 ```
-
-***
-
-左值、右值与类型转换：
-
-对于类型转换`(T)val`：
-
-+ 普通情况下，该表达式等效于`T tmp(val)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
-
-+ 无法等效于`T tmp(val)`的三种情况：
-  + 类型`T`是`void`
-    > 此时`val`的类型可以是任意类型，该类型转换无转换结果。
-    >
-    > 这种形式的类型转换主要目的是为了消除warning *unused*。
-  + 类型`T`比`val`的类型缺少底层cv限定符
-  + `T`是右值引用，`val`是左值
-
-```C++
-struct st1 { };
-struct st2 { st2(st1 = st1()) { } };
-struct st3 { st3(st2 = st2()) { } };
-struct st4 { st4(st3 = st3()) { } };
-
-int main() {
-    (st3)st1();
-    // (st4)st1();
-    // error: no matching conversion for C-style cast from 'st1' to 'st4'
-    return 0;
-}
-```
-
-> 上述`(st3)st1()`等效于`st3 tmp(st1())`，其中`tmp`类型为右值。由于`tmp`的初始化方式为直接初始化而非拷贝初始化，因此在`st3`试图调用构造函数时其参数`st1()`类型会隐式转换为`st2`。最终表现的结果就是类型`st3`可由类型`st1`显式转换得到。
->
-> `(st4)st1()`报错则是由于`st4`构造函数需要`st3`类型的参数，而`st3`类型无法由`st1`类型隐式转换得到。
->
-> 综上，显示转换最多可以跨越两层类型。
-
-```C++
-#include <iostream>
-using namespace std;
-struct st {
-    int a;
-    st(int a) : a(a) { cout << "init: " << this << "\n"; }
-    st(const st &a) : a(a.a) { cout << "copy init: " << this << "\n"; }
-    ~st() { cout << "dist: " << this << "\n"; }
-
-};
-void fn_rvalue(st&&) { }
-int main() {
-    st a(1);
-    // fn_rvalue(a);        // 错误，fn只接受右值
-    fn_rvalue((st)a);       // 类型转换 1
-    fn_rvalue((st&&)a);     // 类型转换 2
-}
-```
-
-> 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次拷贝构造及其析构。(即使是在未开启`-fno-elide-constructors`和开启`-O3`的情况下)
->
-> 因此左值到右值的转换最好用`(T&&)val`的形式。
-
-`const T &var(val)`的处理：
-
-1. `val`是右值
-2. `val`是左值且类型`T`需要由`val`的类型隐式转换得到
-3. `val`是左值且`val`的类型等效于类型`T`
-
-对于前两种情况，等效于申请一个临时空间来存放`T`类型的临时变量，然后再用临时空间的地址初始化引用变量。当引用变量生命周期结束时，再销毁临时变量。
-
-对于第三种情况，等效于用`val`的地址初始化引用变量。
-
-```C++
-struct st {
-    int a;
-    st(int a = 0) : a(a) { }
-    ~st() { }
-
-};
-
-int main() {
-
-    const st* p =  &(const st &)(st)1;
-    // warning: temporary whose address is used as value of local variable 'p' 
-    // will be destroyed at the end of the full-expression
-    return 0;
-}
-```
-
-> `(const st &)(st)1`等效于`const st &tmp((st)1)`，其中`tmp`类型为左值，`tmp`作为用右值初始化的引用变量，其所指的临时空间为存放右值`(st)1`的空间。在`tmp`进行下一次操作后生命周期会结束，此时右值`(st)1`会销毁。对应于上述代码即是在指针赋值操作之前右值`(st)1`就会销毁。
->
-> 在clang中对应汇编如下：
->
-> ```C++
-> lea     rdi, [rbp - 20]               // [rbp - 20]为存放(st)1的临时空间
-> mov     esi, 1
-> call    st::st(int)                   // 初始化(st)1
-> lea     rdi, [rbp - 20]
-> call    st::~st()                     // 销毁(st)1
-> lea     rax, [rbp - 20]
-> mov     qword ptr [rbp - 16], rax     // 指针赋值
-> ```
 
 ***
