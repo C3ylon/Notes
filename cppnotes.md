@@ -605,7 +605,66 @@ int main() {
    > 4. 算术类型转换(所有算术类型转换的级别都一样，比如`int`向`unsigned int`的转换并不比`int`向`double`的转换优先级高)
    > 5. 类类型转换(由算术类型向类类型、由类类型向算术类型、由类类型向类类型都属于类类型转换)
 
-用重载函数对某指针赋值遵循以上匹配规则。
+***
+
+创建类类型转换规则的方式：
+
++ 由其他类型向本类类型转换：
+
+  在本类内定义一个只用一个参数就能调用的构造函数(可以有多个参数，要为多余的参数添加默认值)，该参数的类型就是可以向本类类型转换的类型。该构造函数没有加`explicit`修饰符时，可以由该参数的类型向本类类型隐式转换，加了`explicit`修饰符时只能显式转换。
+
++ 由本类类型向其他类型转换：
+
+  在本类内定义一个`operator TYPE();`函数，此函数不说明返回值类型，没有参数列表。该函数没有添加`explicit`修饰符时，可以由本类类型向`TYPE`类型隐式转换，如果`TYPE`是内置基础类型，则还可以向其他内置基础类型隐式转换。在C++11开始的标准中可以为该函数添加`explicit`修饰符，加了修饰符时只能显式转换。
+
+```C++
+struct st1 {
+    int a;
+    st1(int a) : a(a) { }
+    /*explicit*/
+    operator unsigned char() { return a; }
+};
+
+struct st2 { st2(unsigned char) { } };
+
+struct st3 { st3(char) { } };
+
+void fn(int) { }
+void fn(char) { }
+
+int main() {
+    st1 a(1);
+    int b = a;                      // 视作先类类型转换再整型提升
+    char c = a;                     // 视作先类类型转换再算术类型转换
+    // st2 d = a;
+    // 错误，由st1类型转换向unsigned char类型是类类型转换
+    // 非列表形式的拷贝初始化无法完成类类型转换
+    st2 e = { a };
+    // 若添加了explicit修饰符：
+    // 以上b, c, e的定义全部报错
+    // st2 d = { (unsigned char)a };  正确，此时只能显式转换
+    // 且括号内转换的类型只能为unsigned char
+    // 若括号内是char：
+    // (char)a等效于char tmp(a);  因此错误
+    
+    fn(a);
+    // 在不加explicit修饰符时，调用第一个fn
+    // 添加explicit修饰符时，报错error: no matching function for call to 'fn(st1&)
+    return 0;
+}
+```
+
+***
+
+用有多个重载函数的函数名称对某指针赋值遵循重载函数的匹配规则。
+
+```C++
+void fn(char) { }
+void fn(int) { }
+
+void (*p1)(char) = fn;      // p1的值是第一个函数地址
+void (*p2)(int) = fn;       // p2的值是第二个函数地址
+```
 
 ***
 
