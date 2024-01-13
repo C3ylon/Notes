@@ -1950,9 +1950,11 @@ int main() {
 
 在被声明为不抛出异常的函数中，`noexcept`等价于`throw()`。
 
-`noexcept`应当出现在函数的所有声明语句和定义语句中，否则一次也不应当出现。可以在函数指针的声明中说明`noexcept`。
+`noexcept`应当出现在函数的**所有**声明语句和定义语句中，否则一次也不应当出现。可以在函数指针的声明中说明`noexcept`。
 
 C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。若实需抛出异常则应当标注`noexcept(false)`。
+
+> 析构函数默认不抛出异常是因为如果同时存在析构和手动`throw`时，会抛出两次异常，导致`catch`处漏接一个异常。
 
 `noexcept`说明符需要在`const`之后，在类的构造函数的初始化列表、函数尾置返回类型、`overrride`和`final`说明符及虚函数的`=0`之前。
 
@@ -2468,6 +2470,7 @@ template <>
 template <>
 void st<int>::fn<int>() { }
 
+/*****************************************/
 
 class cl {
     int a;
@@ -2476,7 +2479,6 @@ class cl {
     template<int N>
     // 声明友元函数pr
     friend void pr(cl&);
-
 };
 
 // 定义友元函数
