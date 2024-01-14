@@ -2616,8 +2616,8 @@ struct st1 {
 inline void fn() {
     std::cout << "in sub" << std::endl;
 }
-//由于在该翻译单元内未发生调用，所以此处实际上未生成代码
-/*************************************************/
+// 由于在该翻译单元内未发生调用，所以此处实际上未生成代码
+//==================================================
 // main.cpp
 #include <iostream>
 void fn();
@@ -2634,7 +2634,7 @@ int main() {
 void fn() {
     std::cout << "in sub" << std::endl;
 }
-/**************************************/
+//======================================
 // main.cpp
 #include <iostream>
 inline void fn() {
@@ -2664,7 +2664,7 @@ void fnt() {
 }
 inline void fn() { cout << "in sub" << endl; }
 void invoke() { fnt<int>(); fn(); }
-/********************************************/
+//==============================================
 // main.cpp
 #include <iostream>
 using namespace std;
