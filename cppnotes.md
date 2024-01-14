@@ -673,10 +673,6 @@ void (*p2)(int) = fn;       // p2的值是第二个函数地址
 
 ***
 
-`constepxr`函数和定义在类内部的函数都是隐式的`inline`函数。
-
-***
-
 构造函数不能被声明为`const`。当创建一个类的`const`对象时，直到构造函数执行完成，对象才能真正获得`const`属性。
 
 ***
@@ -882,14 +878,6 @@ int main () {
 // 以上不能成功编译
 // error: use of undeclared identifier 'func1'
 ```
-
-***
-
-+ 类内定义的函数->隐式`inline`
-+ 类内声明`inline`函数->显式`inline`(无需再在类外定义函数的地方添加`inline`)
-+ 类内声明且不带`inline`的函数->能在类外定义为`inline`函数
-
-无需在声明和定义的地方同时说明`inline`。
 
 ***
 
@@ -2607,5 +2595,110 @@ struct st1 {
     // error: explicit specialization in non-namespace scope 'struct st1<T>'
 };
 ```
+
+***
+
+`inline`关键字用法：
+
+`inline`作用于一个函数时，将函数声明为内联函数。
+
+> C++17开始`inline`作用于一个拥有**静态储存期**的变量时，将变量声明为内联变量。
+
+内联函数具有以下两点性质：
+
++ 允许同一个函数在多个翻译单元中重复存在
++ 对于具有外部链接属性的函数，不保证一定会生成可链接的代码
+  > 在定义内联函数的翻译单元内如果未发生调用，通常情况下不会生成该函数的二进制代码。
+
+```C++
+// sub.cpp
+#include <iostream>
+inline void fn() {
+    std::cout << "in sub" << std::endl;
+}
+//由于在该翻译单元内未发生调用，所以此处实际上未生成代码
+/*************************************************/
+// main.cpp
+#include <iostream>
+void fn();
+int main() {
+    fn();
+    return 0;
+}
+// 链接错误: undefined reference to `fn()'
+```
+
+```C++
+// sub.cpp
+#include <iostream>
+void fn() {
+    std::cout << "in sub" << std::endl;
+}
+/**************************************/
+// main.cpp
+#include <iostream>
+inline void fn() {
+    std::cout << "in main" << std::endl;
+}
+int main() {
+    fn();
+    return 0;
+}
+// 链接错误: multiple definition of `fn()'
+// 如果不在main内调用fn()
+// 或者是在sub.cpp内将fn声明为inline(即使此时main.cpp内的fn为非inline)
+// 都不会发生链接错误
+```
+
+对于具有外部链接属性的内联函数，如果在不同翻译单元中的定义不同，那么程序**非良构**。
+
+> 通常情况下的表现是使用第一个链接的翻译单元中的代码。
+
+```C++
+// sub.cpp
+#include <iostream>
+using namespace std;
+template <class T>
+void fnt() {
+    cout << "in sub" << endl;
+}
+inline void fn() { cout << "in sub" << endl; }
+void invoke() { fnt<int>(); fn(); }
+/********************************************/
+// main.cpp
+#include <iostream>
+using namespace std;
+template <class T>
+void fnt() {
+    cout << "in main" << endl;
+}
+inline void fn() {  cout << "in main" << endl; }
+void invoke();
+int main() {
+    fnt<int>(); fn();
+    invoke();
+    return 0;
+}
+// 如果使用g++ .\main.cpp .\sub.cpp -o main的编译选项:
+// 输出都为in main
+// 如果使用g++ .\sub.cpp .\main.cpp -o main的编译选项:
+// 输出都为in sub
+```
+
+无需在声明和定义的地方同时使用`inline`。
+
++ 类内定义的函数 -> 隐式`inline`
++ 类内声明`inline`函数 -> 显式`inline`(无需再在类外定义函数的地方添加`inline`)
++ 类内声明且不带`inline`的函数 -> 能在类外定义为`inline`函数
+
+> 类内声明友元函数时可以使用`inline`，但不能使用`extern`和`static`这两个链接属性修饰符。
+
+默认使用`inline`的情况：
+
++ 模板函数
++ `constexpr`函数
++ 定义在类内部的函数(包括友元函数)
+
+> 由于C++标准规定编译器可以选择忽视内联优化的建议，因此对于`inline`关键字来说，"*将函数内联到调用者代码中*"这个功能是非必需的可选项，但是作为支持内联优化特性的副作用，"*允许同一个函数在多个翻译单元中重复存在*"这个特性一直存在，即使是对于早期版本的C++编译器也是如此。
 
 ***
