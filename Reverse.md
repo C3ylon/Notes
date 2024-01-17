@@ -150,6 +150,7 @@ struct _IMAGE_OPTIONAL_HEADER {
 
   + DataDirectory[0] = Export Directory
   + DataDirectory[1] = Import Directory
+  + DataDirectory[5] = Base Relocation
 
 #### 4. section header
 
@@ -206,7 +207,7 @@ struct _IMAGE_IMPORT_DESCRIPTOR {
 
 导入多少个库就存在多少个IID结构体，这些结构体形成了数组，由optional header中的`DataDirectory[1].VirtualAddress`指定其在内存中的RVA，由RVA转换得到RAW，即为在文件中的储存地址。该结构体数组最后以NULL结构体结束。
 
-> 注意`DataDirectory[1].Size`中的大小不只是IID结构体数组的大小，这个大小是整个IAT的大小。
+> 注意`DataDirectory[1].Size`中的大小不只是IID结构体数组的大小，这个大小是整个IAT的大小，里面还包括了导入DLL名称和函数名称等信息。
 
 重要字段：
 
@@ -246,7 +247,7 @@ IAT装载顺序：
 
 > 当PE装载器无法通过`OriginalFirstThunk`查找到INT时，就会尝试通过`FirstThunk`查找，此时INT与IAT是相同区域。
 
-### 3. EAT
+### 3. EAT [Optional]
 
 PE文件中仅有一个用来说明EAT的结构体。(区别于IAT的结构体数组)
 
@@ -282,3 +283,7 @@ struct _IMAGE_EXPORT_DIRECTORY {
 4. 在序数数组中通过name_index查找指定函数的序数。
 5. 通过`AddressOfFunctions`找到EAT。
 6. 在EAT中用函数序数作数组索引，获得指定函数的起始地址。
+
+### 4. Relocation Table [Optional]
+
+使程序中硬编码的内存地址随当前ImageBase变化而改变的处理过程就是PE重定位。
