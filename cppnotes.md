@@ -2716,15 +2716,15 @@ int main() {
 
 `using`和`using namespace`：
 
-+ 在使用`using`关键字从某个命名空间引入函数名后，如果后续扩充该命名空间并引入同名函数的重载声明，那么这些重载的函数声明不会通过该`using`关键字变为可见。
++ 在使用`using`关键字从某个命名空间引入函数名后，如果后续扩充该命名空间并引入同名函数的重载声明，那么这些重载的函数声明不会通过该`using`关键字可见。
 
   ```C++
   namespace A {
       void f(int) { }
   }
-  using A::f;                 // ::f等效于A::f(int)
+  using A::f;                 // 此处开始::f等效于A::f(int)
   namespace A {               // 命名空间扩展
-      void f(char) { }        // 不更改::f的含义
+      void f(char) { }        // 不改变::f的含义
   }
    
   void fn1() {
@@ -2734,6 +2734,7 @@ int main() {
   void fn2() {
       using A::f;             // f等效于A::f(int)和A::f(char)
       f('a');                 // 调用A::f(char)
+      ::f('a');               // 调用A::f(int)
   }
   ```
 
@@ -2746,7 +2747,8 @@ int main() {
   }
   using namespace A;        // 引入A::a，A::f(char)，A::a2，A::f(int)，
                             // B::b，B::f(int)到全局命名空间
-  int a;                    // 正确：声明时与A::a不冲突
+  int a;                    // 正确，此处定义与A::a不冲突
+                            // 如果上一行是using A::a; 则此处不能定义int a;
   namespace B {
       int b;
       void f(int) { }
