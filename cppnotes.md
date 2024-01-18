@@ -2754,7 +2754,7 @@ int main() {
   
   namespace A {             // 命名空间扩展
       int a2;
-      using namespace B;    // 传递using指令
+      using namespace B;
       void f(int) { }
   }
   
