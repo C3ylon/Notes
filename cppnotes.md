@@ -2722,18 +2722,18 @@ int main() {
   namespace A {
       void f(int) { }
   }
-  using A::f;                 // ::f 现在是 A::f(int) 的同义词
+  using A::f;                 // ::f等效于A::f(int)
   namespace A {               // 命名空间扩展
-      void f(char) { }        // 不更改 ::f 的含义
+      void f(char) { }        // 不更改::f的含义
   }
    
   void fn1() {
-      f('a');                 // 调用 f(int)，即使 f(char) 存在。
+      f('a');                 // 调用A::f(int)，即使A::f(char)存在
   }
    
   void fn2() {
-      using A::f;             // 此 f 是 A::f(int) 与 A::f(char) 的同义词
-      f('a');                 // 调用 f(char)
+      using A::f;             // f等效于A::f(int)和A::f(char)
+      f('a');                 // 调用A::f(char)
   }
   ```
 
@@ -2744,8 +2744,8 @@ int main() {
       int a;
       void f(char) { }
   }
-  using namespace A;        // 引入A::a、A::f(char)、A::a2、A::f(int)、
-                            // B::b及B::f(int)到全局命名空间
+  using namespace A;        // 引入A::a，A::f(char)，A::a2，A::f(int)，
+                            // B::b，B::f(int)到全局命名空间
   int a;                    // 正确：声明时与A::a不冲突
   namespace B {
       int b;
