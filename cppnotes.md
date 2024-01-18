@@ -2738,6 +2738,30 @@ int main() {
   }
   ```
 
++ 在使用`using`关键字从某个命名空间引入函数模板或类模板后，如果后续扩充该命名空间并引入对应的特化/偏特化，那么这些特化/偏特化是可见的，因为可以先查找到源模板。
+
+  ```C++
+  #include <iostream>
+  namespace A {
+      template <class T> void f() { }
+      template <class T> struct st;
+  }
+  using A::f;
+  using A::st;
+  namespace A {
+      template <> void f<int>() { }
+      template <class T>
+      struct st<T *> {
+          st() { std::cout << "in specialization" << std::endl; }
+      };
+  }
+  
+  void fn() {
+      st<int*> a; // 输出in specialization
+      f<int>();   // 调用的是特化后的f
+  }
+  ```
+
 + 在使用`using namespace`指令引入某个某命名空间后，如果后续扩充该命名空间并引入其他成员，及通过另外的`using namespace`指令引入其他命名空间，那么这些成员和命名空间将通过该`using namespace`指令可见。
 
   ```C++
