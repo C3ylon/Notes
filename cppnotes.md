@@ -2708,8 +2708,65 @@ int main() {
 
 定义匿名命名空间时相当于在其当前作用域中另外再隐式添加一条`using`指令(`using namespace UNNAMED_NAMESPACE;`)。
 
-匿名命名空间的成员具有内部链接属性。因此使用全局作用域内的匿名命名空间可以等效代替以`static`关键字修改外部链接属性为内部链接属性的方法。
+匿名命名空间的成员具有**内部链接**属性。因此使用全局作用域内的匿名命名空间可以等效代替以`static`关键字修改外部链接属性为内部链接属性的方法。
 
 相同作用域中的多个匿名命名空间定义表示同一个匿名命名空间。
+
+***
+
+`using`和`using namespace`：
+
++ 在使用`using`关键字从某个命名空间引入函数名后，如果后续扩充该命名空间并引入同名函数的重载声明，那么这些重载的函数声明不会通过该`using`关键字变为可见。
+
+  ```C++
+  namespace A {
+      void f(int) { }
+  }
+  using A::f;                 // ::f 现在是 A::f(int) 的同义词
+  namespace A {               // 命名空间扩展
+      void f(char) { }        // 不更改 ::f 的含义
+  }
+   
+  void fn1() {
+      f('a');                 // 调用 f(int)，即使 f(char) 存在。
+  }
+   
+  void fn2() {
+      using A::f;             // 此 f 是 A::f(int) 与 A::f(char) 的同义词
+      f('a');                 // 调用 f(char)
+  }
+  ```
+
++ 在使用`using namespace`指令引入某个某命名空间后，如果后续扩充该命名空间并引入其他成员，及通过另外的`using namespace`指令引入其他命名空间，那么这些成员和命名空间将通过该`using namespace`指令可见。
+
+  ```C++
+  namespace A {
+      int a;
+      void f(char) { }
+  }
+  using namespace A;        // 引入A::a、A::f(char)、A::a2、A::f(int)、
+                            // B::b及B::f(int)到全局命名空间
+  int a;                    // 正确：声明时与A::a不冲突
+  namespace B {
+      int b;
+      void f(int) { }
+  }
+  
+  namespace A {             // 命名空间扩展
+      int a2;
+      using namespace B;    // 传递using指令
+      void f(int) { }
+  }
+  
+  void f() {
+      // a++;               // 错误，不确定是::a 还是A::a
+      ::a++;                // 正确
+      A::a++;               // 正确
+      a2++;                 // 正确，A::a2
+      b++;                  // 正确，B::b
+      // f(1);              // 错误，不确定是A::f(int)还是B::f(int)
+      f('a');               // 正确，A::f(char)
+  }
+  ```
 
 ***
