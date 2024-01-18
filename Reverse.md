@@ -130,7 +130,7 @@ struct _IMAGE_OPTIONAL_HEADER {
   > exe文件拥有自己的虚拟空间，能准确加载到ImageBase中；dll无法保证一定会被加载到ImageBase。
 + `SectionAlignment`: 节区在内存中的起始位置必为该值的整数倍。
 + `FileAlignment`: 节区在文件中的起始位置必为该值的整数倍。
-+ `SizeOfImage`: 指定PE image在虚拟内存中所占空间大小。
++ `SizeOfImage`: 指定PE映像在虚拟内存中所占空间大小。
 + `SizeOfHeaders`: 整个PE头在内存/文件中的大小。该值也必须是FileAlignment的整数倍。同时该值也指出了第一节区在文件中的起始位置。
 + `Subsystem`:
   + 1: 驱动文件
@@ -267,6 +267,8 @@ struct _IMAGE_EXPORT_DIRECTORY {
 };
 ```
 
+> 注意`DataDirectory[0].Size`中的大小不只是IED结构体数组的大小，这个大小是整个EAT的大小，里面还包括了导出DLL名称和函数名称等信息。
+
 重要字段：
 
 + `NumberOfFunctions`: 实际导出函数个数。
@@ -287,3 +289,23 @@ struct _IMAGE_EXPORT_DIRECTORY {
 ### 4. Relocation Table [Optional]
 
 使程序中硬编码的内存地址随当前ImageBase变化而改变的处理过程就是PE重定位。
+
+Relocation Table中有若干个IBR结构体。
+
+```C
+struct _IMAGE_BASE_RELOCATION {
+    DWORD VirtualAddress;       // 基准RVA
+    DWORD SizeOfBlock;
+    // WORD TypeOffset[N];
+};
+```
+
+每个IBR结构体后面紧跟一个`WORD`数组，数组的结尾不一定是0x0000，数组的大小由`SizeOfBlock`决定，即`N = (SizeOfBlock - 2*sizeof(DWORD)) / sizeof(WORD)`。IBR结构体的个数由`DataDirectory[5].Size`中的大小决定，不像IAT中的IID结构体数组那样以NULL结构体结束。
+
+`TypeOffset`的高4位是Type，低12位是Offset。实际在装载PE文件到内存映像时，需要修改的RVA地址由`TypeOffset`数组前面紧邻的IBR结构体中的`VirtualAddress`(基准RVA)加上Offset得到。
+
+### *5. 删除某个节区需要做的操作
+
+1. 将对应节区头、节区体写0
+2. 修改`FileHeader`中的`NumberOfSections`数量
+3. 修改`OptionalHeader`中的`SizeOfImage`大小，其值为原值减去`SectionHeader`中的`VirtualSize`大小补齐到`OptionalHeader`中的`SectionAlignment`最小整数倍的大小。
