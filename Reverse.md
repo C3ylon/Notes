@@ -156,6 +156,8 @@ struct _IMAGE_OPTIONAL_HEADER {
 
 节区头是由`_IMAGE_SECTION_HEADER`结构体组成的数组，每个结构体对应一个节区。
 
+> 节区头并不一定紧邻在optional header之后。节区头的确切起始地址是由optional header的起始地址加上file header中的`SizeOfOptionalHeader`得到。这样可以在optional header和节区头之间插入解压缩代码。
+
 ```C
 #define IMAGE_SIZEOF_SHORT_NAME 8
 
