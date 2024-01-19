@@ -40,33 +40,90 @@ cpp标准库头文件通常不带后缀。
 
 ***
 
+## 关于初始化
+
 初始化不等同于赋值。初始化的含义是创建变量时赋予其一个初始值，而赋值的含义是把对象的当前值擦除，以一个新的值来替代。
 
-> 如果定义变量时没有指定初始值，则变量被**默认初始化**，定义在函数体内部的内置类型变量和类的内置类型且类内未提供初始值的成员将**不被初始化**。
+> 如果定义变量时没有指定初始值，则变量被**默认初始化**，非静态储存期的内置类型变量和类的内置类型且未提供初始值的成员，以及类内未提供默认初始化方式的类成员，将**不被初始化**。
 
-初始化一个int类型变量的四种方式：
+在定义变量时使用等号的都是拷贝初始化，未使用等号的都是直接初始化。
 
-1. `int a = 0;`
-2. `int a(0);`
-3. `int a = { 0 };`
-4. `int a { 0 };`
+用单个值`val`初始化一个`T`类型变量`var`的四种方式：
 
-使用等号的都是拷贝初始化，未使用等号的都是直接初始化。
+1. `T var = val;`
+2. `T var(val);`
+3. `T var = { val };`
+4. `T var { val };`
 
-第三种是*Copy-list-initialization*，第四种是*Direct-list-initialization*，都是C++11引入的新的初始化形式，默认为列表初始化，当初始值存在丢失信息的风险则编译器会报错。比如`int a = { 3.14 };` 和`int a { 3.14 }` 都会报错，而换用前两种则不会。
+`T var = { val };`是*Copy-list-initialization*，`T var { val };`是*Direct-list-initialization*，都是C++11引入的新的初始化形式，当初始值存在丢失信息的风险则编译器会报错。
 
-`T var = val;`与`T var = { val }`的异同：
+> 广义上来说"*初始值存在丢失信息的风险*"即是指`val`的类型需要算术转换后才能精确匹配`T`类型。比如`int a = { 3.14 };` 和`int a { 3.14 }` 都会报错，而换用前两种则不会。
+>
+> 几个例外情况：
+>
+> ```C++
+> int a = { (unsigned)1 }; // 正确，1是字面量
+> const unsigned b =  1;
+> int c = { b };           // 正确，b是常量
+> // int d = { 1.1 };      // 错误，1.1虽然是字面量，
+>                          // 但是从整型到浮点型和从浮点型到整型之间的所有转换都不允许
+> // const float e = 1.1;
+> // int f = { e };        // 错误，理由同上
+> ```
 
-+ 不同之处是对于**非**`explicit`修饰的构造函数而言，前者`val`的类型与构造函数的参数类型相比必须符合下列四个条件之一：
+当`T`是类类型时，`val`的类型与`T`对应的构造函数的参数类型的匹配情况有以下五种：
 
-  1. 精确匹配
-  2. 添加底层`const`后精确匹配
-  3. 整型提升后精确匹配
-  4. 算术类型转换后精确匹配
+1. 精确匹配
+2. 添加底层`const`后精确匹配
+3. 整型提升后精确匹配
+4. 算术类型转换后精确匹配
+5. 类类型转换后精确匹配
 
-  后者还增加了一个可符合的条件项，即类类型转换后精确匹配。
++ `T var(val);`形式的初始化：
+  
+  满足以上五种任意之一即可。
 
-+ 相同之处是对于`explicit`修饰的构造函数而言，都无法完成拷贝初始化。
++ `T var = { val };`和`T var { val };`形式的初始化：
+  
+  不允许算术类型转换。
+
+  ```C++
+  struct st1 {
+      int a;
+      st1(int a) : a(a) { }
+      operator int() { return a; }
+  };
+  
+  struct st2 {
+      unsigned b;
+      st2(unsigned b) : b(b) { }
+  };
+  // int i = 1;
+  // st2 a = { i };
+  // 错误，不允许算术类型转换
+  // error: non-constant-expression cannot be narrowed 
+  // from type 'int' to 'unsigned int' in initializer list
+  // st1 b = { 1 };
+  // st2 c = { b };
+  // 错误，等效于先经过类类型转换，再经过算术类型转换
+  // 报错信息同上
+  
+  struct st3 {
+      unsigned c;
+      st3(unsigned c) : c(c) { }
+      operator unsigned() { return c; }
+  };
+  st3 d = { 1 };
+  // 正确，1是字面量，是前述例外情况之一
+  st2 e = { d };
+  // 正确，允许类类型转换
+  ```
+
++ `T var = val;`形式的初始化：
+
+  不允许类类型转换
+
+> 对于`explicit`修饰的构造函数而言，`T var = val;`与`T var = { val }`都无法完成拷贝初始化。
 
 ```C++
 struct st1 {
@@ -644,6 +701,11 @@ int main() {
     // 错误，由st1类型转换向unsigned char类型是类类型转换
     // 非列表形式的拷贝初始化无法完成类类型转换
     st2 e = { a };
+    st3 f = { a };
+    // 错误，不允许算术类型转换
+    // error: non-constant-expression cannot be narrowed 
+    // from type 'unsigned char' to 'char' in initializer list
+
     // 若添加了explicit修饰符：
     // 以上b, c, e的定义全部报错
     // st2 d = { (unsigned char)a };  正确，此时只能显式转换
