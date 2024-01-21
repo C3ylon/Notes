@@ -242,7 +242,7 @@ IAT装载顺序：
 
 1. 读取IID的`Name`成员，获取DLL名称字符串
 2. 装载相应DLL(`LoadLibrary`)
-3. 读取IDD的`OriginalFirstThunk`成员，获取INT地址
+3. 读取IID的`OriginalFirstThunk`成员，获取INT地址
 4. 按顺序读取INT数组的值，获取相应`_IMAGE_IMPORT_BY_NAME`地址(RVA)
 5. 由`_IMAGE_IMPORT_BY_NAME`中的函数序列号或函数名获取相应函数的起始地址(`GetProcAddress()`)
 6. 读取IID的`FirstThunk`成员，获取IAT地址
@@ -313,3 +313,9 @@ struct _IMAGE_BASE_RELOCATION {
 1. 将对应节区头、节区体写0
 2. 修改`FileHeader`中的`NumberOfSections`数量
 3. 修改`OptionalHeader`中的`SizeOfImage`大小，其值为原值减去`SectionHeader`中的`VirtualSize`大小补齐到`OptionalHeader`中的`SectionAlignment`最小整数倍的大小。
+
+### *6. upack干扰PE解析器的三个技巧
+
+1. 修改file header中的`SizeOfOptionalHeader`值，使得section header不紧邻在optional header之后。
+2. 修改section header中的`PointerToRawData`值，使其不为`FileAlignment`的整数倍。(同时还要再修改`SizeOfRawData`的值)
+3. IAT中IID结构体数组不以NULL结构体结束，而是借助文件装载到内存中后填充的NULL值来标志IID结构体数组结束。
