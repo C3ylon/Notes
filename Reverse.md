@@ -130,6 +130,7 @@ struct _IMAGE_OPTIONAL_HEADER {
   > exe文件拥有自己的虚拟空间，能准确加载到ImageBase中；dll无法保证一定会被加载到ImageBase。
 + `SectionAlignment`: 节区在内存中的起始位置必为该值的整数倍。
 + `FileAlignment`: 节区在文件中的起始位置必为该值的整数倍。
+  > 通常情况下section header中的`PointerToRawData`应当为该值的整数倍。如果不是则会向下取整，这是混淆RVA2RAW的一种方法。比如RVA是0x1018，对应节区的`VirtualAddress`是0x1000，`PointerToRawData`是0x10，但是`FileAlignment`是0x200，那么RAW = 0x1018 - 0x1000 + 0x10 / 0x200 * 0x200 = 0x18。
 + `SizeOfImage`: 指定PE映像在虚拟内存中所占空间大小。
 + `SizeOfHeaders`: 整个PE头在内存/文件中的大小。该值也必须是FileAlignment的整数倍。同时该值也指出了第一节区在文件中的起始位置。
 + `Subsystem`:
@@ -184,6 +185,7 @@ struct _IMAGE_SECTION_HEADER {
 + `VirtualAddress`: 内存中节区起始地址(RVA)
 + `SizeOfRawData`: 文件中节区大小(算上NULL padding)
 + `PointerToRawData`: 文件中节区起始位置
+  > 如果不是`FileAlignment`的整数倍，在PE装载器将该节区从文件装载入内存时，起始地址为该值修正为`PointerToRawData` / `FileAlignment` * `FileAlignment`后的值，结束地址为该值原本的值加上`SizeOfRawData`后的值。
 + `Characteristics`: 节区属性(bit OR)
 
 > `Name`字段中可以放入任意值，不一定以NULL结束，也可以全填充NULL值。
