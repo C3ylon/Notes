@@ -319,3 +319,31 @@ struct _IMAGE_BASE_RELOCATION {
 1. 修改file header中的`SizeOfOptionalHeader`值，使得section header不紧邻在optional header之后。
 2. 修改section header中的`PointerToRawData`值，使其不为`FileAlignment`的整数倍。(同时还要再修改`SizeOfRawData`的值)
 3. IAT中IID结构体数组不以NULL结构体结束，而是借助文件装载到内存中后填充的NULL值来标志IID结构体数组结束。
+
+## Misc
+
+识别`0xE8` (`call`) 或`0xE9` (`jmp`) 的汇编代码片段：
+
+1. upx paker中用到的：
+
+   ```C
+   sub al, 0xe8
+   cmp al, 1
+   ja xxx
+   // 当al内不为0xE8或0xE9时发生跳转
+   ```
+
+2. upaker中用到的：
+
+   ```C
+   add al, 0x18
+   cmp al, 2
+   jae xxx
+   // 当al内不为0xE8或0xE9时发生跳转
+   ```
+
+***
+
+坑点：用x64dbg在长时间挂起调试之后，`DialogBoxParamA`不会正常显示对话框。
+
+***
