@@ -344,6 +344,8 @@ struct _IMAGE_BASE_RELOCATION {
 
 ***
 
-坑点：用x64dbg在长时间挂起调试之后，`DialogBoxParamA`不会正常显示对话框。
+~~坑点：用x64dbg在长时间挂起调试之后，`DialogBoxParamA`不会正常显示对话框。~~
+
+x64dbg长时间调试后，执行到`DialogBoxParamA`函数时仍会正常执行，但弹出的对话框不会显示在最前端，需要把x64dbg缩小下去才能看到。
 
 ***
