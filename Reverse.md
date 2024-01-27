@@ -320,6 +320,37 @@ struct _IMAGE_BASE_RELOCATION {
 2. 修改section header中的`PointerToRawData`值，使其不为`FileAlignment`的整数倍。(同时还要再修改`SizeOfRawData`的值)
 3. IAT中IID结构体数组不以NULL结构体结束，而是借助文件装载到内存中后填充的NULL值来标志IID结构体数组结束。
 
+## WINAPI
+
+### SetWindowsHookExA
+
+可以设置hook链，按照FILO原则，最后设置的hook函数会最先触发，如果返回了`CallNextHookEx`，再依次触发其余的hook函数。
+
+#### 键盘hook
+
+使用`SetWindowsHookExA`后在当前线程发生按键输入时才会挂载相应DLL，使用`UnhookWindowsHookEx`后在焦点聚焦到当前线程时才会卸载DLL。
+
+```C++
+LRESULT CALLBACK KeyboardProc(
+  _In_ int    code,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam
+);
+```
+
+参数说明：
+
++ `code`: 用来确定如何处理消息的代码。
+
+  + `code < 0`: 挂钩过程必须将消息传递给`CallNextHookEx`函数而不进行进一步处理，并且应返回 `CallNextHookEx`返回的值。
+  + `code == 0`: `wParam`和`lParam`参数包含有关击键消息的信息。(MACRO: `HC_ACTION`)
+  + `code == 3`: `wParam`和`lParam`参数包含有关击键消息的信息，并且该击键消息尚未从消息队列中删除。(MACRO: `HC_NOREMOVE`)
+    > 通常在有输入框输入时，按键会同时产生两条消息，一条是`code == 3`，一条是`code == 0`。如果是无输入框输入时，按键会产生一条消息，该消息`code == 0`。
+
++ `wParam`: 按键虚拟键代码。
+
++ `lParam`: 最高位用于表示按键按下或释放的状态，`0`是按下，`1`是释放。
+
 ## Misc
 
 识别`0xE8` (`call`) 或`0xE9` (`jmp`) 的汇编代码片段：
@@ -347,5 +378,29 @@ struct _IMAGE_BASE_RELOCATION {
 ~~坑点：用x64dbg在长时间挂起调试之后，`DialogBoxParamA`不会正常显示对话框。~~
 
 x64dbg长时间调试后，执行到`DialogBoxParamA`函数时仍会正常执行，但弹出的对话框不会显示在最前端，需要把x64dbg缩小下去才能看到。
+
+***
+
+坑点：写`DllMain`函数的时候，如果用VS自带的模板：
+
+```C++
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+                     )
+{
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
+```
+
+切记在`DLL_THREAD_ATTACH`和`DLL_THREAD_DETACH`两个标签处加上`break;`，或者直接删除这两个标签。
 
 ***
