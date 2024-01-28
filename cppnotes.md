@@ -2775,13 +2775,45 @@ int main() {
 // 输出都为in sub
 ```
 
-无需在声明和定义的地方同时使用`inline`。
+无需在声明和定义的地方同时使用`inline`。对于已经实现定义的非`inline`函数不能通过后续声明为`inline`使其成为`inline`函数。
 
 + 类内定义的函数 -> 隐式`inline`
 + 类内声明`inline`函数 -> 显式`inline`(无需再在类外定义函数的地方添加`inline`)
 + 类内声明且不带`inline`的函数 -> 能在类外定义为`inline`函数
 
 > 类内声明友元函数时可以使用`inline`，但不能使用`extern`和`static`这两个链接属性修饰符。
+>
+> ```C++
+> void fn();
+> struct st {
+>     friend inline void fn();
+> };
+> void fn() { }
+> ```
+>
+> 上述代码在gcc中`fn`被当作`inline`处理，在clang中**不被**当作`inline`处理。(去掉首行的`void fn();`声明后，在clang中也会被当作`inline`处理)
+>
+> ```C++
+> void fn();
+> inline void fn();
+> void fn() { }
+> ```
+>
+> 上述代码在gcc和clang中都被当作`inline`处理。
+>
+> ```C++
+> void fn() { }
+> struct st {
+>     friend inline void fn();
+> };
+> /**************************/
+> void fn() { }
+> inline void fn();
+> ```
+>
+> 上述两个代码段在gcc中可以正常编译，且`fn`**不被**当作`inline`处理，在clang中**会报错**(error: inline declaration of 'fn' follows non-inline definition)。
+>
+> 综上，类内声明友元函数使用`inline`时前面不能有该函数的非`inline`声明，如果在前面已经有该函数的`inline`声明，那么类内声明友元函数时也不用再加上`inline`。
 
 默认使用`inline`的情况：
 
