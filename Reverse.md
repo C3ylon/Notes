@@ -415,3 +415,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 切记在`DLL_THREAD_ATTACH`和`DLL_THREAD_DETACH`两个标签处加上`break;`，或者直接删除这两个标签。
 
 ***
+
+即使拥有调试权限，在对另一进程读写操作时仍有可能失败，需要先用`VirtualProtectEx`更改对应的读写权限。
+
+***
