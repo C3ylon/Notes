@@ -2921,3 +2921,18 @@ int main() {
   ```
 
 ***
+
+使用`std::cout`输出函数指针时注意需要强制转换，否则永远只会输出1。
+
+```C++
+void fn(const void *) { }
+void fn(bool) { }
+
+void f() { }
+void g() { fn(f); }
+// 由于函数指针无法直接赋值给const void *类型的参数
+// 因此g()调用的fn是void fn(bool)
+// warning: address of function 'f' will always evaluate to 'true'
+```
+
+***
