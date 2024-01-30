@@ -209,7 +209,7 @@ struct _IMAGE_IMPORT_DESCRIPTOR {
 };
 ```
 
-导入多少个库就存在多少个IID结构体，这些结构体形成了数组，由optional header中的`DataDirectory[1].VirtualAddress`指定其在内存中的RVA，由RVA转换得到RAW，即为在文件中的储存地址。该结构体数组最后以NULL结构体结束。
+导入多少个库就存在多少个IID结构体，这些结构体形成了IDT数组，由optional header中的`DataDirectory[1].VirtualAddress`指定其在内存中的RVA，由RVA转换得到RAW，即为在文件中的储存地址。该结构体数组最后以NULL结构体结束。
 
 > 注意`DataDirectory[1].Size`中的大小不只是IID结构体数组的大小，这个大小是整个IAT的大小，里面还包括了导入DLL名称和函数名称等信息。
 
@@ -350,6 +350,17 @@ LRESULT CALLBACK KeyboardProc(
 + `wParam`: 按键虚拟键代码。
 
 + `lParam`: 最高位用于表示按键按下或释放的状态，`0`是按下，`1`是释放。
+
+### GetThreadContext
+
+```C++
+BOOL GetThreadContext(
+  [in]      HANDLE    hThread,
+  [in, out] LPCONTEXT lpContext
+);
+```
+
+`lpContext`所指向的`CONTEXT`结构体必须要先设置`ContextFlags`值，如果该值是`CONTEXT_CONTROL`，能获取到线程的`rip`寄存器的值，无法获取到`rax`、`rbx`等寄存器的值。如果该值是`CONTEXT_ALL`将能获取到`CONTEXT`结构体每个字段的值。
 
 ## Misc
 
