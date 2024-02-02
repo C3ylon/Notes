@@ -1263,6 +1263,67 @@ int main() {
 
 ***
 
+模板参数分为三种类型：
+
+1. 模板类型参数(template type parameter)
+2. 模板非类型参数(template non-type parameter)
+3. 模板模板参数(template template parameter)
+
+***
+
+对于模板非类型参数，其参数类型限定为以下几种：
+
+1. 整型或枚举类型
+2. 指针类型
+3. 左值引用类型
+4. (C++11新加入)`std::nullptr_t`类型
+
+> 注意当模板非类型参数的参数类型为指针类型或引用类型时，其模板实参必须要具有链接属性，即为全局变量。
+
+不能使用**浮点类型**，**类类型**，**函数类型**，**数组类型**。
+
+```C++
+void f1() { }
+
+template <class Fn, Fn f>
+void f2() {
+    f();
+}
+
+void f3() {
+    // f2<decltype(f1), f1>();
+    // 错误，此时Fn是函数类型
+    // error: 'void()' is not a valid type 
+    // for a template non-type parameter
+    f2<decltype((f1)), f1>();
+    // 正确，此时Fn是引用类型
+    f2<decltype(&f1), f1>();
+    // 正确，此时Fn是指针类型
+}
+/****************************/
+int arr[] = { 1, 2, 3 };
+template <class Arr, Arr arr>
+void f1() { }
+
+void f2() {
+    // f1<decltype(arr), arr>();
+    // 错误，此时Arr是数组类型
+    // error: 'int [3]' is not a valid type 
+    // for a template non-type parameter
+    f1<decltype((arr)), arr>();
+    // 正确，此时Arr是引用类型
+    f1<decltype(&arr), &arr>();
+    // 正确，此时Arr是指针类型
+
+    int local_arr[] = { 1, 2, 3};
+    // f1<decltype((local_arr)), local_arr>();
+    // f1<decltype(&local_arr), &local_arr>();
+    // error: 'local_arr' has no linkage
+}
+```
+
+***
+
 在实例化函数模板时，可以不必在尖括号内指明全部模板参数值，可以只指明前一部分，然后利用自动推导得出后一部分的值。
 
 > 指明的值称为显式模板实参。
