@@ -211,7 +211,7 @@ struct _IMAGE_IMPORT_DESCRIPTOR {
 
 导入多少个库就存在多少个IID结构体，这些结构体形成了IDT数组，由optional header中的`DataDirectory[1].VirtualAddress`指定其在内存中的RVA，由RVA转换得到RAW，即为在文件中的储存地址。该结构体数组最后以NULL结构体结束。
 
-> 注意`DataDirectory[1].Size`中的大小不只是IID结构体数组的大小，这个大小是整个IAT的大小，里面还包括了导入DLL名称和函数名称等信息。
+> 注意`DataDirectory[1].Size`中的大小可能是IID结构体数组的大小，也可能不只是IID结构体数组的大小，而是整个IAT的大小，里面还包括了导入DLL名称和函数名称等信息。
 
 重要字段：
 
@@ -271,7 +271,7 @@ struct _IMAGE_EXPORT_DIRECTORY {
 };
 ```
 
-> 注意`DataDirectory[0].Size`中的大小不只是IED结构体数组的大小，这个大小是整个EAT的大小，里面还包括了导出DLL名称和函数名称等信息。
+> 注意`DataDirectory[0].Size`中的大小不只是IED结构体的大小，这个大小是整个EAT的大小，里面还包括了导出DLL名称和函数名称等信息。
 
 重要字段：
 
