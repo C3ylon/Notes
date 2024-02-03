@@ -730,7 +730,7 @@ int main() {
     // 错误，由st1类型转换向unsigned char类型是类类型转换
     // 非列表形式的拷贝初始化无法完成类类型转换
     st2 e = { a };
-    st3 f = { a };
+    // st3 f = { a };
     // 错误，不允许算术类型转换
     // error: non-constant-expression cannot be narrowed 
     // from type 'unsigned char' to 'char' in initializer list
@@ -748,6 +748,19 @@ int main() {
     // 添加explicit修饰符时，报错error: no matching function for call to 'fn(st1&)
     return 0;
 }
+
+/************************************************************/
+
+struct st {
+    int a;
+    st(int a) : a(a) { }
+    operator bool() { return a; }
+    operator unsigned() { return a; }
+};
+
+st a(0);
+int i = a;              // 调用operator bool()，类类型转换后整型提升比算术类型转换优先级更高
+// float f = a;         // 错误，都是类类型转换后再算术类型转换，同优先级，函数调用有歧义
 ```
 
 ***
