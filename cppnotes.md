@@ -687,7 +687,7 @@ int main() {
    >
    > 1. 精确匹配(实参多或缺顶层const都在该类型)
    > 2. 实参缺底层const
-   > 3. 类型提升(比如重载函数有两个，形参类型别是`int`和`short`，实参类型是`char`，由于整型提升因此会匹配形参类型为`int`的函数)
+   > 3. 类型提升(比如重载函数有两个，形参类型别是`int`和`short`，实参类型是`char`，由于整型提升因此会匹配形参类型为`int`的函数。此外`bool`整型提升之后也是`int`)
    > 4. 算术类型转换(所有算术类型转换的级别都一样，比如`int`向`unsigned int`的转换并不比`int`向`double`的转换优先级高)
    > 5. 类类型转换(由算术类型向类类型、由类类型向算术类型、由类类型向类类型都属于类类型转换)
 
@@ -2983,7 +2983,7 @@ int main() {
 
 ***
 
-使用`std::cout`输出函数指针时注意需要强制转换，否则永远只会输出1。
+注意指针类型可以隐式转换为`bool`类型，因此使用`std::cout`输出函数指针时需要强制转换为`void *`，否则会匹配到`bool`类型的输出函数。
 
 ```C++
 void fn(const void *) { }
@@ -2995,5 +2995,28 @@ void g() { fn(f); }
 // 因此g()调用的fn是void fn(bool)
 // warning: address of function 'f' will always evaluate to 'true'
 ```
+
+> + 指针类型隐式转换为`bool`类型后不可以再进一步转换为其他内置基础类型
+>
+>   ```C++
+>   int *p = nullptr;
+>   bool b = p;         // 正确，指针类型隐式转换为bool类型
+>   // int i = p;       // 错误，转换后无法整型提升
+>   ```
+>
+> + 类类型隐式转换为`bool`类型后可以再进一步转换为其他内置基础类型
+>
+>   ```C++
+>   struct st {
+>       int a;
+>       st(int a) : a(a) { }
+>       operator bool() { return a; }
+>   };
+>   
+>   st a(0);
+>   bool b = a;             // 正确，类类型隐式转换为bool类型
+>   int i = a;              // 正确，转换后再整型提升
+>   unsigned u = a;         // 正确，转换后再算术类型转换
+>   ```
 
 ***
