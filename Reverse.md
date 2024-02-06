@@ -247,7 +247,7 @@ IAT装载顺序：
 5. 由`_IMAGE_IMPORT_BY_NAME`中的函数序列号或函数名获取相应函数的起始地址(`GetProcAddress()`)
 6. 读取IID的`FirstThunk`成员，获取IAT地址
 7. 按顺序将获得的函数地址装载入IAT数组
-8. 重复以上步骤4-7，直到INT结束(即遇到NULL结构体时)
+8. 重复以上步骤4-7，直到INT结束(即读取到空指针时)
 
 > 当PE装载器无法通过`OriginalFirstThunk`查找到INT时，就会尝试通过`FirstThunk`查找，此时INT与IAT是相同区域。
 
