@@ -3030,6 +3030,11 @@ void g() { fn(f); }
 >   bool b = a;             // 正确，类类型隐式转换为bool类型
 >   int i = a;              // 正确，转换后再整型提升
 >   unsigned u = a;         // 正确，转换后再算术类型转换
+>   
+>   void fn(int) { }
+>   void fn(unsigned) { }
+>   fn(a);
+>   // 调用fn(int)，类类型转换后整型提升的匹配优先级比算术类型转换高
 >   ```
 
 ***
