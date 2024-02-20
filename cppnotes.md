@@ -761,6 +761,20 @@ struct st {
 st a(0);
 int i = a;              // 调用operator bool()，类类型转换后整型提升比算术类型转换优先级更高
 // float f = a;         // 错误，都是类类型转换后再算术类型转换，同优先级，函数调用有歧义
+
+void fn(int) { }
+void fn(float) { }
+fn(a);
+// 在msvc中能正常编译，调用operator bool()和fn(int)
+// 在gcc和clang中报错error: call to 'fn' is ambiguous
+// 若去掉operator unsigned()的定义，或去掉fn(float)的定义
+// 则都不会发生调用歧义
+// gcc和clang的判断逻辑应该是只能允许多种operator TYPE()定义的类型转换对应一个函数
+// 或者是允许一种operator TYPE()定义的类型转换对应多个重载函数
+// 如果定义了多种operator TYPE()类型转换而又定义了多个重载函数，则应当显示转换
+fn((bool)a);
+// 在gcc和clang中都能正常编译，符合预期表现
+
 ```
 
 ***
