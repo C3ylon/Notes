@@ -3052,3 +3052,20 @@ void g() { fn(f); }
 >   ```
 
 ***
+
+使用拷贝初始化的方式初始化一个自定义类变量时，必须要确保该类的拷贝构造函数可访问。
+
+```C++
+class cl {
+    int a;
+    cl(const cl&);
+public:
+    cl(int a) : a(a) { }
+};
+
+// cl a = 1;
+// error: 'cl::cl(const cl&)' is private within this context
+// 如果 'cl(const cl&)' 为public，则无需给出该函数的完整定义也正确
+```
+
+***
