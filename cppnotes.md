@@ -3053,6 +3053,8 @@ void g() { fn(f); }
 
 ***
 
+> *注意*: 以下是针对`gcc`和`clang`而言的，对于`msvc`的标准来说似乎更加宽泛。
+
 使用拷贝初始化的方式初始化一个自定义类变量时，必须要确保该类的拷贝构造函数可访问。
 
 ```C++
@@ -3066,6 +3068,43 @@ public:
 // cl a = 1;
 // error: 'cl::cl(const cl&)' is private within this context
 // 如果 'cl(const cl&)' 为public，则无需给出该函数的完整定义也正确
+
+/************************************************************/
+
+class cl {
+    int a;
+public:
+    cl(int a) : a(a) { }
+    // note 1: candidate constructor not viable:
+    // no known conversion from 'cl' to 'int' for 1st argument.
+    cl(cl &a);
+    // note 2: candidate constructor not viable:
+    // expects an lvalue for 1st argument.
+};
+
+// cl a = 1;
+
+// 由note 1: 这里视作已经把赋值号右边的1隐式转换为了 'cl' 类型
+// 因此才说无法完成由 'cl' 类型到 'int' 类型的转换
+
+// 由note 2: 定义了 'cl &' 类型的构造函数
+// 因此不会自动生成 'const cl&' 类型的构造函数
+// 因此才说需要传入一个左值
+// 如果上述改为 'const cl&' 则正确
+```
+
+尽管由上例来看在`gcc`和`clang`中拷贝构造函数对于任意拷贝初始化而言有一个很重要的地位，但是`explicit`关键字修饰的拷贝构造函数对于参数为非本类类型的拷贝初始化而言并无影响。
+
+```C++
+class cl {
+    int a;
+public:
+    cl(int a) : a(a) { }
+    explicit cl(const cl &a) { }
+};
+
+cl a = 1;
+// 尽管拷贝构造函数被 'explicit' 修饰，但是仍然正确。
 ```
 
 ***
