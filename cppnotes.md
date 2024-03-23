@@ -3075,21 +3075,15 @@ class cl {
     int a;
 public:
     cl(int a) : a(a) { }
-    // note 1: candidate constructor not viable:
-    // no known conversion from 'cl' to 'int' for 1st argument.
     cl(cl &a);
-    // note 2: candidate constructor not viable:
-    // expects an lvalue for 1st argument.
 };
 
 // cl a = 1;
+// error: cannot bind non-const lvalue reference of type 'cl&'
+// to an rvalue of type 'cl'
 
-// 由note 1: 这里视作已经把赋值号右边的1隐式转换为了 'cl' 类型
-// 因此才说无法完成由 'cl' 类型到 'int' 类型的转换
-
-// 由note 2: 定义了 'cl &' 类型的构造函数
+// 定义了 'cl &' 类型的构造函数
 // 因此不会自动生成 'const cl&' 类型的构造函数
-// 因此才说需要传入一个左值
 // 如果上述改为 'const cl&' 则正确。或是使用 'cl a = { 1 };' 亦正确。
 ```
 
