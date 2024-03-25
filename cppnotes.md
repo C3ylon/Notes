@@ -173,53 +173,53 @@ st1 d2 { c };               // 正确
 > 虽然从编译器未开启`-fno-elide-constructors`选项的实现来看，上述情况不会真的生成一个临时量，但那是*优化后*的结果。即从标准的角度来考虑，`T`类必须要有一个能够访问的复制构造函数（尽管不一定需要调用）。
 >
 > 在C++17之后，`T`类可以没有能够访问的复制构造函数，对`T var = val;`形式的复制初始化没有影响（前提是`val`的类型不是`T`类型）。在该标准下即使开启`-fno-elide-constructors`选项，编译器也不会再生成将`val`隐式转换为`T`类型后的临时量。
-
-```C++
-class cl {
-    int a;
-    cl(const cl&);
-public:
-    cl(int a) : a(a) { }
-};
-
-// cl a = 1;
-// error: 'cl::cl(const cl&)' is private within this context
-// 如果 'cl(const cl&)' 为public，则无需给出该函数的完整定义也正确
-// 但是在开启`-fno-elide-constructors`选项时
-// 不给出复制构造函数的完整定义会出现链接错误
-
-/************************************************************/
-
-class cl {
-    int a;
-public:
-    cl(int a) : a(a) { }
-    cl(cl &a);
-};
-
-// cl a = 1;
-// error: cannot bind non-const lvalue reference of type 'cl&'
-// to an rvalue of type 'cl'
-
-// 定义了 'cl &' 类型的构造函数
-// 因此不会自动生成 'const cl&' 类型的构造函数
-// 如果上述改为 'const cl&' 则正确。或是使用 'cl a = { 1 };' 亦正确。
-
-/************************************************************/
-
-class cl {
-    int a;
-public:
-    cl(int a) : a(a) { }
-    explicit cl(const cl &a) { }
-};
-
-cl a = 1;
-// 尽管复制构造函数被 'explicit' 修饰，但是在 'a' 初始化时
-// '1' 所隐式转换为 'cl' 类型的临时量是以直接初始化的形式来初始化 'a'
-// 因此复制构造函数的 'explicit' 修饰符
-// 对于参数为非本类类型的复制初始化而言并无影响。
-```
+>
+> ```C++
+> class cl {
+>     int a;
+>     cl(const cl&);
+> public:
+>     cl(int a) : a(a) { }
+> };
+> 
+> // cl a = 1;
+> // error: 'cl::cl(const cl&)' is private within this context
+> // 如果 'cl(const cl&)' 为public，则无需给出该函数的完整定义也正确
+> // 但是在开启`-fno-elide-constructors`选项时
+> // 不给出复制构造函数的完整定义会出现链接错误
+> 
+> /************************************************************/
+> 
+> class cl {
+>     int a;
+> public:
+>     cl(int a) : a(a) { }
+>     cl(cl &a);
+> };
+> 
+> // cl a = 1;
+> // error: cannot bind non-const lvalue reference of type 'cl&'
+> // to an rvalue of type 'cl'
+> 
+> // 定义了 'cl &' 类型的构造函数
+> // 因此不会自动生成 'const cl&' 类型的构造函数
+> // 如果上述改为 'const cl&' 则正确。或是使用 'cl a = { 1 };' 亦正确。
+> 
+> /************************************************************/
+> 
+> class cl {
+>     int a;
+> public:
+>     cl(int a) : a(a) { }
+>     explicit cl(const cl &a) { }
+> };
+> 
+> cl a = 1;
+> // 尽管复制构造函数被 'explicit' 修饰，但是在 'a' 初始化时
+> // '1' 所隐式转换为 'cl' 类型的临时量是以直接初始化的形式来初始化 'a'
+> // 因此复制构造函数的 'explicit' 修饰符
+> // 对于参数为非本类类型的复制初始化而言并无影响。
+> ```
 
 ### 二、
 
