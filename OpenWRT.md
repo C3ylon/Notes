@@ -73,11 +73,19 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 在安装时使用key激活。~~（一个可用key: MC60H-DWHD5-H80U9-6V85M-8280D）~~
 
-### 1.4 (附) 直接使用.img格式的方法
+### 1.4 (附) 直接使用.img文件安装系统的方法
 
 该节仅作记录用，可直接跳转阅读[下一章](#2-搭建仅使用lan的旁路网关)。
 
+直接使用`.img`格式的映像文件来安装系统，相较于上一节使用转换软件将其转换成虚拟机磁盘格式文件之后来使用的方法来说比较繁琐，但是如果想要将OpenWrt安装到实际的硬件环境上只能使用`.img`格式的映像文件，用虚拟机模拟一遍有助于增强理解。
 
+首先需要将`.img`映像文件烧录入U盘中，用到软件balenaEtcher。（烧录时会格式化U盘，原来的所有储存信息都会丢失）
+
+[Etcher下载地址](https://etcher.balena.io/#download-etcher "https://etcher.balena.io/#download-etcher")
+
+![Etcher界面](./pics/OpenWrt/1.3.png)
+
+完成烧录后重新将U盘连接至电脑。
 
 ## 2 搭建仅使用lan的旁路网关
 
