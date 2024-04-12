@@ -6,7 +6,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 1. 需要一个能接管所有本地流量的**透明代理**。
 
-   Windows客户端常用的代理软件如CFW(*Clash for Windows*)等，其在未开启`TUN`模式下通常只能代理网页流量，而不能代理绝大部分软件的流量（即这些软件都不遵循系统代理）。最常见的情况就是使用CMD控制台执行`pip install`指令安装Python包时下载速度很慢，使用`git push`指令时经常上传失败等等，这些都是流量没有被接管的体现。如果有一个能够接管全部本地流量的透明代理将不会出现上述问题。
+   Windows客户端常用的代理软件如CFW(*Clash for Windows*)等，其在未开启`TUN`模式下通常只能代理网页流量和部分IM软件流量，而不能其他软件的流量（即绝大部分软件都不遵循系统代理）。最常见的情况就是使用CMD控制台执行`pip install`指令安装Python包时下载速度很慢，使用`git push`指令时经常上传失败等等，这些都是流量没有被接管的体现。如果有一个能够接管全部本地流量的透明代理将不会出现上述问题。
 
 2. 需要一个能**高度客制化**网络管理的系统。
 
@@ -56,29 +56,14 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 [转换器地址](https://www.starwindsoftware.com/tmplink/starwindconverter.exe "https://www.starwindsoftware.com/tmplink/starwindconverter.exe")
 
-运行StarWind V2V Converter转换器。
+运行StarWind V2V Converter转换器：
 
-选择第二项 Local file。
-
-![转换器操作1](./pics/OpenWrt/1.3.png)
-
-选择之前下载的映像文件。
-
-![转换器操作2](./pics/OpenWrt/1.4.png)
-
-选择第一项 Local file。
-
-![转换器操作3](./pics/OpenWrt/1.5.png)
-
-选择第一项 VMDK。
-
-![转换器操作4](./pics/OpenWrt/1.6.png)
-
-选择第一项 VMware Workstation growable image。使用该选项创建出的磁盘文件是可扩容的。
-
-![转换器操作5](./pics/OpenWrt/1.7.png)
-
-然后直接选择 convert 就可以得到一个`.vmdk`后缀的磁盘文件。
++ Select the location of the image to convert: 选择第二项 Local file(File on the local machine)。
++ Source image: 选择之前下载的`.img`映像文件路径。
++ Select the location of the destination image: 选择第一项 Local file(File on the local machine)。
++ Select destination image format: 选择第一项 VMDK(VMware Virtual Machine Disk)。
++ Select option for VMDK image format: 选择第一项 VMware Workstation growable image。使用该选项创建出的磁盘文件是可扩容的。
++ 选择好目的路径之后直接 convert 就可以得到一个`.vmdk`后缀的磁盘文件。
 
 ### 1.3 下载VMware虚拟机
 
@@ -87,6 +72,12 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 [VMware下载地址](https://www.vmware.com/go/getworkstation-win "https://www.vmware.com/go/getworkstation-win")
 
 在安装时使用key激活。~~（一个可用key: MC60H-DWHD5-H80U9-6V85M-8280D）~~
+
+### 1.4 (附) 直接使用.img格式的方法
+
+该节仅作记录用，可直接跳转阅读[下一章](#2-搭建仅使用lan的旁路网关)。
+
+
 
 ## 2 搭建仅使用lan的旁路网关
 
