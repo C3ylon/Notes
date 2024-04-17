@@ -6,7 +6,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 1. 需要一个能接管所有本地流量的**透明代理**。
 
-   Windows客户端常用的代理软件如CFW(*Clash for Windows*)等，其在未开启`TUN`模式下通常只能代理网页流量和部分IM软件流量，而不能其他软件的流量（即绝大部分软件都不遵循系统代理）。最常见的情况就是使用CMD控制台执行`pip install`指令安装Python包时下载速度很慢，使用`git push`指令时经常上传失败等等，这些都是流量没有被接管的体现。如果有一个能够接管全部本地流量的透明代理将不会出现上述问题。
+   Windows客户端常用的代理软件如CFW(*Clash for Windows*)等，其在未开启`TUN`模式下通常只能代理网页流量和部分IM软件流量，而不能其他软件的流量（即绝大部分软件都不遵循系统代理）。最常见的情况就是使用CMD控制台执行`pip install`指令安装Python包时下载速度很慢，使用`git push`指令时经常上传失败，因无法代理UDP流量导致WebRTC泄露等等，这些都是流量没有被接管的体现。如果有一个能够接管全部本地流量的透明代理将不会出现上述问题。
 
 2. 需要一个能**高度客制化**网络管理的系统。
 
@@ -16,7 +16,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 如果想零成本体验之后再购买硬件，那么最好的选择就是将OpenWrt安装在虚拟机里模拟操作一遍。其实如果不介意长时间开启电脑主机的话，也完全可以把虚拟机OpenWrt当作主力路由来使用。
 
-本文所用的虚拟机平台是VMware，所有软件及固件都采用当前最新版本。
+本文所用的虚拟机平台是VMware Workstation，所有软件及固件都采用当前最新版本。
 
 虚拟机安装OpenWrt可以有三种网络结构：
 
@@ -72,29 +72,6 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 [VMware下载地址](https://www.vmware.com/go/getworkstation-win "https://www.vmware.com/go/getworkstation-win")
 
 在安装时使用key激活。~~（一个可用key: MC60H-DWHD5-H80U9-6V85M-8280D）~~
-
-### 1.4 (附) 直接使用.img文件安装系统的方法
-
-该节仅作记录用，可直接跳转阅读[下一章](#2-搭建仅使用lan的旁路网关)。
-
-直接使用`.img`格式的映像文件来安装系统，相较于上一节使用转换软件将其转换成虚拟机磁盘格式`.vmdk`文件之后来使用的方法来说比较繁琐，但是如果想要将OpenWrt安装到实际的硬件环境上只能使用`.img`格式的映像文件，用虚拟机模拟一遍有助于增强理解。
-
-首先需要将`.img`映像文件烧录入U盘中，用到软件balenaEtcher。（烧录时会格式化U盘，原来的所有储存信息都会丢失）
-
-[Etcher下载地址](https://etcher.balena.io/#download-etcher "https://etcher.balena.io/#download-etcher")
-
-![Etcher界面](./pics/OpenWrt/1.3.png)
-
-完成烧录后重新将U盘连接至电脑。
-
-> 烧录后的U盘恢复为普通U盘的步骤：
->
-> + CMD输入`diskpart`指令，进入到diskpart.exe界面
-> + 输入`list disk`指令，查看所有磁盘，依据磁盘容量确定U盘的磁盘编号，格式为`Disk NUM`，其中`NUM`是具体的编号。
-> + 输入`select disk NUM`指令，其中`NUM`需要替换为具体的磁盘编号。再次输入`list disk`指令，被选中的磁盘前面有`*`号。
-> + 输入`clean`指令，清除磁盘分区。（此时可能会有弹窗提示 *Please insert a disk into USB Drive*，关闭该弹窗即可）
-> + 输入`create partition primary`指令，此时会弹窗提示需要格式化U盘，若未弹窗手动双击U盘图标也可。
-> + 格式化U盘时所有选项保持默认即可，格式化完毕之后就能正常使用了。
 
 ## 2 搭建仅使用lan的旁路网关
 
@@ -196,3 +173,82 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
   > 所有DHCP服务交给主路由来完成。如果关闭了主路由的DHCP服务，则可以开启OpenWrt的DHCP服务，即两者只能开启其中一个。
 
 ## 3 搭建lan-wan结构的路由
+
+## 4 搭建lan-wan结构的路由级联
+
+## 5 附录
+
+### 5.1 直接使用.img文件安装系统的方法
+
+直接使用`.img`格式的映像文件来安装系统，相较于前述使用转换软件将其转换成虚拟机磁盘格式`.vmdk`文件之后再使用的方法来说比较繁琐，但是如果想要将OpenWrt安装到实际的硬件环境上只能使用`.img`格式的映像文件，用虚拟机模拟一遍有助于增强理解。
+
+#### 5.1.1 将.img文件烧录入U盘
+
+首先需要将`.img`映像文件烧录入U盘中，用到软件balenaEtcher。（烧录时会格式化U盘，原来的所有储存信息都会丢失）
+
+[Etcher下载地址](https://etcher.balena.io/#download-etcher "https://etcher.balena.io/#download-etcher")
+
+选择 Flash from file 选项开始烧录。
+
+![Etcher界面](./pics/OpenWrt/5.1.png)
+
+完成烧录后会出现很多弹窗，提示需要格式化U盘，直接关闭这些弹窗，可以发现原来的U盘图标变成了一个名叫 Removeable Disk 的盘符。现在将U盘拔下并重新连接至电脑，此时可以看见多了三个盘符，其中两个盘符双击后提示需要格式化，另一个名叫 kernel 的盘符可以直接双击打开，里面有efi文件。这样表示烧录成功。
+
+![新盘符](./pics/OpenWrt/5.2.png)
+
+> 烧录后的U盘恢复为普通U盘的步骤：
+>
+> + CMD输入`diskpart`指令，进入到diskpart.exe界面
+> + 输入`list disk`指令，查看所有磁盘，依据磁盘容量确定U盘的磁盘编号，格式为`Disk NUM`，其中`NUM`是具体的编号。
+> + 输入`select disk NUM`指令，其中`NUM`需要替换为具体的磁盘编号。再次输入`list disk`指令，被选中的磁盘前面有`*`号。
+> + 输入`clean`指令，清除磁盘分区。（此时可能会有弹窗提示 *Please insert a disk into USB Drive*，关闭该弹窗即可）
+> + 输入`create partition primary`指令，此时会弹窗提示需要格式化U盘，若未弹窗手动双击U盘图标也可。
+> + 格式化U盘时所有选项保持默认即可，格式化完毕之后就能正常使用了。
+
+#### 5.1.2 VMware虚拟机配置
+
+以管理员模式运行VMware。创建新虚拟机的步骤与前述步骤相同，到了 *选择磁盘* 界面的时候，选择第三项：使用物理磁盘。选择物理磁盘设备时，再次使用`diskpart`->`list disk`，依据磁盘容量确定U盘的 PhysicalDrive 编号。下面的 *使用情况* 选项选择使用整个磁盘。
+
+![物理磁盘选择](./pics/OpenWrt/5.3.png)
+
+选择完物理磁盘后按提示创建一个`.vmdk`格式的磁盘文件，该文件将储存U盘的分区信息。
+
+最后添加一个桥接主网卡的网络适配器，完成虚拟机创建。
+
+#### 5.1.3 系统启动
+
+运行虚拟机时从VMware左侧的虚拟机列表找到该虚拟机选项卡，右键选择：电源->打开电源时进入固件。这样开机启动时会直接进入BIOS界面。
+
+在BIOS主界面使用方向键切换至 Boot 选项卡，记录此时默认的启动优先级顺序。然后依据界面上的操作提示使用方向键和`+`、`-`键调整各启动项优先级，需要将U盘调整为最高优先级启动。
+
+![启动优先级](./pics/OpenWrt/5.4.png)
+
+调整完启动优先级后切换至 Exit 选项卡，选择 Exit Saving Changes。此时就进入U盘中的系统启动环节。
+
+#### 5.1.4 系统转移
+
+使用`vim /ect/config/network`指令编辑eth0的IP地址，使其不与当前网络环境中的某个IP地址冲突。注意当前在这个系统中做的所有设置都会保存在U盘中，比如配置的系统密码、接口和防火墙设置等，都不会储存在`.vmdk`格式的本地磁盘文件中。因此需要将U盘中的系统完整转移至本地文件。
+
+在宿主机里面打开CMD控制台，使用`scp`指令将`.img`映像文件上传至OpenWrt的`/tmp/`文件夹下。指令格式是`scp LOCAL_FILE_PATH REMOTE_HOST_NAME@IP:DEST_PATH`。
+
+> 上述指令中`LOCAL_FILE_PATH`是需要上传的文件的完整路径，`REMOTE_HOST_NAME`是远程主机的用户名，此处实际为`root`，`IP`是之前修改的eth0的IP地址，`DEST_PATH`是上传的目的路径，此处实际为`/tmp/`。
+
+之前创建的`.vmdk`文件已经储存有U盘的分区信息，因此需要创建一个新的虚拟磁盘。
+
+右击虚拟机选项卡选择：设置->添加->硬盘->SCSI->创建新虚拟磁盘，虚拟磁盘容量可以自行设定一个合适的大小，此处将虚拟磁盘大小设定为了1GB。
+
+使用`dd`指令进行写盘操作。指令格式是`dd if=INPUT_FILES of=OUTPUT_FILES`。
+
+> 上述指令中`INPUT_FILES`是输入文件路径，此处实际为之前通过`scp`指令上传的`.img`映像文件完整路径，`OUTPUT_FILES`是输出文件路径，此处实际为之前新创建的`.vmdk`磁盘文件在OpenWrt系统中对应的设备名称，在绝大部分情况下是`/dev/sdb`。
+>
+> 保险起见需要用到`fdisk`指令查看设备名称。但是OpenWrt不能原生支持`fdisk`指令，需要再为OpenWrt设定网关和DNS使其能访问外部网络（注意还要关闭lan口的dhcp服务），再使用`opkg update && opkg install fdisk`指令，这样就可以安装`fdisk`。
+>
+> 使用`fdisk -l`指令，查看设备名称。可以依据磁盘容量来区分需要用作输入和输出的虚拟磁盘。
+>
+> ![确定设备名称](./pics/OpenWrt/5.5.png)
+>
+> 由上图的结果，输入指令`dd if=/tmp/OpenWrt.img of=/dev/sdb`。
+
+待看到`xxx records in`，`xxx records out`的提示后表示OpenWrt系统已从U盘复制至新创建的`.vmdk`本地磁盘文件中。此时可以使用`poweroff`指令关闭系统并拔掉U盘。
+
+进入虚拟机设置界面，移除U盘对应的硬件设备（点选时会提示 *系统找不到指定的文件*，因为此时已经拔掉U盘）。移除之后重新进入BIOS界面，还原回默认的启动优先级。
