@@ -185,7 +185,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
   + IPv6 assignment length 选择 disabled。
 
-    > 这样可以禁用lan口的IPv6地址。若无使用IPv6的特殊需求都应当关闭IPv6，因为IPv6在透明代理中会引入不必要的问题。
+    > 这样可以禁用lan口的IPv6地址。若无使用IPv6的特殊需求都应当关闭IPv6，因为IPv6在透明代理中会引入不必要的问题。禁用该选项后 General Settings 选项卡界面会新出现IPv6地址和网关的设置选项，保持为空即可。
 
 + DHCP Server -> General Setup -> Ignore interface 勾选该项。
 
@@ -296,6 +296,8 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
   + 选择 DHCP Server -> IPv6 Settings：RA-Service -> disabled，DHCPv6-Service -> disabled，NDP-Proxy -> disabled。
 
   + 选择 Advanced Settings：IPv6 assignment length -> disabled。
+
+    > 禁用该选项后 General Settings 选项卡界面会新出现IPv6地址和网关的设置选项，保持为空即可。
 
 + 选择 Network -> DHCP and DNS -> Filter，勾选 Filter IPv6 AAAA records。
 
@@ -421,7 +423,55 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 
 ### 4.2 wan和lan的实质
 
-OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。
+OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。只要更改相应的防火墙配置，就能实现wan和lan的互相转换。
+
+路由的核心是**转发**（*Forward*），而不是NAT。这里的转发是指当指定网关的访问请求及DNS查询请求等无法在本区域（*Zone*）实现时就会将请求转发给OpenWrt内其他区域。
+
+下面将以 [2.4节](#24-进入luci主界面) 设置完毕的OpenWrt系统为基础讲解如何实现wan和lan的互相转换。
+
+首先为该虚拟机添加一个新的网络适配器，选择前述的VMnet1子网(host only模式)，该网卡将用作lan口。而原先用作lan口、桥接宿主机无线网卡的VMnet2将用作wan口。添加网络适配器后OpenWrt自动执行`service network restart`。
+
+浏览器访问`192.168.1.31`，进入LuCI设置界面。由于仅从LuCI设置界面无法将已经创建好的接口更改名字，因此选择在 Interfaces 选项卡界面删除lan接口，然后再重新创建接口。
+
+首先创建wan接口，该接口用到eth0，协议为DHCP客户端，这样可以自动获取主路由分配的ip和网关。
+
+![创建wan接口](./pics/OpenWrt/4.7.png)
+
+创建完wan接口后自动进入接口的设置界面。在 Advanced Settings 选项卡界面取消勾选 Use DNS servers advertised by peer 选项，然后在 Use custom DNS servers 输入框中输入DNS服务器地址`8.8.8.8`和`8.8.4.4`。
+
+在 FireWall Settings 选项卡界面选择防火墙区域为预设的wan。
+
+![wan接口防火墙区域设置](./pics/OpenWrt/4.8.png)
+
+其他选项保持默认，完成wan接口的创建和设置。
+
+> 注意：此时不要在LuCI界面选择 Save & Apply，因为预设的wan区域拒绝输入(Zone ⇒ Forwardings的input属性为reject)。要在完成lan接口的创建和设置之后才能保存并应用。
+
+接下来创建lan接口，该接口用到eth1，协议为 Static address。
+
+![创建lan接口](./pics/OpenWrt/4.9.png)
+
+创建完lan接口后自动进入接口的设置界面。需要先设置lan的ip和子网掩码。由于VMnet1的网段是`192.168.10.0`，因此lan可以设置为`192.168.10.1/24`。网关保持为空，因为从lan到wan的通信是转发，在防火墙设置里Zone lan和Zone wan之间已经默认开启了Forward权限。
+
+![lan接口设置1](./pics/OpenWrt/4.10.png)
+
+同理，在 Advanced Settings 选项卡界面下的 Use custom DNS servers 也保持为空即可，当连接lan接口的设备发起DNS请求时该请求会被直接转发给wan接口处理。
+
+在 FireWall Settings 选项卡界面选择防火墙区域为预设的lan。
+
+![lan接口设置2](./pics/OpenWrt/4.11.png)
+
+在 DHCP Server 选项卡界面选择 Set up DHCP Server。由于 IPv6 assignment length 选项在新建接口的时候默认为disabled，因此 DHCP Server -> IPv6 Settings 下的RA-Service、DHCPv6-Service和NDP-Proxy默认为disabled，不需要再做额外修改。
+
+完成lan接口的创建和设置之后，进入 Interfaces 右边的 Devices 选项卡界面，修改br-lan设置。由于互换了lan和wan，因此需要在 Bridge Ports 选项取消勾选eth0并勾选eth1。
+
+![br-lan设置](./pics/OpenWrt/4.12.png)
+
+最后在LuCI主界面选择 Save & Apply。由于lan的网段从原来的`192.168.1.0`更改为了`192.168.10.0`，因此会弹出如下警告。
+
+![LuCI警告](./pics/OpenWrt/4.13.png)
+
+选择应用并保存设置即可。此时在浏览器界面访问`192.168.10.1`就能再重新看到LuCI界面，这样就表示设置成功了。
 
 ### 4.3 更换VMware虚拟机网卡驱动
 
