@@ -275,17 +275,17 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 如果看到以下界面就说明第一步成功了🎉
 
-![LuCI登录界面](./pics/OpenWrt/3.6.png)
+![LuCI登录界面](./pics/OpenWrt/3.5.png)
 
 输入密码登录以后，选择 Network->Interface，编辑wan口设置。
 
-![wan口编辑界面](./pics/OpenWrt/3.7.png)
+![wan口编辑界面](./pics/OpenWrt/3.6.png)
 
 选择 Advanced Settings，取消勾选 Use DNS servers advertised by peer 选项。在取消勾选后会新出现一个 Use custom DNS servers 选项。推荐添加两个谷歌DNS服务器，地址为`8.8.8.8`，`8.8.4.4`。
 
 > 这里设置的DNS服务器地址负责所有进出OpenWrt wan口的域名解析工作。包括解析OpenWrt自身需要访问的域名（比如执行`opkg`指令安装各种包时需要用到），也包括处理宿主机向OpenWrt发送的域名解析请求。
 
-![修改wan口DNS](./pics/OpenWrt/3.8.png)
+![修改wan口DNS](./pics/OpenWrt/3.7.png)
 
 接下来建议禁用OpenWrt的IPv6功能。若无使用IPv6的特殊需求都应当关闭IPv6，因为IPv6在透明代理中会引入不必要的问题。以下是需要修改的设置：
 
@@ -310,7 +310,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 这两种方式都是避免宿主机网卡直接产生网络通信，把网络通信的功能交给虚拟机网卡 *VMware Network Adapter VMnet1*。
 
-![修改宿主机无线网卡以太网属性](./pics/OpenWrt/3.9.png)
+![修改宿主机无线网卡以太网属性](./pics/OpenWrt/3.8.png)
 
 方法一最稳妥，一定能让宿主机无线网卡无法网络通信，但是有个缺点是系统里的网络连接状态会显示为无连接，无法使用UWP应用和Windows商店。方法二只是把宿主机无线网卡的使用优先级降得很低，在OpenWrt工作失效的时候仍会采用宿主机无线网卡进行网络通信，比较不保险，但是这样不会让系统网络连接状态显示为无连接，可以正常使用UWP应用。具体采用哪种方式根据使用情况进行权衡。
 
@@ -320,21 +320,21 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 再次打开虚拟网络编辑器，添加一个桥接物理有线网卡的VMnet子网。本文设置的是VMnet2子网。
 
-![VMnet子网设置](./pics/OpenWrt/3.10.png)
+![VMnet子网设置](./pics/OpenWrt/3.9.png)
 
 给OpenWrt虚拟机新添加一个网络适配器，并选择之前设置为桥接物理有线网卡的VMnet2子网。（可以在OpenWrt正在运行的时候添加网络适配器。当OpenWrt检测到有新的网卡接入时会自动重启网络服务，即等效于自动执行`service network restart`指令）
 
 在添加网络适配器后重新进入OpenWrt的LuCI设置界面。选择 Network -> Interface -> Devices，进入br-lan的设置界面。
 
-![桥接网口1](./pics/OpenWrt/3.11.png)
+![桥接网口1](./pics/OpenWrt/3.10.png)
 
 br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都应当加入br-lan的桥接设置中。在 General device options 选项卡下找到 Bridge ports，勾选新添加的eth2，这样就可以把原本的eth0和新添加的eth2桥接起来，它们共用br-lan这个抽象接口。
 
-![桥接网口2](./pics/OpenWrt/3.12.png)
+![桥接网口2](./pics/OpenWrt/3.11.png)
 
 接下来需要设置路由器，需要将路由器从**路由模式**改为**AP模式**。各品牌的路由器设置方法不同，以电信宽带赠送的WAT301路由器为例，只需要关闭lan口DHCP服务就能将路由器改为AP模式，此时路由器的四个网口全部变成lan口。（注意如果路由器的lan口ip不是自动获取的状态，还需要再手动修改其ip地址，避免与OpenWrt的lan口ip冲突）
 
-![路由器AP模式](./pics/OpenWrt/3.13.png)
+![路由器AP模式](./pics/OpenWrt/3.12.png)
 
 现在将路由器和电脑的有线网卡用网线连接起来，此时连接该路由器的所有设备都可以使用OpenWrt的网络了。
 
