@@ -511,6 +511,26 @@ OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。只要更
 
 如果老式电脑有USB3.0接口，但是网卡只有百兆上限，就可以购买绿联的USB千兆网卡，然后用 [4.1节](#411-将img文件烧录入u盘) 所述的方法让老式电脑运行上OpenWrt系统，安装好网卡驱动之后就可以把老式电脑变成一台真正的路由器，这样就不需要再额外购买x86架构的软路由。
 
+### 4.6 OpenWrt安装UU加速器插件
+
+UU加速器插件目前不支持nftables。OpenWrt应当选择21.02.7及其之前的版本。
+
+ssh连接OpenWrt后输入以下指令：
+
+```sh
+wget http://uu.gdl.netease.com/uuplugin-script/202012111056/install.sh -O install.sh
+/bin/sh install.sh openwrt $(uname -m)
+# 若没有安装 kmod-tun 需要执行以下指令:
+# (若安装有 OpenClash 等插件应该已安装好了 kmod-tun 前置)
+opkg update && opkg install kmod-tun
+```
+
+在UU加速器的手机app上选择安装路由器插件，并依照引导操作，然后就能通过手机app来控制路由器里的UU加速器开关及节点选择。
+
+![成功界面](./pics/OpenWrt/4.16.png)
+
+> 注意：开启UU加速器之前需要关闭 OpenClash 等插件，确保从`fake-ip`模式中退出，否则会引起冲突导致加速失效。
+
 ***
 
 ![End.](./pics/OpenWrt/end.png)
