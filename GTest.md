@@ -1,6 +1,8 @@
 # GoogleTest
 
-## 基本概念
+## 1 基本概念
+
+### 1.1 断言宏
 
 使用 GoogleTest 的核心是编写断言语句。
 
@@ -63,3 +65,71 @@ for (int i = 0; i < x.size(); ++i) {
   EXPECT_EQ(x[i], y[i]) << "Vectors x and y differ at index " << i;
 }
 ```
+
+### 1.2 测试宏
+
+测试宏函数包含以下几类：
+
+1. `TEST(test_suite_name, test_name);`
+2. `TEST_F(test_fixture, test_name);`
+3. `TEST_P(test_suite_name, test_name);` -> 几乎不用，可以忽略
+
+### 1.3 代码框架
+
+main 函数调用：
+
+```C++
+int main(int argc, char **argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+```
+
+TEST_F：
+
+```c++
+class My_Test : public testing::Test {
+protected:
+  static void SetUpTestCase() {
+    // 整个 fixture 执行前执行一次
+  }
+  static void TearDownTestCase() {
+    // 整个 fixture 执行后执行一次
+  }
+
+  virtual void SetUp() {
+    // 每个测试用例前执行一次
+  }
+  virtual void TearDown() {
+    // 每个测试用例后执行一次
+  }
+};
+
+TEST_F(My_Test, func_to_test);
+```
+
+## 2 底层实现
+
+TEST：
+
+```C++
+#define GTEST_TEST(test_suite_name, test_name)             \
+  GTEST_TEST_(test_suite_name, test_name, ::testing::Test, \
+              ::testing::internal::GetTestTypeId())
+#if !(defined(GTEST_DONT_DEFINE_TEST) && GTEST_DONT_DEFINE_TEST)
+#define TEST(test_suite_name, test_name) GTEST_TEST(test_suite_name, test_name)
+#endif
+```
+
+
+
+TEST_F：
+
+```C++
+#define GTEST_TEST_F(test_fixture, test_name)        \
+  GTEST_TEST_(test_fixture, test_name, test_fixture, \
+              ::testing::internal::GetTypeId<test_fixture>())
+#if !(defined(GTEST_DONT_DEFINE_TEST_F) && GTEST_DONT_DEFINE_TEST_F)
+#define TEST_F(test_fixture, test_name) GTEST_TEST_F(test_fixture, test_name)
+```
+
