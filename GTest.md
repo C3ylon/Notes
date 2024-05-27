@@ -7,13 +7,13 @@
 断言结果有以下三种：
 
 1. 成功(*success*)：程序的行为符合预期。
-2. 非致命失败(*nonfatal failure*)：断言失败，但是程序不会中断，而是继续向下运行。
-3. 致命失败(*fatal failure*)：断言失败，程序直接中断，后续的测试案例不会被运行。
+2. 非致命失败(*nonfatal failure*)：断言失败，不会中断当前函数。
+3. 致命失败(*fatal failure*)：断言失败，直接中断当前函数。
 
 为产生相应断言结果可以使用以下两种断言宏函数：
 
-1. `EXPECT_*`：在断言失败时会产生 nonfatal failure。
-2. `ASSERT_*`：在断言失败时会产生 fatal failure。
+1. `EXPECT_*`：在断言失败时会产生 **nonfatal failure**。
+2. `ASSERT_*`：在断言失败时会产生 **fatal failure**。
 
 具体的断言宏函数：
 
@@ -26,14 +26,27 @@
 
 2. 二元比较（缩写可以类比为汇编语言中的`JXX`条件跳转指令）：
 
-   |        ASSERT         |        EXPECT         |  Condition   |
-   | :-------------------: | :-------------------: | :----------: |
-   | ASSERT_EQ(val1, val2) | EXPECT_EQ(val1, val2) | val1 == val2 |
-   | ASSERT_NE(val1, val2) | EXPECT_EQ(val1, val2) | val1 != val2 |
-   | ASSERT_LT(val1, val2) | EXPECT_EQ(val1, val2) | val1 < val2  |
-   | ASSERT_LE(val1, val2) | EXPECT_EQ(val1, val2) | val1 <= val2 |
-   | ASSERT_GT(val1, val2) | EXPECT_EQ(val1, val2) | val1 > val2  |
-   | ASSERT_GE(val1, val2) | EXPECT_EQ(val1, val2) | val1 >= val2 |
+   1. 值比较
+
+      |        ASSERT         |        EXPECT         |  Condition   |
+      | :-------------------: | :-------------------: | :----------: |
+      | ASSERT_EQ(val1, val2) | EXPECT_EQ(val1, val2) | val1 == val2 |
+      | ASSERT_NE(val1, val2) | EXPECT_EQ(val1, val2) | val1 != val2 |
+      | ASSERT_LT(val1, val2) | EXPECT_EQ(val1, val2) | val1 < val2  |
+      | ASSERT_LE(val1, val2) | EXPECT_EQ(val1, val2) | val1 <= val2 |
+      | ASSERT_GT(val1, val2) | EXPECT_EQ(val1, val2) | val1 > val2  |
+      | ASSERT_GE(val1, val2) | EXPECT_EQ(val1, val2) | val1 >= val2 |
+
+   2. C风格字符串比较
+
+      `ASSERT_STR_*` || `EXPECT_STR*`
+
+      > `std::string`的比较使用`ASSERT_*`或`EXPECT_*`。
+
+   3. 浮点比较
+
+      + `ASSERT_FLOAT_*`|| `EXPECT_FLOAT_*`
+      + `ASSERT_DOUBLE_*` || `EXPECT_DOUBLE_*`
 
 > Tips:
 >
