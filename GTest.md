@@ -45,7 +45,7 @@
 
    3. 浮点比较
 
-      + `ASSERT_FLOAT_*`|| `EXPECT_FLOAT_*`
+      + `ASSERT_FLOAT_*` || `EXPECT_FLOAT_*`
       + `ASSERT_DOUBLE_*` || `EXPECT_DOUBLE_*`
 
 > Tips:
