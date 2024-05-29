@@ -54,7 +54,7 @@ Git的两个核心概念：
 + 文件状态：
   1. **modified**（**已修改**）：修改了某个文件，但还没有提交保存。
   2. **staged**（**已暂存**）：把已修改的文件放在下次提交时要保存的清单中。
-  3. **committed**（**已提交**）：该文件已经被安全地保存在本地数据库中了。
+  3. **committed**（**已提交**）：该文件已经被安全地保存在本地仓库中了。
 
 Git常用指令：
 
@@ -62,10 +62,13 @@ Git常用指令：
 
 + `git clone <URL>`：从指定URL克隆仓库。
 + `git add <file>`：将指定文件从`untracked`状态或`modified`状态转变为`staged`状态。
+  > `git add .`：同时对所有`untracked`状态或`modified`状态的文件进行操作。
 + `git reset <file>`：将指定文件从`staged`状态转变为`unstaged`状态。
 + `git commit <file>`：将指定文件从`staged`状态转变为`committed`状态。
   > + 加上`-m "<message>"`指令可以同时附带上提交的描述信息。
   > + `git commit -am "<message>"`：同时提交所有staged文件，并附带上提交的描述信息。
++ `git push [remote_name] [branch_name]`：将本地仓库推送至远程服务器。
+  > `origin`表示远端，一般使用`git push origin`。
 + `git rm <tracked files>`：删除指定文件。如果是untracked files则会提示找不到文件。
 + `git mv <src> <dst>`：用于移动文件，也可用于重命名文件。
 + `git status`：查看当前仓库文件状态。
@@ -73,5 +76,21 @@ Git常用指令：
   + `git diff <hash 1> <hash 2>`：比较两个节点之间的差异。
   + `git diff --cached`：比较当前节点(staged)和上一次节点(committed)之间的差异。
 + `git log`：查看提交日志
++ `git branch`：返回当前本地工程的所有分支名。
+  > + `*`前缀表示当前工作区所在的分支。
+  > + 加上`-r`指令可以查看远端服务器的分支。返回的分支名带有`origin`前缀，表示在远端。
+  > + 加上`-a`指令可以同时查看远端服务器和本地工程的所有分支名。
+  > + `git branch <new_branch_name>`：用于创建新的分支。新建分支后不会切换到新分支。
+  > + `git branch -d <branch_name>`：用于删除分支。将`-d`替换为`-D`用于强制删除分支。
++ `git checkout <branch_name>`：用于切换分支，即*检出*。有时由于当前分支与目的分支冲突，导致切换失败，可以加上`-f`进行强制切换。
+  > + `git checkout -b <new_branch_name>`：用于创建新的分支。新建分支后会自动切换到新分支。
+  > + `git checkout .`：用于回退本地所有修改而未暂存/提交的文件内容。即用staged文件（如果没有就用committed文件）直接覆盖本地modified文件。将`.`替换为`<file_name>`即是回退本地指定文件内容。
+  > + `git checkout <commit_id>`：用于将工作区内同回退到某个提交版本。
++ `git restore .`：与`git checkout .`效果相同。也可将`.`替换为`<file_name>`来使用。
++ `git pull origin <remote_branch_name>[ : <local_branch_name>]`：用于从远端服务器获取某个分支的更新，再与本地指定的分支进行自动合并。若未指定本地分支，则默认为本地分支与远程分支同名。
++ `git fetch origin <remote_branch_name>[ : <local_branch_name>]`：用于从远端服务器获取某个分支的更新，不会自动合并(*merge*)。
++ `git merge <branch_name>`：将指定的分支合并到当前分支上。
++ `git rebase <branch_name`：也可以达到合并分支的效果，但是与`git merge`的实现机制及对合并后的节点造成的影响有很大的差异。
++ `git reset <commit_id>`：将工作区内容回退到历史提交节点。
 
 ssh 密钥添加方式 `ssh-keygen -t rsa -C "<your SSH key comment>"`，执行该指令后会生成一个`id_rsa`和一个`id_rsa.pub`文件到用户目录下的`.ssh`文件夹内。
