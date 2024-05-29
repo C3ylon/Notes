@@ -83,7 +83,7 @@ Git常用指令：
   > + `git branch <new_branch_name>`：用于创建新的分支。新建分支后不会切换到新分支。
   > + `git branch -d <branch_name>`：用于删除分支。将`-d`替换为`-D`用于强制删除分支。
 + `git checkout <branch_name>`：用于切换分支，即*检出*。有时由于当前分支与目的分支冲突，导致切换失败，可以加上`-f`进行强制切换。
-  > + `git checkout -b <new_branch_name>`：用于创建新的分支。新建分支后会自动切换到新分支。
+  > + `git checkout -b <new_branch_name>`：用于创建新的分支。新建分支后会自动切换到新分支。等效于执行`git branch <new_branch_name>`和`git checkout <new_branch_name>`这两条指令。
   > + `git checkout .`：用于回退本地所有修改而未暂存/提交的文件内容。即用staged文件（如果没有就用committed文件）直接覆盖本地modified文件。将`.`替换为`<file_name>`即是回退本地指定文件内容。
   > + `git checkout <commit_id>`：用于将工作区内同回退到某个提交版本。
 + `git restore .`：与`git checkout .`效果相同。也可将`.`替换为`<file_name>`来使用。
