@@ -90,7 +90,7 @@ Git常用指令：
 + `git pull origin <remote_branch_name>[ : <local_branch_name>]`：用于从远端服务器获取某个分支的更新，再与本地指定的分支进行自动合并。若未指定本地分支，则默认为本地分支与远程分支同名。
 + `git fetch origin <remote_branch_name>[ : <local_branch_name>]`：用于从远端服务器获取某个分支的更新，不会自动合并(*merge*)。
 + `git merge <branch_name>`：将指定的分支合并到当前分支上。
-+ `git rebase <branch_name`：也可以达到合并分支的效果，但是与`git merge`的实现机制及对合并后的节点造成的影响有很大的差异。
++ `git rebase <branch_name>`：也可以达到合并分支的效果，但是与`git merge`的实现机制及对合并后的节点造成的影响有很大的差异。
 + `git reset <commit_id>`：将工作区内容回退到历史提交节点。
 
 ssh 密钥添加方式 `ssh-keygen -t rsa -C "<your SSH key comment>"`，执行该指令后会生成一个`id_rsa`和一个`id_rsa.pub`文件到用户目录下的`.ssh`文件夹内。
