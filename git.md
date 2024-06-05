@@ -67,8 +67,8 @@ Git常用指令：
 + `git commit <file>`：将指定文件从`staged`状态转变为`committed`状态。
   > + 加上`-m "<message>"`指令可以同时附带上提交的描述信息。
   > + `git commit -am "<message>"`：同时提交所有staged文件，并附带上提交的描述信息。
-+ `git push [remote_name] [branch_name]`：将本地仓库推送至远程服务器。
-  > `origin`表示远端，一般使用`git push origin`。
++ `git push[ origin local_branch_name:remote_name]`：将本地仓库推送至远程服务器。
+  > `origin`表示远端。
 + `git rm <tracked files>`：删除指定文件。如果是untracked files则会提示找不到文件。
 + `git mv <src> <dst>`：用于移动文件，也可用于重命名文件。
 + `git status`：查看当前仓库文件状态。
