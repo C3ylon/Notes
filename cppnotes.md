@@ -127,6 +127,39 @@ cpp标准库头文件通常不带后缀。
 
   不允许类类型转换。
 
+  ```C++
+  struct st2;
+  struct st1 {
+    operator st2();
+  };
+
+  struct st2 {
+    st2() = default;
+    st2(const st1 &) { }
+  };
+
+  st1::operator st2() {
+    return st2 {};
+  }
+
+  struct st3 {
+    st3(const st2 &) { }
+  };
+
+  st1 a;
+  // st3 b = a;             // 错误
+  st3 b = { a };            // 正确
+  // 注意：
+  // st1::operator st2() 的调用优先级比 st2::st2(const st1 &) 的调用优先级更高
+  // 只有注释掉 st1::operator st2() 的所有定义后才会调用 st2::st2(const st1 &)
+
+  void fn(st3) { }
+  void f() {
+    // fn( st1{} );         // 错误，类比于上述 st3 b = a;
+    fn( { st1{} } );        // 正确，类比于上述 st3 b = { a };
+  }
+  ```
+
 `T var = val;`与`T var = { val }`（即复制初始化和复制列表初始化）都不会调用`explicit`修饰的(*`T`类型内定义的*)构造函数和(*`val`的类型内定义的*)自定义转换函数。
 
 ```C++
