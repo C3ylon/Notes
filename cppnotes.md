@@ -160,9 +160,45 @@ cpp标准库头文件通常不带后缀。
   }
   ```
 
-`T var = val;`与`T var = { val }`（即复制初始化和复制列表初始化）都不会调用`explicit`修饰的(*`T`类型内定义的*)构造函数和(*`val`的类型内定义的*)自定义转换函数。
+`T var = val;`与`T var = { val }`（即复制初始化和复制列表初始化）都不会调用`explicit`修饰的构造函数。
 
 ```C++
+struct st1 { };
+struct st2 { st2(const st1 &) { } };
+
+struct st4;
+struct st3 { operator st4(); };
+struct st4 { };
+st3::operator st4() { return st4{}; };
+
+struct st5 { 
+    explicit st5(const st2 &) { } 
+    explicit st5(const st4 &) { }
+};
+
+// st5 a = { st1{} };      // 错误
+st5 a { st1{} };
+// st5 b = { st3{} };      // 错误
+st5 b { st3{} };
+// ====================================
+struct st1 { };
+struct st2 { explicit st2(const st1 &) { } };
+
+struct st4;
+struct st3 { explicit operator st4(); };
+struct st4 { };
+st3::operator st4() { return st4{}; };
+
+struct st5 { 
+    st5(const st2 &) { } 
+    st5(const st4 &) { }
+};
+
+// st5 a { st1{} };        // 错误
+st5 a { (st2)st1{} };
+// st5 b { st3{} };        // 错误
+st5 b { (st4)st3{} };
+// ====================================
 struct st1 {
     st1(int) { }
 };
