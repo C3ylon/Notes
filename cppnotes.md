@@ -8,7 +8,7 @@ cpp标准库头文件通常不带后缀。
 
 ***
 
-标准输入与标准输出的文件重定向：在程序中使用cin与cout时，若使用命令行`foo.exe <infile >outfile`可以完成从infile文件读取数据并将数据输出到outfile文件。
+标准输入与标准输出的文件重定向：在程序中使用cin与cout时，若使用命令行`foo.exe < infile > outfile`可以完成从infile文件读取数据并将数据输出到outfile文件。
 
 ***
 
@@ -19,6 +19,11 @@ cpp标准库头文件通常不带后缀。
 有符号类型数据的溢出是**未定义**的。对于无符号类型数据，如果所赋值超出其表示范围，则其值为所赋值对该无符号类型所能表示数值总数取模后的余数。
 
 > 无符号和有符号类型混合运算时会先把有符号类型转换为无符号类型再进行运算。
+>
+> ```C++
+> auto i = 1 + 1u;
+> // i -> unsigned int
+> ```
 
 ***
 
@@ -32,8 +37,8 @@ cpp标准库头文件通常不带后缀。
 
    > 指定字面值的类型：
    >
-   > + 整型: 加后缀`U`指定为`unsigned`，加后缀`L`指定可容纳值的最小宽度类型为`long`，加后缀`LL`指定为`long long`。
-   > + 浮点型: 加后缀`F`指定为`float`，加后缀`L`指定为`long double`。
+   > + 整型: 加后缀`U`或`u`指定为`unsigned`，加后缀`L`或`l`指定可容纳值的最小宽度类型为`long`，加后缀`LL`或`ll`指定为`long long`。
+   > + 浮点型: 加后缀`F`或`f`指定为`float`，加后缀`L`或`l`指定为`long double`。
    > + 字符型和字符串型: 加前缀`L`指定为`wchart_t`，加前缀`u8`指定编码为`utf-8`，类型仍为`char`。
    >
    >   加前缀`u`指定为`char16_t`表示Unicode 16字符，加前缀`U`指定为`char32_t`表示Unicode 32字符。
@@ -107,10 +112,11 @@ cpp标准库头文件通常不带后缀。
   // 错误，不允许算术类型转换
   // error: non-constant-expression cannot be narrowed 
   // from type 'int' to 'unsigned int' in initializer list
-  // st1 b = { 1 };
+  st1 b = { 1 };
   // st2 c = { b };
   // 错误，等效于先经过类类型转换，再经过算术类型转换
   // 报错信息同上
+  st2 c = { (unsigned)b };
   
   struct st3 {
       unsigned c;
@@ -3191,6 +3197,21 @@ int main() {
       f('a');               // 正确，A::f(char)
   }
   ```
+
+***
+
+类类型转换后还可以隐式发生内置类型的整型提升或算术类型转换。
+
+```C++
+struct st {
+    operator short() { return 1; }
+    operator unsigned int() { return 2; }
+};
+
+st a;
+int b = a;          // b == 1    类类型转换后整型提升（比算术类型转换优先级更高）
+unsigned c = a;     // c == 2    类类型转换后直接匹配
+```
 
 ***
 
