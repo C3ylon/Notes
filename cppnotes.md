@@ -3266,3 +3266,141 @@ void g() { fn(f); }
 > 函数内部定义的不会被修改到的变量**不必要**添加`const`关键字，只需要确保函数形参对于**底层**`const`应添尽添即可。这是由于函数重载的机制，函数形参是否有底层`const`对于有无底层`const`的实参有不同的匹配优先级，必须确保入参能够正确地以高优先级匹配到`const`形参，因此需要尽量添加形参的底层`const`。
 
 ***
+
+不同右值的匹配优先级：
+
++ 右值优先匹配`T &&`或`const T &&`而不是`const T &`。
++ 普通的右值（不管是用于初始化的临时量还是函数返回值临时量）优先匹配`T &&`而不是`const T &&`。
++ `const`左值经过`std::move`得到的是`const T &&`类型，该类型**不能**被`T &&`类型匹配到，因此会优先匹配`const T &`（在没有定义`const T &&`的情况下）。
+
+```C++
+#include <iostream>
+using namespace std;
+
+void fn(const int &) { cout << "const int &" << endl; }
+void fn(int &&) { cout << "int &&" << endl; }
+void fn(const int &&) { cout << "const int &&" << endl; }
+int get_int() { return 1; }
+
+int main() {
+int &&
+    fn(1);                                // int &&
+    fn(get_int());                        // int &&
+    fn((const int &&)1);                  // const int &&
+                                          // 若注释掉 void fn(int &&); 则输出 const int &
+    const int a = 1;
+    fn(a);                                // const int &
+    fn(std::move(a));                     // const int &&
+                                          // 若注释掉 void fn(int &&); 则输出 const int &
+    fn(const_cast<int&&>(std::move(a)));  // int &&
+    return 0;
+}
+```
+
+***
+
+`std::initializer_list`在类构造函数中时，列表初始化该类的匹配优先级：
+
+只要是能够匹配到`std::initializer_list`的情况下最优先匹配该构造函数，而不会考虑匹配其他的构造函数。
+
+```C++
+#include <iostream>
+#include <initializer_list>
+
+using namespace std;
+
+class myshort {
+public:
+    short a;
+    myshort(short a) : a(a) { }
+    operator short() const { return a; }
+};
+
+class cl {
+public:
+    cl(short a, short b) { cout << "normal init [short]: " << a << " " << b << endl; }
+    cl(int a, int b) { cout << "normal init [int]: " << a << " " << b << endl; }
+    cl(std::initializer_list<int> l) { cout << " initializer list init [int]: " << l.begin()[0] << " " << l.begin()[1] << endl; }
+};
+
+int main() {
+    short s1 = 1;
+    short s2 = 2;
+    cl a { s1, s2 };
+    // 都是整型提升
+    // initializer list init [int]: 1 2
+    myshort ms1 { 3 };
+    myshort ms2 { 4 };
+    cl b { ms1, ms2 };
+    // 都是类类型转换后再整型提升
+    // initializer list init [int]: 3 4
+    cl c { s2, ms2 };
+    // 整型提升 + 类类型转换后再整型提升
+    // initializer list init [int]: 2 4
+
+    // 以上三种情况都优先匹配了以 std::initializer_list 为参数的构造函数
+    return 0;
+}
+```
+
+***
+
+使用列表初始化(`T var { val... }`或`T var = { val... }`)时需要注意性能损失产生的情况。
+
+使用 `T var { val... }` 或 `T var = { val... }` 初始化 `var` 时通常需要经过两波复制初始化。第一波复制初始化是通过 `val...` 的值构造出一个 `std::initializer_list<T>` 临时量，第二波复制初始化是通过构造出的临时量来构造 `var` 的成员。
+
+通常情况下能通过 `T var { std::move(val)... }` 优化的是第一波复制初始化，而不能优化第二波复制初始化，在这里容易出现性能损失。
+
+```C++
+#include <iostream>
+#include <initializer_list>
+#include <vector>
+
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "normal init: " << this << endl; }
+    cl(const cl &) { cout << "copy init: " << this << endl; }
+    cl(cl &&) noexcept { cout << "move init: " << this << endl; }
+};
+
+class cl2 {
+    cl c1, c2, c3;
+public:
+    cl2(std::initializer_list<cl> &&list) : c1 { list.begin()[0] },
+                                            c2 { std::move(list.begin()[1]) },
+                                            c3 { const_cast<cl &&>(std::move(list.begin()[2])) } { }
+};
+
+int main() {
+    cl c1, c2, c3;
+    cl2 tmp { c1, std::move(c2), std::move(c3) };
+    // normal init: 0x61fd1f
+    // normal init: 0x61fd1e
+    // normal init: 0x61fd1d  // 以上三行为定义 cl c1, c2, c3; 时输出
+    // copy init: 0x61fd39
+    // move init: 0x61fd3a
+    // move init: 0x61fd3b    // 以上三行为生成 std::initializer_list 临时量时输出
+    // copy init: 0x61fd1a    // 初始值列表初始化 c1
+    // copy init: 0x61fd1b    // 初始值列表初始化 c2
+                              // 由于 std::initializer_list<T>::begin() 和 end() 都是返回const T*
+                              // 因此 std::move(list.begin()[1]) 得到的类型是 const cl &&
+                              // 最终匹配到的构造函数参数类型是 const cl &
+    // move init: 0x61fd1c    // 初始值列表初始化 c3
+                              // const_cast 后得到的类型是 cl &&
+                              // 最终匹配到的构造函数参数类型是 cl &&
+    cout << "=======================================" << endl;
+    vector<cl> a { c1, std::move(c2), std::move(c3) };
+    // copy init: 0x61fd3c
+    // move init: 0x61fd3d
+    // move init: 0x61fd3e
+    // copy init: 0x1011640
+    // copy init: 0x1011641   // 由于没有类似上面的 const_cast 的特殊处理
+    // copy init: 0x1011642   // 导致这两条初始化匹配到的构造函数参数类型是 const cl &
+                              // 在这里产生了性能损失
+    return 0;
+}
+```
+
+***
