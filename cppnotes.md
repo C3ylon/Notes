@@ -3404,3 +3404,44 @@ int main() {
 ```
 
 ***
+
+ADL(Argument-dependent lookup 实参依赖查找)：
+
+调用函数时，若函数名前面没有命名空间的限定，那么查找该函数的范围会扩大，该函数所有的类类型实参所属类型所在的最内层外围命名空间里定义的同名函数都会包含进查找范围内。
+
+```C++
+#include <iostream>
+using namespace std;
+
+namespace NS1 {
+    struct st1 { };
+    template <class T, class U>
+    void fn(T &&, U &&) { cout << "in NS1" << endl; }
+}
+
+namespace NS2 {
+    struct st2 { };
+    template <class T, class U>
+    void fn(T &&, U &&) { cout << "in NS2" << endl; }
+}
+
+template <class T, class U>
+void fn(T &&, U &&) { cout << "in global" << endl; }
+
+int main() {
+    NS1::st1 a;
+    NS2::st2 b;
+
+    // fn(a, b);
+    // error: call of overloaded 'fn(NS1::st1&, NS2::st2&)' is ambiguous
+    // candidate: 'void fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
+    // candidate: 'void NS2::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
+    // candidate: 'void NS1::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'  
+    NS1::fn(a, b);
+    NS2::fn(a, b);
+    ::fn(a, b);
+    return 0;
+}
+```
+
+***
