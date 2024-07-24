@@ -3442,6 +3442,34 @@ int main() {
     ::fn(a, b);
     return 0;
 }
+
+/*===========================================================================*/
+
+#include <iostream>
+using namespace std;
+
+namespace NS {
+    struct st { 
+        operator int() { return 1; }
+    };
+    void fn(const st &) { cout << "in NS" << endl; }
+}
+
+void fn(int) { cout << "in global" << endl; }
+
+void invoke() {
+    NS::st a;
+    void fn(int);
+    fn(a);
+    // 在此代码块作用域内未声明 void fn(int) 时
+    // 此处调用的是 void fn(const st &)
+    // 声名 void fn(int) 后，调用的是 void fn(int)
+}
+
+int main() {
+    invoke();
+    return 0;
+}
 ```
 
 ***
