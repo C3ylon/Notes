@@ -196,8 +196,8 @@ struct st4 { };
 st3::operator st4() { return st4{}; };
 
 struct st5 { 
-    st5(const st2 &) { } 
-    st5(const st4 &) { }
+    explicit st5(const st2 &) { } 
+    explicit st5(const st4 &) { }
 };
 
 // st5 a { st1{} };        // 错误
@@ -205,42 +205,25 @@ st5 a { (st2)st1{} };
 // st5 b { st3{} };        // 错误
 st5 b { (st4)st3{} };
 // ====================================
+struct st2;
 struct st1 {
-    st1(int) { }
-};
+    explicit operator st2();
 
+};
 struct st2 {
-    st2(st1) { }
+    st2() { }
+    // 设置一个构造函数，避免 st2 是 POD 结构体类型
+    // 否则：st2 b4 { a }; 
+            // error: excess elements in struct initializer
 };
 
-// st2 a = 1;       // 错误
-st2 a = { 1 };      // 正确
+st1::operator st2() { return st2{}; }
 
-void fn(st2) { }
-void f() {
-    // fn(1);                // 错误，类比于上述st2 a = 1;
-    fn( {1} );               // 正确，类比于上述st2 a = { 1 };
-}
-
-struct st3 {
-    explicit st3(st1) { }
-};
-
-// st3 b = { 1 };           // 错误
-st3 b { 1 };                // 正确
-
-struct st4 {
-    st1 a = 1;
-    explicit operator st1() { return a; }
-};
-
-st4 c;
-// st1 d1 = c;              // 错误
-// st1 d2 = { c };          // 错误
-st1 d1 (c);                 // 正确
-st1 d2 { c };               // 正确
-// st2 d3 { c };            // 错误
-st2 d3 { (st1)c };          // 正确
+st1 a;
+// st2 b1 = a;             // 错误
+// st2 b2 = { a };         // 错误
+st2 b3(a);
+st2 b4 { a };
 ```
 
 > 在C++17之前，执行 `T var = val;` 形式的复制初始化时，如果`val`的类型不是`T`类型，会先把`val`的类型通过**转换构造函数**(*converting constructor*)隐式转换为`T`类型，然后再将该临时量以**直接初始化**的形式来初始化`var`。
