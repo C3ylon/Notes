@@ -89,11 +89,11 @@ cpp标准库头文件通常不带后缀。
 5. 类类型转换后精确匹配
 
 + `T var(val);`形式的初始化（即直接初始化）：
-  
+
   满足以上五种任意之一即可。
 
 + `T var { val };`和`T var = { val };`形式的初始化（即直接列表初始化和复制列表初始化）：
-  
+
   不允许算术类型转换。
 
   ```C++
@@ -102,7 +102,7 @@ cpp标准库头文件通常不带后缀。
       st1(int a) : a(a) { }
       operator int() { return a; }
   };
-  
+
   struct st2 {
       unsigned b;
       st2(unsigned b) : b(b) { }
@@ -110,14 +110,14 @@ cpp标准库头文件通常不带后缀。
   // int i = 1;
   // st2 a = { i };
   // 错误，不允许算术类型转换
-  // error: non-constant-expression cannot be narrowed 
+  // error: non-constant-expression cannot be narrowed
   // from type 'int' to 'unsigned int' in initializer list
   st1 b = { 1 };
   // st2 c = { b };
   // 错误，等效于先经过类类型转换，再经过算术类型转换
   // 报错信息同上
   st2 c = { (unsigned)b };
-  
+
   struct st3 {
       unsigned c;
       st3(unsigned c) : c(c) { }
@@ -177,8 +177,8 @@ struct st3 { operator st4(); };
 struct st4 { };
 st3::operator st4() { return st4{}; };
 
-struct st5 { 
-    explicit st5(const st2 &) { } 
+struct st5 {
+    explicit st5(const st2 &) { }
     explicit st5(const st4 &) { }
 };
 
@@ -195,8 +195,8 @@ struct st3 { explicit operator st4(); };
 struct st4 { };
 st3::operator st4() { return st4{}; };
 
-struct st5 { 
-    explicit st5(const st2 &) { } 
+struct st5 {
+    explicit st5(const st2 &) { }
     explicit st5(const st4 &) { }
 };
 
@@ -213,7 +213,7 @@ struct st1 {
 struct st2 {
     st2() { }
     // 设置一个构造函数，避免 st2 是 POD 结构体类型
-    // 否则：st2 b4 { a }; 
+    // 否则：st2 b4 { a };
             // error: excess elements in struct initializer
 };
 
@@ -230,7 +230,7 @@ st2 b4 { a };
 >
 > 虽然从编译器未开启 `-fno-elide-constructors` 选项的实现来看，上述情况不会真的生成一个临时量，但那是*优化后*的结果。即从标准的角度来考虑，`T`类必须要有一个能够访问的复制构造函数（尽管不一定需要调用）。
 >
-> > 当`val`的类型不是`T`类型时，执行 `T var(val);` 形式的直接初始化不会有隐式转换的环节。因此这种情况下`T`类即使没有能够访问的复制构造函数也不会出错。
+> 当`val`的类型不是`T`类型时，执行 `T var(val);` 形式的直接初始化不会有隐式转换的环节。因此这种情况下`T`类即使没有能够访问的复制构造函数也不会出错。
 >
 > 在C++17之后，`T`类可以没有能够访问的复制构造函数，对 `T var = val;` 形式的复制初始化没有影响（前提是`val`的类型不是`T`类型）。在该标准下即使开启 `-fno-elide-constructors` 选项，编译器也不会再生成将`val`隐式转换为`T`类型后的临时量。这一点上类似于 `T var = { val };` 形式的复制列表初始化。
 >
@@ -241,39 +241,39 @@ st2 b4 { a };
 > public:
 >     cl(int a) : a(a) { }
 > };
-> 
+>
 > // cl a = 1;
 > // error: 'cl::cl(const cl&)' is private within this context
 > // 如果 'cl(const cl&)' 为public，则无需给出该函数的完整定义也正确
 > // 但是在开启`-fno-elide-constructors`选项时
 > // 不给出复制构造函数的完整定义会出现链接错误
-> 
+>
 > /************************************************************/
-> 
+>
 > class cl {
 >     int a;
 > public:
 >     cl(int a) : a(a) { }
 >     cl(cl &a);
 > };
-> 
+>
 > // cl a = 1;
 > // error: cannot bind non-const lvalue reference of type 'cl&'
 > // to an rvalue of type 'cl'
-> 
+>
 > // 定义了 'cl &' 类型的构造函数
 > // 因此不会自动生成 'const cl&' 类型的构造函数
 > // 如果上述改为 'const cl&' 则正确。或是使用 'cl a = { 1 };' 亦正确。
-> 
+>
 > /************************************************************/
-> 
+>
 > class cl {
 >     int a;
 > public:
 >     cl(int a) : a(a) { }
 >     explicit cl(const cl &a) : a(a.a) { }
 > };
-> 
+>
 > cl a = 1;
 > // 尽管复制构造函数被 'explicit' 修饰，但是在 'a' 初始化时
 > // '1' 所隐式转换为 'cl' 类型的临时量是以直接初始化的形式来初始化 'a'
@@ -287,7 +287,7 @@ st2 b4 { a };
 
 + 在C++11之前，未引入initializer list时允许`vals...`其中有值相对于`val`的成员类型发生算术类型转换。
 + 从C++11开始不允许有值发生算术类型转换。
-  
+
 ### 三、
 
 用多个值`vals...`初始化一个`T`类型变量`var`的三种方式(`T`是类类型)：
@@ -339,7 +339,7 @@ st2 b = st1(1);
 
 ***
 
-对于全局作用域的const对象，仅在该文件内有效。如果想在多个文件之间共享const对象，需要在变量的定义之前加上extern关键字。比如：
+非局部变量的`const`变量具有内部链接属性，仅在该文件内有效。如果想在多个文件之间共享`const`变量，需要在变量的定义之前加上`extern`关键字。比如：
 
 ```C++
 // foo1.h 该处为声明
@@ -351,7 +351,7 @@ const int a = 1;
 // 上行定义在C中会报警告: 'a' initialized and declared 'extern'，但是对于C++来说这么使用没有问题
 ```
 
-> C语言中const对象在所有文件内都有效。
+> C和C++的不同：C语言中未显式使用`static`修饰的`const`对象在所有文件内都有效，即默认具有外部链接属性。
 
 ***
 
@@ -367,7 +367,9 @@ const int &a = 3.14;
 // 正确。const引用会创建temp副本，可以直接绑定引用。
 ```
 
-const引用类型的变量如果绑定的对象不是临时创建的副本，则当绑定对象的值改变时该const引用变量的值也会随之改变。(此处const只能保证不能通过该变量名写入，不能保证通过该变量名读取时值不变。类比于普通变量，如果为const类型且没有`volatile`限定符的话，即使在两次读取操作之间可能存在写入操作，经过编译器优化之后两次读取的值通常是不变的)
+const引用类型的变量如果绑定的对象不是临时创建的副本，则当绑定对象的值改变时该const引用变量的值也会随之改变。(此处const只能保证不能通过该变量名写入，不能保证通过该变量名读取时值不变。类比于`const`修饰的非引用类型的变量，如果没有`volatile`限定符的话，即使在两次读取操作之间可能存在写入操作，经过编译器优化之后两次读取的值通常是不变的)
+
+> 尽管在主流编译器上的实现效果确实如上所述，但是严谨来说应当把 *修改`const`引用指向的底层对象后再试图通过该引用变量名读取* 的行为视作undefined behavior。
 
 ```C++
 #include <iostream>
@@ -396,17 +398,29 @@ int main() {
 
 ***
 
-C++11开始加入限定符`constexpr`。定义变量时，在认定该变量的初始值是常量表达式时才可以使用该限定符，否则编译器会报错。（相当于执行了一次*编译期*检查）
+C++11开始加入限定符`constexpr`。该关键字可以作用于变量，也可以作用于函数：
+
++ 当作用于**变量**时：
+
+  + 隐含`const`语义，即对于非局部变量而言具有内部链接属性
+  + 必须赋初始值，且必须是**编译期**能确定的值（相当于执行了一次编译期检查）
+  + 声明并定义的变量可以使用在必须使用常量表达式的地方
+
++ 当作用于**函数**时：
+
+  + 隐含`inline`语义
+  + 如果编译期不能确定返回值，可当作普通函数使用
+  + 如果编译期能确定返回值，可直接优化为一个常量值
 
 ```C++
 constexpr int a = 10;
 constexpr int b = a + 1;
 // 以上变量a, b都是常量表达式
 constexpr int c = get_c();
-// 仅当函数get_c()是一个constexpr函数时才是一条正确的语句
+// 仅当函数get_c()是一个constexpr函数且能在编译期计算出返回值时才是一条正确的语句
 ```
 
-`constexpr`会将所定义的 *对象* 置为顶层const (具有引用类型的某个变量不被视作一个对象，因此`constexpr`不能用于引用变量的声明)。对于指针而言，其所指的对象是否为常量并不由指针本身的限定符`constexpr`所决定。
+`constexpr`会将所定义的变量置为**顶层const** (引用变量自身无法被置为const，因此`constexpr`不能用于引用变量的声明和定义)。对于指针而言，其所指的对象是否为常量并不由指针本身的限定符`constexpr`所决定。
 
 ```C++
 constexpr int *p = nullptr;
@@ -424,12 +438,40 @@ constexpr int func(int a) {
 // 若传入的实参不为常数，则调用该函数类似普通的函数调用
 
 int main() {
-    const int a = func(3);  // 不会发生函数调用，等效于 const int a = 9;
+    // 当开启 -O0 优化选项时：
+    const int a = func(3);  // clang和gcc都不会发生函数调用，等效于 const int a = 9;
     int b = func(3);        // clang会发生函数调用，gcc不会
     auto c = func(3);       // c的类型为 int，clang会发生函数调用，gcc不会
     return 0;
 }
 ```
+
+> 扩展：
+>
+> + 当`constexpr`修饰以下对象时也有隐含语义：
+>   + 非静态成员函数：隐含`const`语义（仅限于C++11版本）
+>   + 静态数据成员：隐含`inline`语义（从C++17开始）
+>
+> ```C++
+> #include <iostream>
+> using namespace std;
+>
+> class cl {
+> public:
+>     constexpr int fn() { return 1; }
+>     // 上行在C++11中隐含const语义
+>     // 即 int fn() const;
+>     int fn() { return 2; }
+> };
+>
+> int main() {
+>     const cl a;
+>     cl b;
+>     cout << a.fn() << " " << b.fn() << endl;
+>     // 1 2
+>     return 0;
+> }
+> ```
 
 ***
 
@@ -459,7 +501,7 @@ auto关键字:
 与`auto`一样，`decltype`也是C++11新引入的可推导类型的关键字，但是特性略有区别。
 
 1. `decltype`会保留顶层const。
-  
+
    > ```C++
    > const int *const a = nullptr;
    > auto b = a; // b的类型是 const int*
@@ -467,7 +509,7 @@ auto关键字:
    > ```
 
 2. 对于引用类型的变量，`decltype`得到的类型为该引用类型。对于引用类型的变量参与运算的表达式，`decltype`得到的类型为表达式结果的类型。
-  
+
    > ```C++
    > const int i, &r = i;
    > decltype(r) a = i; // a的类型为 const int&
@@ -655,7 +697,7 @@ const st3 &a = { st1{} };
 
    > ```C++
    > struct st { st(char){ } };
-   > 
+   >
    > char a;
    > const int &b = a;               // 1. 整型提升
    > const signed char &c = a;       // 2. 算术类型转换
@@ -665,7 +707,7 @@ const st3 &a = { st1{} };
 不包括以下两种情况：
 
 + 不包括初始化对象是右值且为自定义类型的情况。
-  
+
   > 若是自定义类型，在创建初始化对象自身这个临时变量的时候已经划定有指定的内存空间，并在该空间内完成对应的初始化。初始化引用变量时只是将该空间的地址存入引用变量的内存空间。
 
 + 不包括初始化对象原本就是左值，经过`T&&`形式的类型转换才得到右值的情况。
@@ -673,12 +715,12 @@ const st3 &a = { st1{} };
   > ```C++
   > #include <iostream>
   > using namespace std;
-  > 
+  >
   > struct st {
   >     st() { };
   >     st(const st&) { cout << "copy init" << endl; }
   > };
-  > 
+  >
   > int main() {
   >     int a = 1;
   >     const int &b = (int&&)a;
@@ -708,13 +750,13 @@ const st3 &a = { st1{} };
   > ```C++
   > #include <iostream>
   > using namespace std;
-  > 
+  >
   > struct st {
   >     st(){ cout << "init at: " << this << endl; }
   >     st(const st &a) { cout << "copy init form: " << &a << endl; }
   > };
   > st global;
-  > 
+  >
   > const st &callee(bool condition) {
   >     if(condition == true) {
   >         return global;
@@ -723,11 +765,11 @@ const st3 &a = { st1{} };
   >         // warning: returning reference to temporary
   >     }
   > }
-  > 
+  >
   > st caller(bool condition) {
   >     return callee(condition);
   > }
-  > 
+  >
   > int main() {
   >     st a = caller(true);
   >     return 0;
@@ -790,7 +832,7 @@ int main() {
       st(int a) : a(a) { cout << "init: " << this << "\n"; }
       st(const st &a) : a(a.a) { cout << "copy init: " << this << "\n"; }
       ~st() { cout << "dist: " << this << "\n"; }
-  
+
   };
   void fn_rvalue(st&&) { }
   int main() {
@@ -800,7 +842,7 @@ int main() {
       fn_rvalue((st &&)a);     // 类型转换 2
   }
   ```
-  
+
   > 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次复制构造及其析构。(即使是在未开  启`-fno-elide-constructors`和开启`-O3`的情况下)
   >
   > 因此左值到右值的转换最好用`(T &&)val`的形式。
@@ -812,18 +854,18 @@ int main() {
       int a;
       st(int a = 0) : a(a) { }
       ~st() { }
-  
+
   };
-  
+
   int main() {
-  
+
       const st* p =  &(const st &)(st)1;
-      // warning: temporary whose address is used as value of local variable 'p' 
+      // warning: temporary whose address is used as value of local variable 'p'
       // will be destroyed at the end of the full-expression
       return 0;
   }
   ```
-  
+
   > `(const st &)(st)1`等效于`const st &tmp((st)1)`，其中`tmp`类型为左值，`tmp`所指的地址为临时变量`(st)1`的内存空间。在`tmp`进行下一次操作后生命周期会结束，此时临时变量`(st)1`会销毁。对应于上述代码即是在指针赋值操作之前右值`(st)1`就会销毁。
   >
   > 在clang中对应汇编如下：
@@ -906,7 +948,7 @@ int main() {
     st2 e = { a };
     // st3 f = { a };
     // 错误，不允许算术类型转换
-    // error: non-constant-expression cannot be narrowed 
+    // error: non-constant-expression cannot be narrowed
     // from type 'unsigned char' to 'char' in initializer list
 
     // 若添加了explicit修饰符：
@@ -915,7 +957,7 @@ int main() {
     // 且括号内转换的类型只能为unsigned char
     // 若括号内是char：
     // (char)a等效于char tmp(a);  因此错误
-    
+
     fn(a);
     // 在不加explicit修饰符时，调用第一个fn
     // 因为经过类类型转换后，整型提升的匹配优先级比算术类型转换更高
@@ -1192,7 +1234,7 @@ void SomeClass::Const_mem_func() const {
 >
 > ```C++
 > typedef int a;
-> 
+>
 > class cl {
 > public:
 >     a b;
@@ -1494,7 +1536,7 @@ void f2() {
 void f3() {
     // f2<decltype(f1), f1>();
     // 错误，此时Fn是函数类型
-    // error: 'void()' is not a valid type 
+    // error: 'void()' is not a valid type
     // for a template non-type parameter
     f2<decltype((f1)), f1>();
     // 正确，此时Fn是引用类型
@@ -1509,7 +1551,7 @@ void f1() { }
 void f2() {
     // f1<decltype(arr), arr>();
     // 错误，此时Arr是数组类型
-    // error: 'int [3]' is not a valid type 
+    // error: 'int [3]' is not a valid type
     // for a template non-type parameter
     f1<decltype((arr)), arr>();
     // 正确，此时Arr是引用类型
@@ -1681,10 +1723,10 @@ C++11开始可以为函数模板参数提供默认实参，在其之前只能为
 > template <typename T = int, typename U = int>
 > class cl {
 > };
-> 
+>
 > int main() {
-> 
->     // cl a; 
+>
+>     // cl a;
 >     // error: use of class template 'cl' requires template arguments
 >     cl<> a;
 >     return 0;
@@ -1879,7 +1921,7 @@ int main() {
 ```C++
 template<class T>
 void fn(const T &&) { }
- 
+
 int main() {
     int a = 1;
     // fn(a);  错误，无法自动推导T类型为int &
@@ -1955,12 +1997,12 @@ const int *d = &(const int &)1;  // warning: temporary whose address is used as 
 #include <stdio.h>
 #include <utility>
 class cl;
-const cl & move_if_noexcept(cl & a) { return (cl&&)a; } 
+const cl & move_if_noexcept(cl & a) { return (cl&&)a; }
 
 class cl {
     public:
-    cl() { 
-        printf("normal init %p\n", (void*)this); 
+    cl() {
+        printf("normal init %p\n", (void*)this);
     }
     cl(const cl &) {
         printf("copy init %p\n", (void*)this);
@@ -2043,7 +2085,7 @@ void fn2() {
     } catch(const char *a) {
         printf("%s\n", a);
     } catch(const std::string &e) {
-        std::cout << e.c_str() << "\n"; 
+        std::cout << e.c_str() << "\n";
     }
 }
 
@@ -2168,7 +2210,7 @@ int main() {
     fn1();
     return 0;
 }
-// 输出结果为: 
+// 输出结果为:
 // init 0
 // copy 1---------------将异常参数复制到一个既不在栈也不在堆的空间上
 // distruct 0-----------执行到throw处类比于函数执行到return处，在将返回值赋予临时量后会析构该函数内的所有局部变量
@@ -2199,14 +2241,14 @@ int main() {
 
   ```C++
   #include <stdio.h>
-  
+
   template <typename T>
   struct st1;
   template <typename T>
   void fn(const st1<T> &);
   template <typename T>
   struct st2;
-  
+
   template <typename T>
   struct st1 {
       friend void fn<T>(const st1<T>&);
@@ -2215,22 +2257,22 @@ int main() {
       private:
       int a;
   };
-  
+
   template <typename T>
   struct st2 {
       template <typename U>
       void fn(const st1<T> &);
   };
-  
+
   template <typename T>
   template <typename U>
   void st2<T>::fn(const st1<T> &a) { printf("%d\n", a.a); }
-  
+
   template <typename T>
   void fn(const st1<T> &a) {
       printf("%d\n", a.a);
   }
-  
+
   int main() {
       st1<int> a(3);
       fn(a);
@@ -2244,12 +2286,12 @@ int main() {
 
   ```C++
   #include <stdio.h>
-  
+
   template <typename T>
   void fn(const T&);
   template <typename T>
   struct st2;
-  
+
   template <typename T>
   struct st1 {
       template <typename U>
@@ -2262,22 +2304,22 @@ int main() {
       private:
       int a;
   };
-  
+
   template <typename T>
   void fn(const T& a) {
       printf("%d\n", a.a);
   }
-  
+
   template <typename T>
   struct st2 {
       template <typename U>
       void fn(const st1<U> &);
   };
-  
+
   template <typename T>
   template <typename U>
   void st2<T>::fn(const st1<U> &a) { printf("%d\n", a.a); }
-  
+
   int main() {
       st1<int> a(3);
       fn(a);
@@ -2307,7 +2349,7 @@ C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。�
 > struct Base {
 >     virtual void vfn();
 > };
-> 
+>
 > struct A : Base {
 >     auto vfn() noexcept ->void override = 0;
 > };
@@ -2406,10 +2448,10 @@ private:
 public:
     Initializer()
         : _List(nullptr), len(0) {}
-    
+
     template <typename... _Rest>
     Initializer(T _first, _Rest... _rest)
-        : _List(new T[sizeof...(_rest) + 1]{_first, _rest...}), 
+        : _List(new T[sizeof...(_rest) + 1]{_first, _rest...}),
           len(sizeof...(_rest) + 1) {}
 
     Initializer<T>& operator=(Initializer<T> &&) = delete;
@@ -2499,7 +2541,7 @@ struct st;
 
 template<typename R1, typename ...A1, typename R2, typename ...A2>
 struct st<R1(*)(A1...), R2(*)(A2...)> {
-    
+
 };
 
 using T1 = void(*)(int);
@@ -2548,14 +2590,14 @@ int main() {
 }
 
 /*********************************************************/
-// print在C++中的实现: 
+// print在C++中的实现:
 template <typename T>
 int print_rest(T &&arg) {
     std::cout << " " << arg;
     return 0;
 }
 
-template <typename First, typename ...Rest> 
+template <typename First, typename ...Rest>
 void print(First &&first, Rest &&...rest) {
     std::cout << first;
     int unused[] = { 0, print_rest(rest)... };
@@ -2757,11 +2799,11 @@ void st<T>::fn() { cout << 1; };
 template <typename U>
 void st<int>::fn() { cout << 2; };
 
-// ================================== 
+// ==================================
 // template <typename T>
 // template <>
 // void st<T>::fn<int> { cout << 3; };
-// ================================== 
+// ==================================
 
 int main() {
     st<int>::fn<int>();
@@ -2892,7 +2934,7 @@ struct A<char>::C {
     void fs();
 };
 // A<char>再特化了源模板的类模板C
-template<> template<class U> 
+template<> template<class U>
 void A<char>::C<U>::fs() { }
 // 注意定义C的内部函数时必须添加template<>前缀
 
@@ -2902,12 +2944,12 @@ void A<char>::C<U>::fs() { }
 // 因此在这之后不能再定义A<char>自身
 
 //===============specialization 3===============
-template<> 
+template<>
 struct A<short> {
     template<class U> struct C { void fs(); };
 };
 // 重新定义A<short>，替换源模板的全部成员
-template<class U> 
+template<class U>
 void A<short>::C<U>::fs() { }
 // 此处定义C的内部函数时
 // 由于A<short>不是针对源模板的类模板C的部分特化
@@ -3113,11 +3155,11 @@ int main() {
   namespace A {               // 命名空间扩展
       void f(char) { }        // 不改变::f的含义
   }
-   
+
   void fn1() {
       f('a');                 // 调用A::f(int)，即使A::f(char)存在
   }
-   
+
   void fn2() {
       using A::f;             // f等效于A::f(int)和A::f(char)
       f('a');                 // 调用A::f(char)
@@ -3142,7 +3184,7 @@ int main() {
           st() { std::cout << "in specialization" << std::endl; }
       };
   }
-  
+
   void fn() {
       st<int*> a; // 输出in specialization
       f<int>();   // 调用的是特化后的f
@@ -3164,13 +3206,13 @@ int main() {
       int b;
       void f(int) { }
   }
-  
+
   namespace A {             // 命名空间扩展
       int a2;
       using namespace B;
       void f(int) { }
   }
-  
+
   void f() {
       // a++;               // 错误，不确定是::a 还是A::a
       ::a++;                // 正确
@@ -3228,12 +3270,12 @@ void g() { fn(f); }
 >       st(int a) : a(a) { }
 >       operator bool() { return a; }
 >   };
->   
+>
 >   st a(0);
 >   bool b = a;             // 正确，类类型隐式转换为bool类型
 >   int i = a;              // 正确，转换后再整型提升
 >   unsigned u = a;         // 正确，转换后再算术类型转换
->   
+>
 >   void fn(int) { }
 >   void fn(unsigned) { }
 >   fn(a);
@@ -3342,7 +3384,7 @@ st1 a (st2{});         // 正确
 // 错误，st1是POD类型，不会考虑到类类型转换后再调用复制构造函数
 // error: excess elements in struct initializer
 
-struct st3 { st3(int = 1) {} };
+struct st3 { st3() {} };
 struct st4 {
     st3 a;
     explicit operator st3() { return a; }
@@ -3446,7 +3488,7 @@ int main() {
     // error: call of overloaded 'fn(NS1::st1&, NS2::st2&)' is ambiguous
     // candidate: 'void fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
     // candidate: 'void NS2::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
-    // candidate: 'void NS1::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'  
+    // candidate: 'void NS1::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
     NS1::fn(a, b);
     NS2::fn(a, b);
     ::fn(a, b);
@@ -3459,7 +3501,7 @@ int main() {
 using namespace std;
 
 namespace NS {
-    struct st { 
+    struct st {
         operator int() { return 1; }
     };
     void fn(const st &) { cout << "in NS" << endl; }
