@@ -473,6 +473,36 @@ int main() {
 > }
 > ```
 
++ `constexpr`作用于非类静态成员的变量时不能仅声明，必须要满足**声明且定义**。
+
+  ```C++
+  // 1.cpp 中：
+  extern const int a = 1;
+  extern constexpr int b = 2;
+
+  // 2.cpp 中：
+  extern const int a;         // 正确，普通的const变量可以仅声明
+  // extern constexpr int b;  // 错误，constexpr变量必须在声明的时候定义
+  extern const int b;         // 正确，将 constexpr "退化"为 const 处理
+
+  int c = a;  // 正确，c == 1
+  int d = b;  // 正确，d == 2
+  ```
+
++ `constexpr`作用于类的静态成员时不能仅声明，必须要满足**声明且初始化**。
+
+  ```C++
+  class cl {
+  public:
+      static const int a;         // 可以在定义 a 的时候再完成初始化
+      static constexpr int b = 1; // 必须要在此处完成 b 的初始化
+
+  };
+  const int cl::a = 2;   // 不可省略，即使在上面初始化之后也要再在这里定义a
+  constexpr int cl::b;   // 当有此行时，cl::b可以取地址
+                         // 没有此行时，cl::b只能取值不能取地址
+  ```
+
 ***
 
 auto关键字:
@@ -1436,6 +1466,32 @@ int main () {
 `lambda`函数体中如果包含除了`return`之外的任何语句，则默认返回void。若需返回其他类型，需要在形参列表后加上尾置返回类型。
 
 不能重载同名`lambda`函数，可以为其添加默认参数。
+
+注意成员函数中定义的`lambda`函数在**按值捕获**时仍可能会修改到成员变量。
+
+```C++
+#include <iostream>
+
+using namespace std;
+
+class cl {
+public:
+    int a = 1;
+    void fn() {
+        auto lambda = [=](int i) {
+            a = i;
+        };
+        lambda(2);
+    }
+};
+
+int main() {
+    cl a;
+    a.fn();
+    cout << a.a << endl;
+    return 0;
+}
+```
 
 ***
 
