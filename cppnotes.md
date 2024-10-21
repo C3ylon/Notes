@@ -84,7 +84,7 @@ cpp标准库头文件通常不带后缀。
 
 1. 精确匹配
 2. 添加底层`const`后精确匹配
-3. 整型提升后精确匹配
+3. 类型提升后精确匹配
 4. 算术类型转换后精确匹配
 5. 类类型转换后精确匹配
 
@@ -127,11 +127,41 @@ cpp标准库头文件通常不带后缀。
   // 正确，1是字面量，是前述例外情况之一
   st2 e = { d };
   // 正确，允许类类型转换
+  // =====================================================
+  struct st1 {
+      st1(int) { };
+  };
+
+  struct st2 {
+      st2(const st1 &) { }
+  };
+
+  int main() {
+      unsigned int a = 0xffffffff;
+      st2 b { a };
+      // 相当于 const st1 &_param = a;
+      // 列表初始化允许类类型转换
+
+      // st2 c { {a} };
+      // 相当于 const st1 &_param = { a };
+      // 错误，不允许算术类型转换
+      // error: non-constant-expression cannot be narrowed
+      // from type 'unsigned int' to 'int' in initializer list
+      short d = 2;
+      st2 e { {d} };
+      // 正确，允许整型提升
+      return 0;
+  }
   ```
 
 + `T var = val;`形式的初始化（即复制初始化）：
 
   不允许类类型转换。
+
+  当`var`和`val`的类型不同时，有一点需要特别注意的地方：
+
+  + 在C++17之前：`val`先隐式转换为`var`的类型，存放在一个临时变量中，然后以该临时变量调用复制构造函数来**直接初始化**`var`（可能由于编译器的优化会省略构造临时变量的过程，直接在`var`的地址上初始化，但是必须要确保有**可访问的复制构造函数**）
+  + 从C++17开始：`val`隐式转换为`var`的类型，并直接在`var`的地址上初始化（明确不会用到复制构造函数，即使复制构造函数声明为`delete`也没有影响）
 
   ```C++
   struct st2;
@@ -157,13 +187,59 @@ cpp标准库头文件通常不带后缀。
   st3 b = { a };            // 正确
   // 注意：
   // st1::operator st2() 的调用优先级比 st2::st2(const st1 &) 的调用优先级更高
-  // 只有注释掉 st1::operator st2() 的所有定义后才会调用 st2::st2(const st1 &)
+  // 如果把上述定义改为：
+  // 定义 st1::operator st2()const; 或定义 st2::st2(st1 &);
+  // 则会报错 ambiguous
 
   void fn(st3) { }
   void f() {
     // fn( st1{} );         // 错误，类比于上述 st3 b = a;
     fn( { st1{} } );        // 正确，类比于上述 st3 b = { a };
   }
+  // ======================================================================
+  struct st {
+    explicit st(const st&) { };
+    st(int) { };
+  };
+  st a = 1;
+  // 能正常初始化，说明 "1" 隐式转换之后是以直接初始化的形式来初始化 st
+  struct st2;
+  struct st1 {
+    operator st2();
+  };
+  struct st2 {
+    st2() = default;
+    st2(st1 &) { }
+  };
+  st1::operator st2() {
+    return st2();
+  }
+  struct st3 {
+    st3(const st2 &) { }
+  };
+
+  st1 a;
+  // st2 b = a;
+  // 即使在C++17及其之上版本也会报错 ambiguous
+  // 说明对于复制初始化而言
+  // 即使明确省略了调用复制构造函数的过程，也不会省略隐式转换这一步
+
+  st2 c = { a };
+  // 不会报错 ambiguous
+  // 列表初始化没有隐式转换这一步，相当于"直接"调用构造函数
+
+  st3 d = { st1{} };
+  // 正确，调用到 st1::operator st2(); 无 ambiguous
+  // 如果定义：st2(const st1&); 依然会调用到 st1::operator st2();
+  // 虽然 const 引用可以引用到临时变量 st1{}，但是由于多了一个底层const
+  // 因此仍会优先选择 st1::operator st2();
+
+  // st3 e = { a };
+  // error: conversion from 'st1' to 'const st2' is ambiguous
+
+  st3 f = { {a} };
+  // 正确，相当于 const st2 &_param = { a };
+  // 列表初始化相当于"直接"调用构造函数，不会考虑到 st1::operator st2();
   ```
 
 `T var = val;`与`T var = { val }`（即复制初始化和复制列表初始化）都不会调用`explicit`修饰的构造函数。
@@ -1322,7 +1398,7 @@ int main () {
 
 只能在类内声明构造函数时使用`explicit`关键字，在类外定义函数时不能重复使用。(类比`inline`, `friend`, `static`)
 
-`explicit`构造函数只能用于直接初始化，不能用于复制初始化。(`explicit`复制构造函数不影响其他非`explicit`构造函数在复制初始化时的调用)
+`explicit`构造函数只能用于直接初始化(*以及直接列表初始化*)，不能用于复制初始化(*以及复制列表初始化*)。(`explicit`复制构造函数不影响其他非`explicit`构造函数在复制初始化时的调用)
 
 > 复制初始化的情况包括:
 >
@@ -1332,6 +1408,11 @@ int main () {
 > 4. 按值抛出或捕获异常时
 
 尽管`explicit`构造函数不会被用于隐式的类类型转换，但是仍然可以用`static_cast<>`进行显示转换。
+
+> 简便理解可以将`explicit`作用归纳为两条：
+>
+> 1. 作用于构造函数时：不允许复制初始化(*以及复制列表初始化*)
+> 2. 作用于`operator`自定义类型转换函数时：不允许隐式转换
 
 ***
 
@@ -3283,7 +3364,7 @@ int main() {
 
 ***
 
-类类型转换后还可以隐式发生内置类型的整型提升或算术类型转换。
+类类型转换后还可以隐式发生内置类型的类型提升或算术类型转换。
 
 ```C++
 struct st {
