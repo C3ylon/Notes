@@ -3666,3 +3666,20 @@ int main() {
 ```
 
 ***
+
+C++取类的某个重载过的成员函数指针的方法：
+
+```C++
+class cl {
+public:
+    void pr(short) { }
+    void pr(int) { }
+};
+
+auto fn = static_cast<void(cl::*)(int)>(&cl::pr);
+// 使用 static_cast 而不是 reinterpret_cast
+auto cl::*fn2 = static_cast<void(cl::*)(int)>(&cl::pr);
+// 显式指明指针符号 "*" 时必须使用 cl::*
+```
+
+***
