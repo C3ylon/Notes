@@ -2489,7 +2489,7 @@ C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。�
 > };
 >
 > struct A : Base {
->     auto vfn() noexcept ->void override = 0;
+>     auto vfn() noexcept -> void override = 0;
 > };
 > ```
 
