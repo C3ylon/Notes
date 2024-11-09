@@ -2476,6 +2476,32 @@ int main() {
 C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。若实需抛出异常则应当标注`noexcept(false)`。
 
 > 析构函数默认不抛出异常是因为如果同时存在析构和手动`throw`时，会抛出两次异常，导致`catch`处漏接一个异常。
+>
+> ```C++
+> #include <iostream>
+> using namespace std;
+>
+> class cl {
+> public:
+>     cl() = default;
+>     ~cl() noexcept(false) { throw "distruct false"; }
+> };
+>
+> int main()
+> {
+>     try {
+>         cl a;
+>         // throw "try false";
+>     } catch (const char *e) {
+>         cout << "in exception: " << e << endl;
+>     }
+>     return 0;
+> }
+> // 当 try 内未手动 throw 时程序可以正常执行
+> // 输出 in exception: distruct false
+> // 当取消掉上述注释，执行手动 throw 时
+> // 报错 terminate called after throwing an instance of 'char const*'
+> ```
 
 `noexcept`说明符需要在`const`之后，在类的构造函数的初始值列表、函数尾置返回类型、`overrride`和`final`说明符及虚函数的`=0`之前。
 
