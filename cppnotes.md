@@ -3709,3 +3709,40 @@ auto cl::*fn2 = static_cast<void(cl::*)(int)>(&cl::pr);
 ```
 
 ***
+
+类初始值列表初始化时需要显式初始化无默认构造函数的类成员。
+
+```C++
+#include <iostream>
+
+using namespace std;
+
+class clbase {
+public:
+    clbase(int i, int j) : m_i(i), m_j(j) {
+        cout << "clbase init: " << i << " " << j << endl;
+    }
+private:
+    int m_i;
+    int m_j;
+};
+
+class clpro {
+public:
+    // clpro(int i, int j) { };
+    // error: no default constructor exists for class "clbase"
+    clpro(int i, int j) : m_base(i, j) { cout << "clpro init" << endl; }
+private:
+    clbase m_base;
+};
+
+int main() {
+    clpro(1, 2);
+    // 输出：
+    // clbase init: 1 2
+    // clpro init
+    return 0;
+}
+```
+
+***
