@@ -3746,3 +3746,49 @@ int main() {
 ```
 
 ***
+
+调用函数`f(g(expr1), h(expr2));`时，能确定的只有：
+
++ `expr1`的计算必须在调用`g()`之前。
++ `expr2`的计算必须在调用`h()`之前。
++ `g()`和`h()`的完整执行必须在调用`f()`之前。
+
+除此之外其他执行顺序一概不保障（如此设计是为了给更激进的优化保留可能性）。比如可能`expr1`和`expr2`交错计算，计算完成后完整执行`h()`，再完整执行`g()`。
+
+`new`表达式相当于执行两步函数调用，首先分配内存，然后在分配的内存中调用构造函数生成新对象。如果构造函数因异常而失败，则会释放第一步中分配的内存。
+
+调用函数`f(new T1, new T2);`，可能存在以下执行顺序：
+
+1. allocate memory for the `T1`
+2. construct the `T1`
+3. allocate memory for the `T2`
+4. construct the `T2`
+5. call `f()`
+
+> 当第三步失败时，`T1`不会被析构，且已分配内存不会被释放
+
+或：
+
+1. allocate memory for the `T1
+2. allocate memory for the `T2`
+3. construct the `T1`
+4. construct the `T2`
+5. call `f()`
+
+> + 当第三步失败时，`T2`已分配内存不会被释放
+> + 当第四步失败时，`T1`不会被析构，且已分配内存不会被释放
+
+因此，在传参中直接使用`new`是非常危险的行为，很容易破坏异常安全，应当避免如`f(std::unique_ptr<T1>{ new T1 }, std::unique_ptr<T2>{ new T2 });`形式的调用。
+
+良好实践是使用类似`make_unique<T>()`之类的函数封装一层，返回临时对象，这样不论执行顺序如何都能确保异常安全。
+
+```C++
+// make_unique<T>()标准实现:
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique(Args&& ...args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+```
+
+***
