@@ -3852,6 +3852,55 @@ int main() {
     // move init
     return 0;
 }
+/********************************************************************************/
+#include <iostream>
+
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "default init" << endl; }
+    cl(const cl &) { cout << "copy init" << endl; }
+    cl(cl &&) { cout << "move init" << endl; }
+};
+
+cl GetCl() {
+    cl res;
+    return res;         // 默认移动
+}
+
+cl GetClConst() {
+    const cl res;
+    return res;         // cl(cl&&) 无法访问
+}
+
+cl GetClStatic() {
+    static cl res;
+    return res;         // res 是静态变量，不可移动
+}
+
+int main() {
+    cout << "========== a ==========" << endl;
+    cl a = GetCl(); (void)a;
+    cout << "========== b ==========" << endl;
+    cl b = GetClConst(); (void)b;
+    cout << "========== c ==========" << endl;
+    cl c = GetClStatic(); (void)c;
+    // 在开启 -fno-elide-constructors 时输出:
+    // ========== a ==========
+    // default init
+    // move init
+    // move init
+    // ========== b ==========
+    // default init
+    // copy init
+    // move init
+    // ========== c ==========
+    // default init
+    // copy init
+    // move init
+    return 0;
+}
 ```
 
 ***
