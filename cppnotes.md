@@ -3889,8 +3889,8 @@ int main() {
     // 在开启 -fno-elide-constructors 时输出:
     // ========== a ==========
     // default init
-    // move init
-    // move init
+    // move init              ---- RVO第一种场景 优化时可省略
+    // move init              ---- RVO第二种场景 优化时可省略
     // ========== b ==========
     // default init
     // copy init
