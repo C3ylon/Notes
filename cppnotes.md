@@ -3800,6 +3800,17 @@ RVO(*Return Value Optimization*)主要体现在函数返回值类型是**非引�
 
 在引入移动语义后，对于函数返回的临时量的初始化，会优先采用移动构造函数，在移动构造函数不可访问时才会选择复制构造函数。不要显式使用`return std::move(expr);`，这样反而会阻碍编译器的RVO优化。（主要影响第一个场景）
 
+> 前提是 `return expr;` 中的 `expr` 是*可移动的*，比如：
+>
+> + 临时结果
+> + 定义在函数中的局部变量
+> + 右值引用的函数参数（注：在新版本gcc和clang中才会以移动构造函数初始化返回的临时量）
+>
+> 不包括：
+>
+> + 静态变量（不论局部或全局）
+> + 左值引用的函数参数（注：在老版本gcc和clang中只要是引用都会以复制构造函数初始化返回的临时量）
+
 ```C++
 #include <iostream>
 
@@ -3830,9 +3841,9 @@ cl GetCl2() {
 }
 
 int main() {
-    cl obj1 = GetCl1();
+    cl obj1 = GetCl1(); (void)obj1;
     cout << "================" << endl;
-    cl obj2 = GetCl2();
+    cl obj2 = GetCl2(); (void)obj2;
 
     // 开启 -O3 的输出：
     // default init
