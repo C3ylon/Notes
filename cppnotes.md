@@ -3792,3 +3792,55 @@ std::unique_ptr<T> make_unique(Args&& ...args)
 ```
 
 ***
+
+RVO(*Return Value Optimization*)主要体现在函数返回值类型是**非引用的自定义类型**时，优化 "初始化`var0` -> 用`var0`复制得到`var1` -> 析构`var0`" 这个过程，简略为 "在 `var1`的地址上初始化`var0`"，省去了一次复制和一次析构的过程。涉及到以下两个场景：
+
++ 以函数内定义的局部变量来初始化函数返回的临时量时，直接在返回的临时量的地址上初始化该局部变量
++ 以函数返回的临时量来初始化其他变量或临时量时，直接在其他变量或临时量的地址上初始化返回的临时量
+
+在引入移动语义后，对于函数返回的临时量的初始化，会优先采用移动构造函数，在移动构造函数不可访问时才会选择复制构造函数。不要显式使用`return std::move(expr);`，这样反而会阻碍编译器的RVO优化。（主要影响第一个场景）
+
+```C++
+#include <iostream>
+
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "default init" << endl; }
+    cl(const cl &) { cout << "copy init" << endl; }
+    cl(cl &&) { cout << "move init" << endl; }
+};
+
+cl GetCl1() {
+    cl res;
+    return res;
+    // 同时满足上述两种场景
+    // 合并之后的最终优化结果为直接在 obj1 的地址上初始化 res
+}
+
+cl GetCl2() {
+    cl res;
+    return std::move(res);
+    // warning: moving a local object in a return statement prevents copy elision
+    // 上述第一种场景被破坏
+    // 表现为会创建 res 局部变量，然后再调用 cl 的移动构造函数初始化返回的临时量
+    // 第二种优化场景仍然适用
+    // 表现为直接在 obj2 的地址上初始化返回的临时量
+}
+
+int main() {
+    cl obj1 = GetCl1();
+    cout << "================" << endl;
+    cl obj2 = GetCl2();
+
+    // 开启 -O3 的输出：
+    // default init
+    // ================
+    // default init
+    // move init
+    return 0;
+}
+```
+
+***
