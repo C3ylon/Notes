@@ -3494,7 +3494,9 @@ int &&
 
 `std::initializer_list`在类构造函数中时，列表初始化该类的匹配优先级：
 
-只要是能够匹配到`std::initializer_list`的情况下最优先匹配该构造函数，而不会考虑匹配其他的构造函数。
++ 当**列表不为空**时，只要是能够匹配到`std::initializer_list`的情况下最优先匹配该构造函数，而不会考虑匹配其他的构造函数。
+
++ 当列表为空时，只有在无法匹配到其他构造函数的情况下才会考虑匹配该构造函数。
 
 ```C++
 #include <iostream>
@@ -3534,6 +3536,27 @@ int main() {
     // 以上三种情况都优先匹配了以 std::initializer_list 为参数的构造函数
     return 0;
 }
+
+// ==================================================================
+
+#include <iostream>
+#include <initializer_list>
+
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "default init" << endl; }
+    cl(const initializer_list<int> &) {
+        cout << "initializer_list init" << endl;
+    }
+};
+
+cl a = {};
+// default init
+cl b = { {} };
+// initializer_list init
+// 当注释掉默认构造函数 cl() 后，两者都会输出 initializer_list init
 ```
 
 对于POD结构体而言，列表初始化最优先考虑POD式的初始化，而不会考虑类类型转换后再调用复制构造函数。
