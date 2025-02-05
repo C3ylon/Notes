@@ -75,7 +75,7 @@ cpp标准库头文件通常不带后缀。
 > const unsigned b =  1;
 > int c = { b };           // 正确，b是常量，且b的值在int类型能表示的值的范围内
 > // int d = { 1.1 };      // 错误，1.1虽然是字面量，
->                          // 但是从整型到浮点型和从浮点型到整型之间的所有转换都不允许
+>                          // 但是从浮点型到整型之间的所有转换都不允许
 > // const float e = 1.1;
 > // int f = { e };        // 错误，理由同上
 > ```
@@ -897,6 +897,37 @@ const st3 &a = { st1{} };
 
 + 普通情况下，该表达式等效于`T tmp(val)`，其结果临时变量`tmp`是左值还是右值取决于`T`属于`T&`类型还是属于`T&&`类型。
 
+  ```C++
+  #include <iostream>
+
+  using namespace std;
+
+  struct st2;
+  struct st1 {
+      operator st2() const;
+  };
+
+  struct st2 {
+      st2() = default;
+      st2(const st1 &) {
+          cout << "copy constructor func" << endl;
+      }
+  };
+
+  st1::operator st2() const {
+      cout << "operator func" << endl;
+      return st2 { };
+  }
+
+  int main() {
+      st1 a;
+      (st2)a;
+      // 输出：copy constructor func
+      // 当仅保留 st1::operator st2() 函数时才会输出：operator func
+      return 0;
+  }
+  ```
+
 + 无法等效于`T tmp(val)`的三种情况：
   + 类型`T`是`void`
     > 此时`val`的类型可以是任意类型，该类型转换无转换结果。
@@ -923,7 +954,7 @@ int main() {
 >
 > `(st4)st1()`报错则是由于`st4`构造函数需要`st3`类型的参数，而`st3`类型无法由`st1`类型隐式转换得到。
 >
-> 综上，显示转换最多可以跨越两层类型。
+> 综上，显式转换最多可以跨越两层类型。
 
 左值与右值间的合法转换：
 
@@ -1094,9 +1125,33 @@ fn(a);
 // 则都不会发生调用歧义
 // gcc和clang的判断逻辑应该是只能允许多种operator TYPE()定义的类型转换对应一个函数
 // 或者是允许一种operator TYPE()定义的类型转换对应多个重载函数
-// 如果定义了多种operator TYPE()类型转换而又定义了多个重载函数，则应当显示转换
+// 如果定义了多种operator TYPE()类型转换而又定义了多个重载函数，则应当显式转换
 fn((bool)a);
 // 在gcc和clang中都能正常编译，符合预期表现
+
+/************************************************************/
+
+#include <iostream>
+
+using namespace std;
+
+struct st2;
+struct st1 {
+    operator st2();
+};
+
+struct st2 { };
+
+st1::operator st2() { return st2 { }; }
+
+int main() {
+    const st1 a;
+    // (st2)a;
+    // 错误
+    // st1::operator st2() 应定义为 const 类型
+    // 即：st1::operator st2() const;
+    return 0;
+}
 
 ```
 
@@ -1389,7 +1444,7 @@ int main () {
     // clb("ghi"); 错误，类类型隐式转换只允许一步，不能从char *到string再到cla
     clb(static_cast<cla>("jkl"));
     clb((cla)"mn");
-    // 以上两种显示转换都转换了两步，从char *到string再到cla
+    // 以上两种显式转换都转换了两步，从char *到string再到cla
     return 0;
 }
 ```
@@ -1407,7 +1462,7 @@ int main () {
 > 3. 返回值为非引用类型的函数返回时会对临时变量复制初始化
 > 4. 按值抛出或捕获异常时
 
-尽管`explicit`构造函数不会被用于隐式的类类型转换，但是仍然可以用`static_cast<>`进行显示转换。
+尽管`explicit`构造函数不会被用于隐式的类类型转换，但是仍然可以用`static_cast<>`进行显式转换。
 
 > 简便理解可以将`explicit`作用归纳为两条：
 >
