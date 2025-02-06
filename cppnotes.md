@@ -923,7 +923,8 @@ const st3 &a = { st1{} };
       st1 a;
       (st2)a;
       // 输出：copy constructor func
-      // 当仅保留 st1::operator st2() 函数时才会输出：operator func
+      // 即使 st1::operator st2() 去掉 const 限定符也是如此
+      // 当仅保留 st1::operator st2() const 函数时才会输出：operator func
       return 0;
   }
   ```
