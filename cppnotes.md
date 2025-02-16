@@ -3983,3 +3983,194 @@ int main() {
 ```
 
 ***
+
+对于定义模板成员时是否需要加 `template <>` 的探讨：
+
+```C++
+//=================Condition A1=================
+
+template <class T>
+class cl {
+    template <class U>
+    void fn();
+};
+
+template <>
+class cl<int> {
+    template <class T>
+    void fn();
+};
+
+// 此处定义 fn 时，由于 cl<int> 已有特化定义
+// 因此可以直接使用 cl<int> 而无需添加 template<>
+template <class T>
+void cl<int>::fn() { }
+
+//=================Condition A2=================
+
+template <class T>
+class cl {
+    template <class U>
+    void fn();
+};
+
+// 此处定义 fn 时，由于 cl<int> 还未有特化定义
+// 因此此处需额外添加 template<>
+template <>
+template <class T>
+void cl<int>::fn() { }
+
+//=================Condition B1=================
+
+template <class T>
+class cl1 {
+    template <class U>
+    class cl2;
+
+};
+
+template <>
+class cl1<int> {
+    template <class T>
+    class cl2 {
+        template <class U>
+        void fn();
+    };
+};
+
+// 此处定义 fn 时，cl<int> 已有特化定义
+// 因此无需添加 template<>
+template <class T>
+template <class U>
+void cl1<int>::cl2<T>::fn() { }
+
+//=================Condition B2=================
+
+template <class T>
+class cl1 {
+    template <class U>
+    class cl2;
+};
+
+template <>
+template <class T>
+class cl1<int>::cl2 {
+    template <class U>
+    void fn();
+};
+
+// 此处定义 fn 时，cl1<int> 未有特化定义
+// 因此需要添加 template<>
+template <>
+template <class T>
+template <class U>
+void cl1<int>::cl2<T>::fn() { }
+
+//=================Condition C1=================
+
+template <class T>
+class cl {
+public:
+    static int a;
+};
+
+template <class T>
+int cl<T>::a;
+
+// 此处"定义" a 时，cl<int> 未有特化定义
+// 因此实际上 a 并没有定义，只能算作一种声明
+template<>
+int cl<int>::a;
+
+int main() {
+    // cl<int>::a = 1;
+    // undefined reference to `cl<int>::a'
+    return 0;
+}
+
+//=================Condition C2=================
+
+template <class T>
+class cl {
+public:
+    static int a;
+};
+
+template <class T>
+int cl<T>::a;
+
+// 此处算真正的定义，因为同时做了初始化操作
+// 在编译该翻译单元时，已为 cl<int>::a 划分全局变量地址
+template<>
+int cl<int>::a = 0;
+
+int main() {
+    cl<int>::a = 1;
+    return 0;
+}
+
+//=================Condition C3=================
+
+template <class T>
+class cl {
+public:
+    static int a;
+};
+
+template <class T>
+int cl<T>::a;
+
+template <>
+class cl<int> {
+public:
+    static int a;
+};
+
+// 此处定义 a 时，cl<int> 已有特化定义
+// 因此即使没有初始化操作，依然算真正的定义
+int cl<int>::a;
+
+int main() {
+    cl<int>::a = 1;
+    return 0;
+}
+
+
+```
+
+***
+
+在定义类模板的静态成员变量时：
+
+```C++
+// =========== header.h ===========
+template <class T>
+class cl {
+public:
+    static int a;
+};
+
+// 静态成员变量带模板，可以定义在头文件中
+template <class T>
+int cl<T>::a;
+
+// template <>
+// int cl<int>::a;
+
+// =========== src1.cpp ===========
+#include "header.h"
+
+void fn1() {
+    cl<int>::a = 1;
+}
+// =========== src2.cpp ===========
+#include "header.h"
+
+void fn2() {
+    cl<int>::a = 2;
+}
+// 以上 src1.cpp 和 src2.cpp 中使用的
+// cl<int>::a 是位于同一个内存地址的变量
+```
+
+***
