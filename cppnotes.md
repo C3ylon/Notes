@@ -4174,3 +4174,73 @@ void fn2() {
 ```
 
 ***
+
+## C++中的严格别名(*strict aliasing*)
+
+1. 在使用指针对某个地址进行读写操作时，如果指针所指对象的类型和该地址原始类型**不相似**，则违背严格别名规则，在未开启`-fno-strict-aliasing`编译选项时行为未定义。
+
+2. 指针所指对象始终不违背严格别名规则的三个例外类型：
+
+   + `char`
+   + `unsigned char`
+   + `std::byte` (C++17引入)
+
+   > 1. 仅在最终以上述类型进行读写时有效，若仅将上述类型作为中转类型则无效。
+   >
+   >    ```C++
+   >    float a = 1;
+   >    int b = *(int*)(char*)&a;      // 违背严格别名，char 作为中转类型时无效
+   >    int c = 0;
+   >    char *d = (char*)&c;
+   >    for (int i = 0; i < 4; ++i) {
+   >        d[i] = ((char*)&a)[i];     // 符合规范，最终以 char 类型来读写
+   >    }
+   >    ```
+   >
+   > 2. 在C中的三个例外类型为：
+   >
+   >    1. `char`
+   >    2. `unsigned char`
+   >    3. `signed char`
+   >
+   >    注意在C++中`signed char`**不满足**例外情况，这是与C的一个显著区别。
+
+3. 在类型双关时不违背严格别名规则的方法是：
+
+    1. 使用上述三种例外类型对象的指针进行读写
+    2. 使用`std::memcpy`
+       > 注意在这种场景下即使开启`-O0`编译选项也不会真正显式调用`memcpy()`函数，编译器会优化掉函数调用的开销，就像违背严格别名规则显式类型强制转换时预期的效果那样，除非开启`-fno-builtin-memcpy`编译选项。
+
+    > 在C99中可以通过`union`进行 type punning，但是在C++中是**未定义行为**。C++中的`union`在某一时刻只能有一个被激活的字段处于其生命周期中，不能访问其余"未激活"的字段，这也是C++与C在严格别名规则上的另一个显著区别。
+
+```C++
+#include <iostream>
+
+using namespace std;
+
+void num_copy(void *dst, const void *src) {
+    const char *s = (const char*)src;
+    char *d = (char*)dst;
+    for (int i = 0; i < 16; i += 4) {
+        // *(int*)(d + i) = *(const int*)(s + i);
+        // UB! 使用GCC开启O2优化的情况下，A/B类型非 int，不会调用该函数
+        *(float*)(d + i) = *(const float*)(s + i);
+        // 符合规范。A/B类型为 float，能够转换成 char* 后再转换成 float* 读取
+    }
+}
+
+int main(void)
+{
+    float A[4] = { 1, 2, 3, 4 };
+    float B[4] = { 5, 6, 7, 8 };
+
+    num_copy(B, A);
+
+    for (int i = 0; i < 4; i++) {
+        cout << B[i] << " ";
+    }
+    return 0;
+}
+```
+
+***
