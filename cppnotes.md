@@ -2567,11 +2567,11 @@ C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。�
 >
 > //==============2==============
 > struct Base {
->     virtual void vfn();
+>     virtual void vfn() const;
 > };
 >
 > struct A : Base {
->     auto vfn() noexcept -> void override = 0;
+>     auto vfn() const noexcept -> void override = 0;
 > };
 > ```
 
