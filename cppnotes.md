@@ -1513,7 +1513,6 @@ int main () {
     // const int &g= cl::e; error: undefined reference to `cl::e'
     return 0;
 }
-
 ```
 
 静态成员可用于普通成员不能用的场景:
