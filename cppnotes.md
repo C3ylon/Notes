@@ -4242,3 +4242,52 @@ int main(void)
 ```
 
 ***
+
+一个**完整表达式**(*full-expression*)创建的所有临时对象会在该完整表达式执行完毕时被销毁，且销毁顺序为创建顺序的逆序，即遵循FILO原则。
+
+```C++
+#include <iostream>
+using namespace std;
+struct A {
+    int value;
+    A(int x) : value(x) { cout << "init " << value << endl; }
+    ~A() { cout << "dist " << value << endl; }
+    A operator+(const A &r) { return value + r.value; }
+};
+
+int main() {
+    A a = A{1} + A{2} + A{4};
+    // 在clang 下的输出：
+    // init 1
+    // init 2
+    // init 3
+    // init 4
+    // init 7
+    // dist 4
+    // dist 3
+    // dist 2
+    // dist 1
+    // dist 7
+    // 在 gcc/msvc 下的输出：
+    // init 4
+    // init 2
+    // init 1
+    // init 3
+    // init 7
+    // dist 3
+    // dist 1
+    // dist 2
+    // dist 4
+    // dist 7
+    // 虽然不同编译器对临时对象的创建顺序不一致
+    // 但是可以确保的是所有临时变量在该语句完整执行完毕后才会被销毁
+    return 0;
+// ===========================================================
+    void fn(A& arg);
+    fn(const_cast<A &>(static_cast<const A&>(A())));
+    // 该函数调用形式不是UB，因为临时对象 A() 在该语句完整执行完毕
+    // (即函数调用完毕之后)才会被销毁
+}
+```
+
+***
