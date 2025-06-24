@@ -48,16 +48,29 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 
 ![固件版本](./pics/OpenWrt/1.2.png)
 
-> `ext4`格式与`squashfs`格式的区别主要在 rootfs (根文件系统)：
+> `ext4`与`squashfs`的区别主要在 rootfs (根文件系统)：
 >
-> + `ext4`格式可以扩展磁盘空间大小，而`squashfs`格式则不能。
-> + `squashfs`格式可以使用重置功能恢复出厂设置，而`ext4`格式则不能。
+> + `squashfs`是**只读文件系统**，压缩格式；`ext4`是**完整读写系统**，未被压缩。
+> + `squashfs`作为系统只读部分不可修改，相当于固件镜像原样，用户修改部分挂载在`/overlay`，所有设置修改、新安装软件等都写在这里；`ext4`可以直接修改`/etc`或安装软件包，和传统 Linux 类似。
 >
-> 鉴于本文安装OpenWrt是在虚拟机环境下，可以很方便地使用虚拟机快照功能来备份和恢复设置，因此采用`ext4`格式。如果是安装在实体路由器硬件上推荐使用`squashfs`格式。
+> 因此对于OpenWrt系统的具体应用场景来说：
+>
+> + `ext4`可以扩展磁盘空间大小，而`squashfs`则不能。
+> + `squashfs`可以使用重置功能恢复出厂设置，而`ext4`则不能。
+>
+> 鉴于本文安装OpenWrt是在虚拟机环境下，可以很方便地使用虚拟机快照功能来备份和恢复设置，因此采用`ext4`格式。如果是安装在x86架构的实体路由器硬件上也推荐尽可能使用`ext4`格式。
+>
+> 文件名其余后缀区别：
+>
+> |文件名|是否含引导|是否支持 UEFI|说明|
+> | :--- |:---:|:---:|:---|
+> |`generic-ext4-combined-efi.img.gz`|√|√|带 UEFI 启动支持的完整 ext4 系统镜像|
+> |`generic-ext4-combined.img.gz`|√|×|只支持传统 BIOS 启动的完整 ext4 系统镜像|
+> |`generic-ext4-rootfs.img.gz`|×|×|仅包含 root 文件系统部分，不可单独启动|
 
 用解压工具解压得到一个`.img`格式的映像文件。
 
-> 注意：使用7z解压时可能会报错: *有效数据外包含额外数据 : openwrt-23.05.3-x86-64-generic-ext4-combined-efi.img*。无视该报错即可。
+> 注意：使用7z解压时可能会报错: *有效数据外包含额外数据 : openwrt-23.05.3-x86-64-generic-ext4-combined-efi.img*。无视该报错即可。原因是压缩文件附带了 SHA 校验或签名信息。
 
 ### 1.2 转换OpenWrt固件格式
 
@@ -104,7 +117,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 + 虚拟磁盘类型 选择SCSI
 + 磁盘 选择使用现有虚拟磁盘
 + 现有磁盘文件 选择前述新建的文件夹中的vmdk文件路径
-  
+
   > 此时会弹窗提示是否将现有虚拟磁盘转换为更新的格式，选择保持现有格式即可。
 
 + 选择自定义硬件，移除以下几个硬件：新CD/DVD，USB控制器，声卡，打印机
@@ -402,8 +415,10 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 在宿主机里面打开CMD控制台，使用`scp`指令将`.img`映像文件上传至OpenWrt的`/tmp/`文件夹下。指令格式是`scp LOCAL_FILE_PATH REMOTE_HOST_NAME@IP:DEST_PATH`。
 
 > 上述指令中`LOCAL_FILE_PATH`是需要上传的文件的完整路径，`REMOTE_HOST_NAME`是远程主机的用户名，此处实际为`root`，`IP`是之前修改的eth0的IP地址，`DEST_PATH`是上传的目的路径，此处实际为`/tmp/`。
+>
+> 如果使用`scp`指令报错`ash: /usr/libexec/sftp-server: not found`，说明宿主机的 scp 版本太新，在底层使用的是 sftp 作为协议。此时加上`-O`(**Old**)选项即可。即`scp -O LOCAL_FILE_PATH REMOTE_HOST_NAME@IP:DEST_PATH`。或是执行`opkg update && opkg install openssh-sftp-server`，为其安装上 sftp 服务器。
 
-使用`dd`指令进行写盘操作。指令格式是`dd if=INPUT_FILES of=OUTPUT_FILES`。
+使用`dd`指令进行写盘操作。指令格式是`dd if=INPUT_FILES of=OUTPUT_FILES`。执行完`dd`指令后，需再执行`sync`指令，确保内核缓冲区中所有未写入磁盘的数据完整写入磁盘。
 
 > 上述指令中`INPUT_FILES`是输入文件路径，此处实际为之前通过`scp`指令上传的`.img`映像文件完整路径，`OUTPUT_FILES`是输出文件路径，此处实际为之前新创建的`.vmdk`磁盘文件在OpenWrt系统中对应的设备名称，在绝大部分情况下是`/dev/sdb`。
 >
@@ -420,6 +435,33 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 进入虚拟机设置界面，移除U盘对应的硬件设备（点选时会提示 *系统找不到指定的文件*，因为此时已经拔掉U盘，直接关闭该提示即可）。移除之后重新进入BIOS界面，还原回默认的启动优先级。
 
 此时重新进入的系统即是从`.img`映像文件完整复制而来的纯净系统，需要再重新配置eth0的IP地址后方可通过该IP登录OpenWrt系统的luci界面，从而继续进行后续的配置工作。
+
+#### 4.1.5 系统扩容
+
+在 luci web 界面以及使用`fdisk -l`指令可以看到，当前 OpenWrt 系统可使用的磁盘储存空间约为100M，远不及[4.1.2节](#412-vmware虚拟机配置)创建硬盘2时设定的2GB，这是因为 OpenWrt 镜像默认分区布局未利用全部磁盘空间，需要按需手动扩容。
+
+![OP初始容量](./pics/OpenWrt/4.1.5_1.png)
+
+执行`fdisk /dev/sda`指令。在`fdisk`的交互界面输入如下指令：
+
+```python
+p           ← 打印当前分区表
+d           ← 删除分区
+2           ← 删除 /dev/sda2
+n           ← 新建分区
+2           ← 新建 /dev/sda2
+33280       ← 起始扇区（必须与原来的一样）
+4194270     ← 终止扇区（使用剩余全部空间）
+w           ← 写入并退出
+```
+
+![fdisk执行指令](./pics/OpenWrt/4.1.5_2.png)
+
+此时执行`reboot`指令重启系统，发现开机日志打印停止在了3s左右，这是因为删除并重建分区后，没有执行`resize2fs`指令更新文件系统结构。
+
+![fdisk执行指令](./pics/OpenWrt/4.1.5_3.png)
+
+`resize2fs`指令不能对已挂载的根分区在线执行，需要在另一块磁盘中刷入OpenWrt系统，再在新刷入的系统中执行（这样相对于重建分区的磁盘来说是离线执行）。
 
 ### 4.2 wan和lan的实质
 
