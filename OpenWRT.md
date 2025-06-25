@@ -457,11 +457,29 @@ w           ← 写入并退出
 
 ![fdisk执行指令](./pics/OpenWrt/4.1.5_2.png)
 
-此时执行`reboot`指令重启系统，发现开机日志打印停止在了3s左右，这是因为删除并重建分区后，没有执行`resize2fs`指令更新文件系统结构。
+此时执行`reboot`指令重启系统，发现开机日志打印停止在了3s左右，这是因为删除并重建分区后，没有执行`resize2fs`指令更新文件系统结构，即只给磁盘分区扩容，还没有给文件系统扩容。
 
 ![fdisk执行指令](./pics/OpenWrt/4.1.5_3.png)
 
 `resize2fs`指令不能对已挂载的根分区在线执行，需要在另一块磁盘中刷入OpenWrt系统，再在新刷入的系统中执行（这样相对于重建分区的磁盘来说是离线执行）。
+
+重新给虚拟机添加硬盘，设置之前的U盘为硬盘2。选择：电源->打开电源时进入固件，修改 BIOS 里的启动优先级，优先启动U盘中的系统。
+
+进入系统后执行`fdisk -l`，确认需要 resize 的设备为`/dev/sda2`。
+
+![确认磁盘及分区号](./pics/OpenWrt/4.1.5_4.png)
+
+执行`opkg update && opkg install resize2fs`，再执行`resize2fs /dev/sda2`。
+
+会看到如下报错信息。需要执行`e2fsck`指令来强制检查文件系统完整性并修复错误。
+
+![resize报错信息](./pics/OpenWrt/4.1.5_5.png)
+
+在执行完`e2fsck -f /dev/sda2`和`resize2fs /dev/sda2`指令之后，看到 *The filesystem on /dev/sda2 is now 520123 (4k) blocks long* 的提示说明已扩容完毕。其中 4k 表示每个块(**block**)的大小，520123表示块的总数。这两者的乘积就是[4.1.2节](#412-vmware虚拟机配置)创建硬盘2时设定的磁盘容量2GB。
+
+![resize报错信息](./pics/OpenWrt/4.1.5_6.png)
+
+此时移除U盘，重新进入本地磁盘中的系统，能够顺利进入系统。
 
 ### 4.2 wan和lan的实质
 
