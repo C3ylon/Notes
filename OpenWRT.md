@@ -585,12 +585,12 @@ OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。只要更
 
 ### 4.7 OpenWrt安装UU加速器插件
 
-UU加速器插件目前不支持nftables。OpenWrt应当选择21.02.7及其之前的版本。
+UU加速器插件目前已支持nftables。
 
 ssh连接OpenWrt后输入以下指令：
 
 ```sh
-wget http://uu.gdl.netease.com/uuplugin-script/202012111056/install.sh -O install.sh
+wget https://uurouter.gdl.netease.com/uuplugin-script/openwrt/install/v2/install.sh
 /bin/sh install.sh openwrt $(uname -m)
 # 若没有安装 kmod-tun 需要执行以下指令:
 # (若安装有 OpenClash 等插件应该已安装好了 kmod-tun 前置)
@@ -599,9 +599,29 @@ opkg update && opkg install kmod-tun
 
 在UU加速器的手机app上选择安装路由器插件，并依照引导操作，然后就能通过手机app来控制路由器里的UU加速器开关及节点选择。
 
-![成功界面](./pics/OpenWrt/4.16.png)
+注意此时即使游戏设备连接上加速器也无法访问网络，还需要修改防火墙设置。
 
-> 注意：开启UU加速器之前需要关闭 OpenClash 等插件，确保从`fake-ip`模式中退出，否则会引起冲突导致加速失效。
+> 连接加速器这一步是为了让 OpenWrt 系统中识别到 `tun163` 这个设备，以便于进行后续的防火墙设置环节。
+>
+> 注：如果连接了两台游戏设备，OpenWrt 中会出现 `tun163` 和 `tun164` 两个设备。
+
+新建防火墙 Zone，命名为 UU。修改 Input 和 Output 设置，都改为 accept。再修改区域间转发设置，允许转发至(**forward to**)和转发自(**forward from**)当前的 lan Zone。
+
+![UUZone设置1](./pics/OpenWrt/4.7_1.png)
+
+接下来绑定 UU 的 tun 设备到 UU Zone。
+
+![UUZone设置2](./pics/OpenWrt/4.7_2.png)
+
+下面是防火墙设置成功的界面。
+
+![UUZone设置成功](./pics/OpenWrt/4.7_3.png)
+
+更新防火墙设置后游戏设备就能成功联网了。
+
+![成功界面](./pics/OpenWrt/4.7_4.png)
+
+> 开启UU加速器时也可以保持 OpenClash 开启，只要确保不在UU加速器生效中时关闭或开启 OpenClash 即可。
 
 ### 4.8 OpenWrt安装Openclash插件
 
