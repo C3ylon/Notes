@@ -473,7 +473,7 @@ w           ← 写入并退出
 
 执行`opkg update && opkg install resize2fs`，再执行`resize2fs /dev/sdb2`。
 
-看到如下报错信息，说明需要扩容的文件系统格式有损坏，需要执行`e2fsck`指令来强制检查文件系统完整性并修复错误。
+看到如下报错信息，说明需要扩容的文件系统有损坏，需要执行`e2fsck`指令来检查文件系统完整性并修复错误。
 
 ![resize报错信息](./pics/OpenWrt/4.1.5_4.png)
 
@@ -488,7 +488,8 @@ w           ← 写入并退出
 > 执行`opkg update && opkg install parted`，安装完毕后执行`parted`指令。
 >
 > ![parted界面](./pics/OpenWrt/4.1.5_6.png)
-> > 注：部分版本的 parted 扩容指令是`resize`而不是`resizepart`，使用前最好用`help`指令查看一下具体的扩容指令。
+>
+> 注：部分版本(*GNU Parted 3.1*)的 parted 扩容指令是`resize`而不是`resizepart`，使用前最好用`help`指令查看一下具体的扩容指令。
 
 ### 4.2 wan和lan的实质
 
