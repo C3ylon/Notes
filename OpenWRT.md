@@ -465,6 +465,8 @@ w           ← 写入并退出
 
 ![fdisk执行指令2](./pics/OpenWrt/4.1.5_3.png)
 
+> fdisk 的 e 指令(即 resize 指令)在 fdisk (util-linux 2.39) 版本下不支持，在 fdisk (util-linux 2.40.2) 及以上版本支持。如果 fdisk 版本不支持，就使用 parted 扩容。
+
 目前完成了给磁盘分区扩容，还没有给磁盘分区上的文件系统扩容。
 
 > 给文件系统扩容的`resize2fs`指令不能对已挂载的根分区在线执行，需要在另一块磁盘中刷入OpenWrt系统，再在新刷入的系统中执行（这样相对于完成分区扩容的磁盘来说是离线执行）。
@@ -486,6 +488,7 @@ w           ← 写入并退出
 > 执行`opkg update && opkg install parted`，安装完毕后执行`parted`指令。
 >
 > ![parted界面](./pics/OpenWrt/4.1.5_6.png)
+> > 注：部分版本的 parted 扩容指令是`resize`而不是`resizepart`，使用前最好用`help`指令查看一下具体的扩容指令。
 
 ### 4.2 wan和lan的实质
 
