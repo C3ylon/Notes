@@ -673,7 +673,7 @@ opkg update && opkg install kmod-tun
 
 > 如果要还原回原本的符号链接状态，执行`ln -sf /bin/busybox /bin/sleep`指令。执行完毕后在终端中输入`sleep .03`应该就能看到报错提示`sleep: invalid number '.03'`。
 
-接下来正常在本地 Windows 系统中的 VSCode 远程连接 OpenWrt 系统即可。
+接下来正常在本地 Windows 系统中的 VSCode 远程连接 OpenWrt 系统并安装所需插件即可。
 
 ***
 
