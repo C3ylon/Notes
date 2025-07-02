@@ -633,6 +633,48 @@ opkg update && opkg install kmod-tun
 
 执行指令`opkg remove dnsmasq && opkg install dnsmasq-full`，确保卸载 dnsmasq 和安装 dnsmasq-full 同时进行。
 
+### 4.9 OpenWrt免密SSH连接以及VSCode远程登录
+
+要想本地 Windows 环境上的 VSCode 远程登录 OpenWrt 系统，可以先做好免密信任。
+
+在 CMD 中执行`ssh-keygen -t rsa [-b 4096] -C "<your SSH key comment>"`(其中`-b`选项是可选项，用于指定密钥位数)。
+
+执行完上述指令后在 `%USERPROFILE%/.ssh/` 文件夹下会生成本机的 SSH 私钥文件 `id_rsa` 以及公钥文件 `id_rsa.pub`。
+
+复制公钥文件中的内容，添加至 OpenWrt 网页端界面 System -> Administration -> SSH-Keys。
+
+![SSH公钥上传位置](./pics/OpenWrt/4.9_1.png)
+
+> 此时在 OpenWrt 终端中执行`find / -iname "authorized_keys"`指令可以看到生成的文件路径是`/etc/dropbear/authorized_keys`，而不是通常的`~/.ssh/authorized_keys`。
+>
+> 因此如果想要通过手动创建 authorized_keys 文件再填入公钥的方式来实现免密信任的话，需要注意存放文件的路径，如果路径出错不会生效。
+
+为了让 VSCode 能在 OpenWrt 系统中安装远程服务器，先执行`opkg update && opkg install openssh-sftp-server && opkg install tar && opkg install gcc && opkg install python3`指令安装必要包。
+
+> + 安装 **gcc** 是为了避免安装 VSCode 服务器时出现 `_ZTTSt14basic_ifstreamIcSt11char_traitsIcEE: symbol not found` 等找不到符号的报错。
+> + 安装 **python3** 是为了避免安装 VSCode 插件时出现签名认证失败的报错(*Signature verification failed with 'UnknownError' error*)。
+
+然后进入 VSCode 的远程连接界面，弹窗提示 *Could not establish connection to "192.168.xx.xx"*。
+
+查看 Remote-SSH 日志，如果有 *sleep: invalid number '.03'* 的报错提示，说明 OpenWrt 系统使用的是 BusyBox 里的`sleep`命令，不支持小数，导致 VSCode 安装脚本在执行`sleep .03`指令时出错。
+
+> 执行`readlink -f /bin/sleep`指令可以看到`sleep`命令实际链接到的可执行文件路径是`/bin/busybox`。
+
+解决方案是执行`opkg update && opkg install coreutils-sleep`，然后执行`find / -iname "*sleep*"`指令查找 coreutils-sleep 安装的具体位置。查找到的位置是`/usr/libexec/sleep-coreutils`。
+
+接下来执行`ln -sf /usr/libexec/sleep-coreutils /bin/sleep`指令，将 `/usr/libexec/sleep-coreutils` 可执行文件创建符号链接为 `/bin/sleep`。
+
+> `ln -sf`指令中：
+>
+> + `-s`: 创建符号链接(**symbolic link**)
+> + `-f`: 强制覆盖已有的同名文件或链接
+
+此时能在终端中成功执行`sleep .03`指令。
+
+> 如果要还原回原本的符号链接状态，执行`ln -sf /bin/busybox /bin/sleep`指令。执行完毕后在终端中输入`sleep .03`应该就能看到报错提示`sleep: invalid number '.03'`。
+
+接下来正常在本地 Windows 系统中的 VSCode 远程连接 OpenWrt 系统即可。
+
 ***
 
 ![End.](./pics/OpenWrt/end.png)
