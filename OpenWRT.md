@@ -675,6 +675,10 @@ opkg update && opkg install kmod-tun
 
 接下来正常在本地 Windows 系统中的 VSCode 远程连接 OpenWrt 系统并安装所需插件即可。
 
+> OpenWrt 的 Git 是精简版本，默认不包含 https 支持，执行`git clone [WEBLINK]`时会报错 *git: 'remote-https' is not a git command.*
+>
+> 在 OpenWrt 中安装完整 Git 需要执行`opkg update && opkg install git && opkg install git-http`。
+
 ***
 
 ![End.](./pics/OpenWrt/end.png)
