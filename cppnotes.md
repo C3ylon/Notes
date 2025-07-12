@@ -12,7 +12,7 @@ cpp标准库头文件通常不带后缀。
 
 ***
 
-类型`char`和类型`signed char`并不完全等同。`char`实际上表现为带符号或不带符号的形式由编译器决定。因此如果需要在算数表达式中使用`char`，则必须要明确指定是`signed char`还是`unsigned char`。
+类型`char`和类型`signed char`并不等同。`char`实际上表现为带符号或不带符号的形式由编译器决定。因此如果需要在算数表达式中使用`char`，则必须要明确指定是`signed char`还是`unsigned char`。
 
 ***
 
@@ -1182,6 +1182,25 @@ void (*p2)(int) = fn;       // p2的值是第二个函数地址
 
 编译器隐式定义的默认构造函数->**合成的默认构造函数**(synthesized default constructor)
 
+> 当某个类显式定义了参数类型为右值引用的复制构造函数时，编译器不会再隐式定义参数类型为左值引用的复制构造函数以及该类型的赋值运算符函数。
+>
+```C++
+class cl {
+public:
+    cl() = default;
+    cl(cl &&) { }
+};
+
+int main () {
+    cl a;
+    // cl b = a;
+    // function "cl::cl(const cl &)" (declared implicitly) cannot be referenced -- it is a deleted function
+    // b = a;
+    // function "cl::operator=(const cl &)" (declared implicitly) cannot be referenced -- it is a deleted function
+    return 0;
+}
+```
+
 ***
 
 构造函数初始值列表 (constructor initialize list) : 从构造函数参数右小括号后的冒号起，至代码块左大括号之间的代码。既可以是直接初始化的形式，又可以是直接列表初始化的形式。
@@ -2126,7 +2145,12 @@ int main() {
 
 > 该模板形参可以写作`T const &&`这种形式，带入实参T的类型之后得到`int & const &&`，由于`&`类型默认顶层`const`，所以前式`const`相当于无效，再加上引用折叠，即得到`int &`。
 >
-> 在用`typedef`或`using`定义的引用类型别名声明引用变量时或函数模板显式传入模板参数时，可能会得到某个中间类型是有顶层`const`的引用类型，此时前者会给出warning(*'const' qualifier on reference type has no effect*)，后者完全合法。
+> 在以下两种场景可能会得到带顶层`const`的引用类型：
+>
+> + 用`typedef`或`using`定义的引用类型别名声明引用变量时
+> + 函数模板显式传入模板参数时
+>
+> 此时前者会给出warning(*'const' qualifier on reference type has no effect*)，后者完全合法。
 >
 > 不能单独声明有顶层`const`的引用变量，如`int && const a = 1;` (error: 'const' qualifier may not be applied to a reference)。
 
