@@ -1401,7 +1401,7 @@ int main () {
 
 友元声明不具有传递性(友元的友元不是友元)，也不会继承(父类的友元不是友元，友元的父类不是友元)
 
-即使在类内直接定义友元函数，也必须单独提供函数声明才能使函数可见。
+在类内直接完整定义友元函数时，相当于在该类所在的最内层外围命名空间定义该函数，不过在调用函数前需要提供单独的函数声明才能使函数可见。如果没有单独的函数声明，只能以ADL的形式查找到该函数。
 
 ```C++
 #include<stdio.h>
@@ -1412,7 +1412,7 @@ public:
     void func2();
 };
 
-void func1(); // 单独声明，使func1可见。且func1不属于cl域内。
+void func1(); // 单独声明，使func1可见
 void cl::func2() { func1(); }
 
 int main () {
@@ -1420,11 +1420,10 @@ int main () {
     a.func2();
     return 0;
 }
-```
 
-gcc/clang/msvc都有的关于友元的问题：
+// =========================================================
+// ADL查找友元函数的示例:
 
-```C++
 #include<stdio.h>
 
 class a {
@@ -1454,6 +1453,41 @@ int main () {
 }
 // 以上不能成功编译
 // error: use of undeclared identifier 'func1'
+
+// =========================================================
+#include<iostream>
+
+using namespace std;
+
+namespace NS {
+    class cl;
+}
+
+namespace NS2 {
+    void fn2(const NS::cl &) { cout << "in fn2" << endl; }
+};
+
+namespace NS {
+    class cl {
+    public:
+        friend void fn(const cl &) { cout << "in fn" << endl; }
+        friend void NS2::fn2(const cl &);
+    };
+    // void fn(const cl &) { }
+    // cl类内的友元函数fn(const cl &)相当于定义在了这里
+    // 因此不能再在这里重复定义fn(const cl &)
+    // error: redefinition of 'void NS::fn(const cl&)'
+}
+
+int main () {
+    NS::cl a;
+    fn(a); // in fn
+    // fn2(a);
+    // ADL无法查找到 NS::cl 类的非最内层外围命名空间定义的函数
+    // 即使该函数声明为了友元函数
+    // error: 'fn2' was not declared in this scope
+    return 0;
+}
 ```
 
 ***
@@ -3817,6 +3851,7 @@ int main() {
     // candidate: 'void fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
     // candidate: 'void NS2::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
     // candidate: 'void NS1::fn(T&&, U&&) [with T = NS1::st1&; U = NS2::st2&]'
+    // 注：::fn和NS1::fn以及::fn和NS2::fn有同样的查找优先级，即由于ADL的缘故查找范围视作在同一层级
     NS1::fn(a, b);
     NS2::fn(a, b);
     ::fn(a, b);
@@ -3849,6 +3884,35 @@ void invoke() {
 int main() {
     invoke();
     return 0;
+}
+```
+
+由ADL的特性，引出了一种称为**hidden friend**的技巧。
+
+*hidden friend* 是一种友元函数，它在类内完整定义，但没有在类外声明。这种函数只能通过实参依赖查找被找到，因此被称为*隐藏的*。
+
+```C++
+#include <iostream>
+
+class cl {
+private:
+    int val;
+
+public:
+    cl(int val) : val(val) {}
+
+    // hidden friend 函数：只有通过ADL才能找到
+    friend std::ostream& operator<<(std::ostream& os, const cl& obj) {
+        return os << "cl(" << obj.val << ")";
+    }
+};
+
+int main() {
+    cl obj(42);
+    std::cout << obj << std::endl;
+
+    // 或:
+    // operator<<(std::cout, obj);
 }
 ```
 
