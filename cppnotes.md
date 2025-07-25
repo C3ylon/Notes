@@ -1472,6 +1472,7 @@ namespace NS {
     public:
         friend void fn(const cl &) { cout << "in fn" << endl; }
         friend void NS2::fn2(const cl &);
+        friend void fnxx(); // 即使声明了一个完全没有定义的友元函数也不会有编译问题
     };
     // void fn(const cl &) { }
     // cl类内的友元函数fn(const cl &)相当于定义在了这里
