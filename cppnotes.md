@@ -2361,13 +2361,13 @@ int main(void) {
 
 ***
 
-+ `catch`接受的参数类型要能严格匹配到`throw`抛出的类型，否则会按函数调用栈逐级向上检查可以捕获异常的地方，如果异常最终也未被捕获则会触发运行时错误。
++ `catch`接受的参数类型要能**精确匹配**到`throw`抛出的类型，否则会按函数调用栈逐级向上检查可以捕获异常的地方，如果异常最终也未被捕获则会触发运行时错误。
 
-  > 此处 "严格匹配" 指的是第一级和第二级匹配(即精确匹配 / 接收方比抛出方多出底层`const`)，从第三级开始(即类型提升 / 算术类型转换 / 类类型转换)就不被允许匹配。
+  > `throw`抛出的类型若是需要经过提升或转换才能得到`catch`接受的参数类型，则不被允许匹配。
 
 + 类类型异常对象将在与其对应的`catch`结束处被销毁。(若`catch`结束处没有`throw;`)
 
-  > 理解异常的生命周期可以把`throw` - `catch`理解为函数传参的过程，`throw`处即为传递实参，`catch`执行完时即为函数调用完成时。
+  > 理解异常的生命周期可以把`throw` - `catch`理解为函数传参的过程，起始`throw`处即为传递实参，最外层的`catch`执行完时即为函数调用完成时。
 
 ```C++
 #include <stdio.h>
@@ -2462,12 +2462,61 @@ void fn1() {
 
 int main() {
     fn1();
-    // 输出distruct 1\n3\ndistruct 2\ndistruct 0\n
-    // 相当于以逗号连接的连续函数调用 fnx1(cl(3)), fnx2(cl(3));
-    // 连续函数调用在整个语句执行完之后才销毁临时变量实参
-    // 因此最外层捕获不再继续抛出时才会析构最初传入的临时变量
+    // 输出:
+    // distruct 1
+    // 3
+    // distruct 2
+    // distruct 0
+    //
+    // 当不再继续 thorw;
+    // 即到达最外层 catch 时，才会析构最初用于构造异常的临时对象
     return 0;
 }
+
+/*********************************************************/
+
+#include <iostream>
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "default init" << endl; }
+    cl(const cl &) { cout << "copy init" << endl; }
+    cl(cl &&) { cout << "move init" << endl; }
+    ~cl() { cout << "distruct" << endl; }
+};
+
+void fn() {
+    cl a;
+    try {
+        cl b;
+        throw b;                // 1st
+    } catch (const cl &) {
+
+    }
+    try {
+        throw a;                // 2nd
+    } catch (cl) {
+
+    }
+}
+
+int main() {
+    fn();
+    return 0;
+}
+
+// 输出:
+// default init         -> 默认构造 a
+// default init         -> 默认构造 b
+// move init            -> 移动初始化 1st 异常对象
+// distruct             -> 析构 b
+// distruct             -> 析构 1st 异常对象
+// copy init            -> 复制初始化 2nd 异常对象
+// copy init            -> 复制初始化 2nd catch 对象
+// distruct             -> 析构 2nd catch 对象
+// distruct             -> 析构 2nd 异常对象
+// distruct             -> 析构a
 ```
 
 ***
