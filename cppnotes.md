@@ -2476,26 +2476,29 @@ int main() {
 /*********************************************************/
 
 #include <iostream>
+
 using namespace std;
 
+int cnt = 0;
 class cl {
+    int ord;
 public:
-    cl() { cout << "default init" << endl; }
-    cl(const cl &) { cout << "copy init" << endl; }
-    cl(cl &&) { cout << "move init" << endl; }
-    ~cl() { cout << "distruct" << endl; }
+    cl() { ord = ++cnt; cout << "default init " << ord << endl; }
+    cl(const cl &) { ord = ++cnt; cout << "copy init " << ord << endl; }
+    cl(cl &&) { ord = ++cnt; cout << "move init " << ord << endl; }
+    ~cl() { cout << "distruct " << ord << endl; }
 };
 
 void fn() {
     cl a;
     try {
         cl b;
-        throw b;                // 1st
+        throw b;
     } catch (const cl &) {
 
     }
     try {
-        throw a;                // 2nd
+        throw a;
     } catch (cl) {
 
     }
@@ -2507,16 +2510,16 @@ int main() {
 }
 
 // 输出:
-// default init         -> 默认构造 a
-// default init         -> 默认构造 b
-// move init            -> 移动初始化 1st 异常对象
-// distruct             -> 析构 b
-// distruct             -> 析构 1st 异常对象
-// copy init            -> 复制初始化 2nd 异常对象
-// copy init            -> 复制初始化 2nd catch 对象
-// distruct             -> 析构 2nd catch 对象
-// distruct             -> 析构 2nd 异常对象
-// distruct             -> 析构a
+// default init 1       -> 默认构造 a
+// default init 2       -> 默认构造 b
+// move init 3          -> 移动初始化 1st 异常对象
+// distruct 2           -> 析构 b
+// distruct 3           -> 析构 1st 异常对象
+// copy init 4          -> 复制初始化 2nd 异常对象
+// copy init 5          -> 复制初始化 2nd catch 对象
+// distruct 5           -> 析构 2nd catch 对象
+// distruct 4           -> 析构 2nd 异常对象
+// distruct 1           -> 析构a
 ```
 
 ***
