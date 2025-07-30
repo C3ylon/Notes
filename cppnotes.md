@@ -2493,12 +2493,12 @@ void fn() {
     cl a;
     try {
         cl b;
-        throw b;
+        throw b;                // 1st
     } catch (const cl &) {
 
     }
     try {
-        throw a;
+        throw a;                // 2nd
     } catch (cl) {
 
     }
