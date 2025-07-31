@@ -2476,7 +2476,6 @@ int main() {
 /*********************************************************/
 
 #include <iostream>
-
 using namespace std;
 
 int cnt = 0;
@@ -2492,13 +2491,17 @@ public:
 void fn() {
     cl a;
     try {
-        cl b;
-        throw b;                // 1st
-    } catch (const cl &) {
+        try {
+            cl b;
+            throw b;                // 1st
+        } catch (cl &e) {
+            throw e;                // 2nd
+        }
+    } catch (cl) {
 
     }
     try {
-        throw a;                // 2nd
+        throw a;                    // 3rd
     } catch (cl) {
 
     }
@@ -2514,11 +2517,15 @@ int main() {
 // default init 2       -> 默认构造 b
 // move init 3          -> 移动初始化 1st 异常对象
 // distruct 2           -> 析构 b
-// distruct 3           -> 析构 1st 异常对象
 // copy init 4          -> 复制初始化 2nd 异常对象
+// distruct 3           -> 析构 1st 异常对象
 // copy init 5          -> 复制初始化 2nd catch 对象
 // distruct 5           -> 析构 2nd catch 对象
 // distruct 4           -> 析构 2nd 异常对象
+// copy init 6          -> 复制初始化 3rd 异常对象
+// copy init 7          -> 复制初始化 3rd catch 对象
+// distruct 7           -> 析构 3rd catch 对象
+// distruct 6           -> 析构 3rd 异常对象
 // distruct 1           -> 析构a
 ```
 
