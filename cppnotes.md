@@ -4466,7 +4466,7 @@ struct A {
 
 int main() {
     A a = A{1} + A{2} + A{4};
-    // 在clang 下的输出：
+    // 在 clang 下的输出：
     // init 1
     // init 2
     // init 3
@@ -4498,5 +4498,19 @@ int main() {
     // (即函数调用完毕之后)才会被销毁
 }
 ```
+
+***
+
+C++11引入了作用域枚举。至此枚举类型分为**无作用域枚举**(*Unscoped enumerations*)和**作用域枚举**(*Scoped enumerations*)。
+
+当未显式指定基础类型时：
+
++ 无作用域枚举的基础类型不固定，其基础类型是可以表示所有枚举项的值的整数类型。
++ 作用域枚举的基础类型为`int`。当`int`无法表示所有枚举项的值时会报错(*enumeration value is outside the range of its underlying type ("int")*)。
+  > 此时需要显式以 `enum class|struct NAME : TYPE` 的形式指定能容纳所有枚举项的值的基础类型。
+
+作用域枚举的枚举项的值无法隐式转换为整型，需要使用`static_cast`显式转换。且枚举项的名称不会被自动引入到最内层外围命名空间中，需要使用作用域解析运算符`::`进行访问。
+
+在声明作用域枚举时，关键字`class`和`struct`**完全等效**。
 
 ***
