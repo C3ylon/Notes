@@ -1478,7 +1478,11 @@ namespace NS {
     // cl类内的友元函数fn(const cl &)相当于定义在了这里
     // 因此不能再在这里重复定义fn(const cl &)
     // error: redefinition of 'void NS::fn(const cl&)'
+
+    void fn3(const cl &) { cout << "in fn3" << endl; }
 }
+
+void fn3(const NS::cl &) { cout << "in global fn3" << endl; }
 
 int main () {
     NS::cl a;
@@ -1487,6 +1491,14 @@ int main () {
     // ADL无法查找到 NS::cl 类的非最内层外围命名空间定义的函数
     // 即使该函数声明为了友元函数
     // error: 'fn2' was not declared in this scope
+
+    // fn3(a);
+    // ::fn3 和 NS::fn3 有同样的查找优先级
+    // error: call to 'fn3' is ambiguous
+
+    void fn3(const NS::cl &);
+    // 此处的声明使得在此作用域内仅 ::fn3 生效
+    fn3(a); // in global fn3
     return 0;
 }
 ```
