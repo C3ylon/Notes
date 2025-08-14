@@ -1484,6 +1484,14 @@ namespace NS {
 
 void fn3(const NS::cl &) { cout << "in global fn3" << endl; }
 
+namespace NS {
+    void fn4(const cl &) { cout << "in NS::fn4" << endl; }
+}
+
+namespace NS2 {
+    void fn4(const NS::cl &) { cout << "in NS2::fn4" << endl; }
+}
+
 int main () {
     NS::cl a;
     fn(a); // in fn
@@ -1499,6 +1507,19 @@ int main () {
     void fn3(const NS::cl &);
     // 此处的声明使得在此作用域内仅 ::fn3 生效
     fn3(a); // in global fn3
+
+    {
+        using NS2::fn4;
+        // fn4(a);
+        // error: call to 'fn4' is ambiguous
+        // 此处 using NS2::fn4 把 NS2 命名空间内的 fn4 添加到查找范围中
+        // 由于 ADL 的缘故，fn4 的查找范围还包括 NS 命名空间内的 fn4
+        // 因此会出现二义性调用
+    }
+    {
+        using NS::fn4;
+        fn4(a); // in NS::fn4
+    }
     return 0;
 }
 ```
