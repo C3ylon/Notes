@@ -3965,10 +3965,21 @@ namespace NS {
 
 void fn(int) { cout << "in global" << endl; }
 
+namespace NS2 {
+    void fn(const NS::st &) { cout << "in NS2" << endl; }
+    void invoke2() {
+        NS::st a;
+        // fn(a);
+        // error: call to 'fn' is ambiguous
+        void fn(const NS::st &);
+        fn(a); // in NS2
+    }
+}
+
 void invoke() {
     NS::st a;
     void fn(int);
-    fn(a);
+    fn(a); // in global
     // 在此代码块作用域内未声明 void fn(int) 时
     // 此处调用的是 void fn(const st &)
     // 声名 void fn(int) 后，调用的是 void fn(int)
@@ -3976,6 +3987,7 @@ void invoke() {
 
 int main() {
     invoke();
+    NS2::invoke2();
     return 0;
 }
 ```
