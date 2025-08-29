@@ -1512,8 +1512,8 @@ int main () {
         using NS2::fn4;
         // fn4(a);
         // error: call to 'fn4' is ambiguous
-        // 此处 using NS2::fn4 把 NS2 命名空间内的 fn4 添加到查找范围中
-        // 由于 ADL 的缘故，fn4 的查找范围还包括 NS 命名空间内的 fn4
+        // 此处 Using-declaration 将 NS2::fn4 名称引入到该作用域中
+        // 由于 ADL 的缘故，fn4 名称的查找范围还包括 NS::fn4
         // 因此会出现二义性调用
     }
     {
