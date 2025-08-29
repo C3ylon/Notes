@@ -3575,6 +3575,57 @@ int main() {
 
 ***
 
+与命名空间有关的 **Using-declaration** 和 **Using-directive**:
+
++ **Using-declaration** 的形式是 `using NAMESPACE::var`。其特点是将指定名称 `var` 引入到此 `using` 声明出现的区域中。
+
+  > ```C++
+  > namespace NS1{ int a = 1; }
+  >
+  > namespace NS2 {
+  >     using NS1::a;
+  >
+  >     // int a = 2;
+  >     // error: declaration conflicts with
+  >     // target of using declaration already in scope
+  > }
+  >
+  > namespace NS3 {
+  >     int a = NS2::a; // 等效于 NS1::a，都是同一个实体对象
+  > }
+  > ```
+
++ **Using-directive**的形式是`using namespace NAMESPACE`。其特点是将 `NAMESPACE` 中的名称引入到此 `using` 指令和 `NAMESPACE` **共同所处的最内层外围命名空间**层级下的名称查找范围中。
+
+  > ```C++
+  > namespace NS1 {
+  >     namespace NS2 {
+  >         int a = 1;
+  >     }
+  >     using namespace NS2;
+  >
+  >     int a = 2;
+  >     // 正确，此处定义的是 NS1::a，与 NS2::a 互不影响
+  >     // int b = a;
+  >     // error: reference to 'a' is ambiguous
+  >     // using 指令引入的名称 NS2::a 加入到 NS1 命名空间层级下的名称查找范围中
+  >     // NS1::a 作为 NS1 命名空间中定义的变量自然也在该层级下的名称查找范围中
+  >     // 同一个层级下的名称查找范围中出现了两个相同的名称
+  > }
+  >
+  > namespace NS3 {
+  >     using namespace NS1;
+  >     int a = 3;
+  >     int b = a;
+  >     // 正确，此处 using 指令将 NS1::a 名称和 NS2::a 名称
+  >     // 引入到全局命名空间层级下的名称查找范围中
+  >     // NS3::a 作为内层作用域中的名称
+  >     // 屏蔽了在全局命名空间层级下的名称查找范围中才能找到的 NS1::a 和 NS2::a
+  > }
+  > ```
+
+***
+
 `using`和`using namespace`：
 
 + 在使用`using`关键字从某个命名空间引入函数名后，如果后续扩充该命名空间并引入同名函数的重载声明，那么这些重载的函数声明不会通过该`using`关键字可见。
