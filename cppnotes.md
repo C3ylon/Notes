@@ -4610,3 +4610,79 @@ C++11引入了作用域枚举。至此枚举类型分为**无作用域枚举**(*
 在声明作用域枚举时，关键字`class`和`struct`**完全等效**。
 
 ***
+
+function-try-block(函数try语句块)可以扩展`try`的范围，捕获到初始值列表中抛出的异常（这也是唯一能捕获到初始值列表中抛出异常的途径）。此时`try`关键字的位置在构造函数参数列表后且在初始值列表的`:`前。
+
+function-try-block中的`catch`块内如果没有显式的`throw`语句也会**隐式**地把捕获到的异常原封不动地抛出。即这种情况下的`catch`块无论如何也会再向上层抛出异常。
+
+```C++
+#include<iostream>
+using namespace std;
+
+class base {
+public:
+    base(bool condition) {
+        if (condition == false) {
+            throw "error";
+        }
+    }
+};
+
+class derived : base {
+public:
+    derived(bool condition) try : base(condition) {
+        cout << "construct succeeded" << endl;
+    } catch (const char *) {
+        cout << "construct failed" << endl;
+        // 注意这里有隐式的 throw "error";
+    }
+};
+
+int main() {
+    try {
+        derived a(false);
+    } catch (const char *e) {
+        cout << e <<endl;
+    }
+    // construct failed
+    // error
+    return 0;
+}
+```
+
+> 注：function-try-bock还可以用于捕获子类析构时发生的异常。因为一般不会在析构中抛出异常，所以这只作为了解即可，不能实际应用。
+>
+> ```C++
+> #include <iostream>
+> using namespace std;
+>
+> class base {
+> public:
+>     ~base() noexcept(false) { throw "error"; }
+> };
+>
+> class derived : base {
+> public:
+>     ~derived() try {
+>         cout << "distructing..." << endl;
+>         // 基类在此处开始析构并抛出异常
+>     } catch (const char * e) {
+>         cout << e << 1 << endl;
+>         // 注意这里有隐式的 throw "error";
+>     }
+> };
+>
+> int main() {
+>     try {
+>         derived a;
+>     } catch (const char * e) {
+>         cout << e << 2 << endl;
+>     }
+>     return 0;
+>     // distructing...
+>     // error1
+>     // error2
+> }
+> ```
+
+***
