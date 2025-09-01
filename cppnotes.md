@@ -1696,7 +1696,7 @@ public:
 };
 
 auto cl::func(int_ a) -> int_ { return a; }
-// 尾置的返回类型声明也在cl的域内，即使int_是私有的类型名也可以使用。
+// 尾置返回类型的声明也在cl的域内，即使int_是私有的类型名也可以使用。
 // cl::int_ cl::func(int_ a) { return a; } 也可行，因为是类成员函数的定义，所以可以访问到私有的类型名
 // 此时从形参类型名到大括号内出现的非形参变量名都会优先从类的作用域内查找，然后才在全局作用域查找
 // 如果直接用cl::int_在类外定义变量则会报错。
@@ -1747,12 +1747,12 @@ int main () {
 ```
 
 ***
+一个 lambda 函数具有如下形式：`[capture_list](parameter_list) -> return_type { function_body }`。
 
-`lambda`函数体中如果包含除了`return`之外的任何语句，则默认返回void。若需返回其他类型，需要在形参列表后加上尾置返回类型。
+> + 参数列表和返回类型可以同时省略，但必须永远包含捕获列表和函数体。
+> + 参数列表中可以指定默认参数。
 
-不能重载同名`lambda`函数，可以为其添加默认参数。
-
-注意成员函数中定义的`lambda`函数在**按值捕获**时仍可能会修改到成员变量。
+注意成员函数中定义的 lambda 函数在**按值捕获**时仍可能会修改到成员变量。
 
 ```C++
 #include <iostream>
@@ -1764,6 +1764,7 @@ public:
     int a = 1;
     void fn() {
         auto lambda = [=](int i) {
+        // 等效于 auto lambda = [this](int i)
             a = i;
         };
         lambda(2);
@@ -1773,10 +1774,52 @@ public:
 int main() {
     cl a;
     a.fn();
-    cout << a.a << endl;
+    cout << a.a << endl; // 2
     return 0;
 }
 ```
+
+***
+
+默认情况下不能修改到按值捕获变量的值。如果希望能修改，需要在参数列表尾加上`mutable`关键字。因此这种情况下在参数列表为空时也不能省略参数列表两端的括号。
+
+```C++
+#include <iostream>
+using namespace std;
+
+void fn() {
+    int a = 1;
+    [a]() {
+        // ++a;
+        // error: cannot assign to a variable
+        // captured by copy in a non-mutable lambda
+        cout << a << endl; // 1
+    }();
+    [a]() mutable {
+        ++a;
+        cout << a << endl; // 2
+    }();
+    cout << a << endl; // 1
+}
+
+int main() {
+    fn();
+    return 0;
+}
+```
+
+***
+
+lambda 函数捕获列表的形式：
+
+|format|usage|
+|:---|:---|
+|`[]`|不捕获任何值。|
+|`[names]`|*names* 是一个逗号分隔的列表，名字前如果有`&`则是按引用捕获，反之则是按值捕获。按引用捕获和按值捕获可以交替出现。|
+|`[&]`|默认全部按引用捕获。|
+|`[=]`|默认全部按值捕获。|
+|`[&, identifier_list]`|*identifier_list* 是一个逗号分隔的列表，所有名字前**不能**加`&`，这些名字都是按值捕获，其余未列出的名字按引用捕获。|
+|`[=, identifier_list]`|*identifier_list* 是一个逗号分隔的列表，所有名字前**必须**加`&`，这些名字都是按引用捕获，其余未列出的名字按值捕获。因为`this`**不能按引用捕获**，因此 *identifier_list* 中的名字不能包含`this`。|
 
 ***
 
