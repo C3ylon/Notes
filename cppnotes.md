@@ -1752,7 +1752,7 @@ int main () {
 > + 参数列表和返回类型可以同时省略，但必须永远包含捕获列表和函数体。
 > + 参数列表中可以指定默认参数。
 
-注意成员函数中定义的 lambda 函数在**按值捕获**时仍可能会修改到成员变量。
+注意成员函数中定义的 lambda 函数在**按值捕获**成员变量时仍可能会修改到成员变量实际的值。因为这种情况下实际作为 lambda 函数隐式入参的是`this`指针。
 
 ```C++
 #include <iostream>
@@ -1764,6 +1764,7 @@ public:
     int a = 1;
     void fn() {
         auto lambda = [=](int i) {
+        // 等效于 auto lambda = [&](int i)
         // 等效于 auto lambda = [this](int i)
             a = i;
         };
