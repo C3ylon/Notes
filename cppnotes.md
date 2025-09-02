@@ -4728,5 +4728,34 @@ int main() {
 >     // error2
 > }
 > ```
+>
+> 注2：function-try-bock 在用于构造函数时可以省略`:`和初始值列表。如果在`try`块花括号内抛出异常且在`catch`块内没有显式的`throw`，也会隐式地把捕获到的异常原封不动地抛出。
+>
+> ```C++
+> #include <iostream>
+> using namespace std;
+>
+> class base {
+> public:
+>     base() try {
+>         cout << "constructing..." << endl;
+>         throw "error";
+>     } catch (const char * e) {
+>         cout << e << 1 << endl;
+>     }
+> };
+>
+> int main() {
+>     try {
+>         base a;
+>     } catch (const char * e) {
+>         cout << e << 2 << endl;
+>     }
+>     return 0;
+>     // constructing...
+>     // error1
+>     // error2
+> }
+> ```
 
 ***
