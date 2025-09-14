@@ -4759,3 +4759,26 @@ int main() {
 > ```
 
 ***
+
+定义类模板时如果有默认模板参数，则其偏特化/特化类模板在缺省模板参数时会自动填充默认的模板参数。
+
+```C++
+template <class T, class U = int>
+class cl {
+    int a = 1;
+};
+
+template <class T>
+class cl <T> { // 等效于 template <class T> class cl <T, int>
+    int a = 2;
+};
+
+template <>
+class cl <int, int> {
+    int a = 3;
+};
+
+cl<int, int> a; // a.a == 3
+```
+
+***
