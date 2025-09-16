@@ -4776,7 +4776,7 @@ class cl <T> { // 等效于 template <class T> class cl <T, int>
 };
 
 template <>
-class cl <int, int> {
+class cl <int> { // 等效于 template <> class cl <int, int>
     int a = 3;
 };
 
