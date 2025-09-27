@@ -1887,26 +1887,22 @@ int main() {
 
 ***
 
-**在模板定义中模板参数列表不能为空**。
-
-***
-
 模板参数分为三种类型：
 
-1. 模板类型参数(template type parameter)
-2. 模板非类型参数(template non-type parameter)
-3. 模板模板参数(template template parameter)
+1. **常量**模板参数(**constant** template parameter)
+2. **类型**模板参数(**type** template parameter)
+3. **模板**模板参数(**template** template parameter)
 
 ***
 
-对于模板非类型参数，其参数类型限定为以下几种：
+对于常量模板参数，其参数类型限定为以下几种：
 
-1. 整型或枚举类型
+1. 整型或枚举类型（包含作用域枚举`enum [struct|class]`）
 2. 指针类型
 3. 左值引用类型
 4. (C++11新加入)`std::nullptr_t`类型
 
-> 注意当模板非类型参数的参数类型为指针类型或引用类型时，其模板实参必须要具有链接属性，即为全局变量。
+> 注意当常量模板参数的参数类型为指针类型或引用类型时，其取址或引用的模板实参变量必须要具有链接属性，即为全局变量。
 
 不能使用**浮点类型**，**类类型**，**函数类型**，**数组类型**。
 
@@ -1952,9 +1948,7 @@ void f2() {
 
 ***
 
-在实例化函数模板时，可以不必在尖括号内指明全部模板参数值，可以只指明前一部分，然后利用自动推导得出后一部分的值。
-
-> 指明的值称为显式模板实参。
+在实例化函数模板时，不必显式指明全部模板参数，可以只显式指明前一部分，然后利用自动推导得出后一部分的值。
 
 ```C++
 
@@ -4632,12 +4626,12 @@ int main() {
     // dist 7
     // 虽然不同编译器对临时对象的创建顺序不一致
     // 但是可以确保的是所有临时变量在该语句完整执行完毕后才会被销毁
-    return 0;
 // ===========================================================
-    void fn(A& arg);
+    void fn(A &arg);
     fn(const_cast<A &>(static_cast<const A&>(A())));
     // 该函数调用形式不是UB，因为临时对象 A() 在该语句完整执行完毕
     // (即函数调用完毕之后)才会被销毁
+    return 0;
 }
 ```
 
@@ -4654,6 +4648,18 @@ C++11引入了作用域枚举。至此枚举类型分为**无作用域枚举**(*
 作用域枚举的枚举项的值无法隐式转换为整型，需要使用`static_cast`显式转换。且枚举项的名称不会被自动引入到最内层外围命名空间中，需要使用作用域解析运算符`::`进行访问。
 
 在声明作用域枚举时，关键字`class`和`struct`**完全等效**。
+
+无作用域枚举不能前向声明，作用域枚举前向声明时必须带上`class|struct`关键字（基础类型非默认的`int`时还需要带上基础类型）。作用域枚举在定义变量时不能带上`class|struct`关键字。
+
+```C++
+// enum color;
+// error: ISO C++ forbids forward references to 'enum' types
+enum class color : char; // 基础类型不为 int，必须注明基础类型
+enum class color : char { red, green, blue };
+// enum class color a;
+// error: reference to enumeration must use 'enum' not 'enum class'
+enum color a;
+```
 
 ***
 
