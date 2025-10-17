@@ -4635,6 +4635,22 @@ int main() {
 }
 ```
 
+利用这个性质可以写出一个 `std::move` 函数的反函数，即把右值变成左值。
+
+```C++
+template<class T>
+T &unmove(T&& t) {
+    return static_cast<T&>(t);
+    // 注意这里最好加上 static_cast<T&>()
+    // 以规避 C++20 引入的隐式移动 implicit move (?)
+}
+
+// example:
+class cl { };
+void fn(cl &) { }
+void foo() { fn(unmove(cl())); }
+```
+
 ***
 
 C++11引入了作用域枚举。至此枚举类型分为**无作用域枚举**(*Unscoped enumerations*)和**作用域枚举**(*Scoped enumerations*)。
@@ -4787,6 +4803,21 @@ class cl <int> { // 等效于 template <> class cl <int, int>
 };
 
 cl<int, int> a; // a.a == 3
+```
+
+***
+
+`struct | class`定义的结构名和类名可以被同作用域内的其他名称覆盖，若需要再使用到结构名或类名时需要显式加上 `struct | class`关键字。
+
+```C++
+struct _stat64 { };
+void _stat64() { } // 函数名称不与结构体名称冲突
+
+// 调用函数而非创建一个 struct _stat64 类型的临时变量
+void foo() { _stat64(); }
+
+// 定义变量时必须显式加上 struct 关键字
+struct _stat64 var;
 ```
 
 ***
