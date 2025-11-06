@@ -3553,6 +3553,57 @@ int main() {
 // 输出都为in sub
 ```
 
+对于具有外部链接属性的内联函数，如果使用了本翻译单元内定义的具有内部链接属性的静态变量，那么程序**非良构**。(对于无链接属性的静态变量，即局部静态变量不在此列)
+
+```C++
+// ******A.cpp******
+#include <iostream>
+using namespace std;
+
+namespace {
+    int i;
+};
+
+inline void fn() {
+    i = 1;
+}
+
+void printValInB();
+
+int main() {
+    fn();
+    cout << "A: " << i << endl;
+    printValInB();
+    return 0;
+}
+
+//******B.cpp******
+#include <iostream>
+using namespace std;
+
+namespace {
+    int i;
+};
+
+inline void fn() {
+    i = 1;
+}
+
+// 该函数的作用是让 B.cpp 也会"处理" inline void fn();
+void callBFn() {
+    fn();
+}
+
+void printValInB() {
+    cout << "B: " << i << endl;
+}
+
+// 使用 g++ A.cpp B.cpp -o test 输出的结果是：
+// A: 1 B: 0
+// 使用 g++ B.cpp A.cpp -o test 输出的结果是：
+// A: 0 B: 1
+```
+
 无需在声明和定义的地方同时使用`inline`。对于已经实现定义的非`inline`函数不能通过后续声明为`inline`使其成为`inline`函数。
 
 + 类内定义的函数 -> 隐式`inline`
