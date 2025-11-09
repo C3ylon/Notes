@@ -1824,6 +1824,91 @@ lambda 函数捕获列表的形式：
 
 ***
 
++ lambda 函数不能捕获**静态生命周期**的对象。
++ 如果嵌套定义 lambda 函数，则当内层需要用到外层的局部变量时，需要逐层捕获。
+
+```C++
+#include <iostream>
+using namespace std;
+
+void fn() {
+    int a = 1;
+    auto outter = [a]() {
+    // 不能定义为 auto outter = []()
+    // 否则会导致内层无法捕获到局部变量 a
+        static int b = 2;
+        auto inner = [a]() {
+        // 不能定义为 auto inner = [a, b]()
+        // 因为 lambda 函数不需也不能捕获拥有静态生命周期的对象
+            cout << a << " " << b << endl;
+        };
+    };
+    outter();
+}
+```
+
+***
+
+当 lambda 函数需要自身捕获时（即 lambda 函数内部调用的某个函数其中一个参数是该 lambda 函数自身的引用）：
+
+```C++
+#include <iostream>
+#include <functional>
+using namespace std;
+
+template <typename Func>
+void fnImp(int n, Func &&func) {
+    func(n);
+}
+
+// 1. 手动实现一个类似于 lambda 函数的定义
+template <typename Func>
+void fn1(int n, Func &&func) {
+    class lambda {
+        Func &func;
+    public:
+        lambda(Func &func) : func(func) { }
+        void operator()(int n) const {
+            if (n <= 0) {
+                return;
+            }
+            func(n);
+            fnImp(n - 1, *this);
+        }
+    };
+
+    const lambda _tmp(func);
+    fnImp(n, _tmp);
+}
+
+// 2. 使用 std::function
+template <typename Func>
+void fn2(int n, Func &&func) {
+    std::function<void(int)> lambda;
+    lambda = [&func, &lambda](int n) {
+        if (n <= 0) {
+            return;
+        }
+        func(n);
+        fnImp(n - 1, lambda);
+    };
+    fnImp(n, lambda);
+}
+
+int main() {
+    fn1(5, [](int n) {
+        cout << "In fn1 n is : " << n << endl;
+    });
+    cout << "****************" << endl;
+    fn2(5, [](int n) {
+        cout << "In fn2 n is : " << n << endl;
+    });
+    return 0;
+}
+```
+
+***
+
 `delete []`作用于某类对象的数组指针时会按从后至前的顺序依次析构，最后再释放内存。
 
 ***
