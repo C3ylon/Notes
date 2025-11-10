@@ -575,6 +575,22 @@ OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。只要更
 
 从 [绿联官网](https://www.lulian.cn/download/list-34-cn.html "https://www.lulian.cn/download/list-34-cn.html") 查到绿联USB/Type-C千兆网卡芯片型号为AX88179。
 
+> 确定芯片型号的另一种方法是使用 `lsusb` 指令。
+>
+> 首先执行 `opkg update && opkg install usbutils`，然后执行 `lsusb`，可以看到类似下面的输出：
+>
+> ```sh
+> root@OpenWrt:~# lsusb
+> Bus 001 Device 001: ID 1d6b:0002 Linux 6.6.86 xhci-hcd xHCI Host Controller
+> Bus 001 Device 002: ID 0bda:c821 Realtek  Bluetooth Radio
+> Bus 001 Device 003: ID 0573:1573 CSCTEK USB Audio and HID
+> Bus 001 Device 004: ID 1a86:7523  USB Serial
+> Bus 002 Device 001: ID 1d6b:0003 Linux 6.6.86 xhci-hcd xHCI Host Controller
+> Bus 002 Device 002: ID 0b95:1790 ASIX AX88179A
+> ```
+>
+> 由上可知总线2的第2个设备对应的芯片型号为 ASIX AX88179A。
+
 在 [OpenWrt官网的kernel mods列表](https://openwrt.org/packages/index/kernel-modules "https://openwrt.org/packages/index/kernel-modules") 中直接搜索AX88179，得到其kmod包全称为`kmod-usb-net-asix-ax88179`。
 
 接下来进入OpenWrt，输入指令`opkg update && opkg install kmod-usb-net-asix-ax88179`安装USB网卡驱动。这样绿联的USB网卡就能在OpenWrt系统里正常使用。实测将此USB网卡插在古董笔记本惠普暗影精灵2pro上面可以跑到900+Mbps，接近千兆网速上限。
