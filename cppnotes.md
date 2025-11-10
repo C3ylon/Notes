@@ -1877,8 +1877,8 @@ void fn1(int n, Func &&func) {
         }
     };
 
-    const lambda _tmp(func);
-    fnImp(n, _tmp);
+    lambda _tmpLambda(func);
+    fnImp(n, _tmpLambda);
 }
 
 // 2. 使用 std::function
