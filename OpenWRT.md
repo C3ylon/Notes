@@ -384,7 +384,7 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 
 #### 4.1.2 VMware虚拟机配置
 
-以**管理员模式**运行VMware。创建新虚拟机的步骤与 [1.4节](#14-安装虚拟机) 相同，到了 *选择磁盘* 界面的时候，选择第三项：使用物理磁盘。选择物理磁盘设备时，再次使用`diskpart`->`list disk`，依据磁盘容量确定U盘的 PhysicalDrive 编号。下面的 *使用情况* 选项选择使用整个磁盘。
+以**管理员模式**运行VMware。创建新虚拟机的步骤与 [1.4节](#14-安装虚拟机) 相同，到了 *选择磁盘* 界面的时候，选择第三项：使用物理磁盘。选择物理磁盘设备时，CMD输入`diskpart`指令，进入到diskpart.exe界面，然后输入`list disk`指令，依据磁盘容量确定U盘的 PhysicalDrive 编号。下面的 *使用情况* 选项选择使用整个磁盘。
 
 ![物理磁盘选择](./pics/OpenWrt/4.3.png)
 
@@ -416,7 +416,7 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 >
 > 如果使用`scp`指令报错`ash: /usr/libexec/sftp-server: not found`，说明宿主机的 scp 版本太新，在底层使用的是 sftp 作为协议。此时加上`-O`(**Old**)选项即可。即`scp -O LOCAL_FILE_PATH REMOTE_HOST_NAME@IP:DEST_PATH`。或是执行`opkg update && opkg install openssh-sftp-server`，为其安装上 sftp 服务器。
 
-使用`dd`指令进行写盘操作。指令格式是`dd if=INPUT_FILES of=OUTPUT_FILES`。执行完`dd`指令后，需再执行`sync`指令，确保内核缓冲区中所有未写入磁盘的数据完整写入磁盘。
+使用`dd`指令进行写盘操作。指令格式是`dd if=INPUT_FILES of=OUTPUT_FILES`。
 
 > 上述指令中`INPUT_FILES`是输入文件路径，此处实际为之前通过`scp`指令上传的`.img`映像文件完整路径，`OUTPUT_FILES`是输出文件路径，此处实际为之前新创建的`.vmdk`磁盘文件在OpenWrt系统中对应的设备名称，在绝大部分情况下是`/dev/sdb`。
 >
@@ -428,7 +428,9 @@ br-lan是一个抽象出来的桥接lan口，所有新添加的lan口网卡都�
 >
 > 由上图的结果，输入指令`dd if=/tmp/OpenWrt.img of=/dev/sdb`。（`OpenWrt.img`需要换成实际的文件名称）
 
-待看到`xxx records in`，`xxx records out`的提示后表示OpenWrt系统已从`.img`映像文件复制至后创建的`.vmdk`本地磁盘文件中。此时可以使用`poweroff`指令关闭系统并拔掉U盘。
+待看到`xxx records in`，`xxx records out`的提示后表示OpenWrt系统已从`.img`映像文件复制至后创建的`.vmdk`本地磁盘文件中。
+
+执行完`dd`指令后，需再执行`sync`指令，确保内核缓冲区中所有未写入磁盘的数据完整写入磁盘。此时可以使用`poweroff`指令关闭系统并拔掉U盘。
 
 进入虚拟机设置界面，移除U盘对应的硬件设备（点选时会提示 *系统找不到指定的文件*，因为此时已经拔掉U盘，直接关闭该提示即可）。
 
@@ -596,6 +598,8 @@ OpenWrt的wan口和lan口实质区别就是**防火墙配置**不同。只要更
 接下来进入OpenWrt，输入指令`opkg update && opkg install kmod-usb-net-asix-ax88179`安装USB网卡驱动。这样绿联的USB网卡就能在OpenWrt系统里正常使用。实测将此USB网卡插在古董笔记本惠普暗影精灵2pro上面可以跑到900+Mbps，接近千兆网速上限。
 
 如果老式电脑有USB3.0接口，但是网卡只有百兆上限，就可以购买绿联的USB千兆网卡，然后用 [4.1节](#411-将img文件烧录入u盘) 所述的方法让老式电脑运行上OpenWrt系统，安装好网卡驱动之后就可以把老式电脑变成一台真正的路由器，这样就不需要再额外购买x86架构的软路由。
+
+> 注：`kmod-usb-net-asix-ax88179` 驱动目前**不适配** Linux 内核版本为 6.x 的系统。截止至 `OpenWrt 23.05.6`（执行 `uname -a` 指令可以看到其对应的 Linux 内核版本为 5.15.189），尚能成功适配 ax88179 驱动，但是从 `OpenWrt 24.10.0` 开始，OpenWrt 的 Linux 内核版本升级到 6.x，直至 `OpenWrt 24.10.4` 仍未适配 ax88179 驱动。
 
 ### 4.6 OpenWrt防火墙配置说明
 
