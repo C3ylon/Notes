@@ -646,6 +646,8 @@ opkg update && opkg install kmod-tun
 ![成功界面](./pics/OpenWrt/4.7_4.png)
 
 > 开启UU加速器时也可以保持 OpenClash 开启，只要确保不在UU加速器生效中时关闭或开启 OpenClash 即可。
+>
+> 注：此时需要选择 OpenClash 为 `TUN` 模式。如果使用默认的 `Enhance` 模式，则游戏设备的流量会被 OpenClash 接管，不会经过UU加速器的 tun163 设备。
 
 ### 4.8 OpenWrt安装Openclash插件
 
