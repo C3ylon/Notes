@@ -649,21 +649,33 @@ opkg update && opkg install kmod-tun
 >
 > 注：此时需要选择 OpenClash 为 `TUN` 模式。如果使用默认的 `Enhance` 模式，则游戏设备的流量会被 OpenClash 接管，不会经过UU加速器的 tun163 设备。
 >
-> + Enhance 模式：
+> + `Enhance` 模式：
 >
 >   + 技术基础： 主要依赖 Linux 内核的 TPROXY（透明代理）或 REDIRECT 规则，通常通过 iptables/nftables 实现。
 >
->   + 工作原理： 在路由决策之后、数据包离开网络堆栈之前，通过特殊的防火墙规则（PREROUTING 或 OUTPUT 链）拦截目标端口或 IP 的流量，并将其劫持转发给 Clash 进程处理。
+>   + 工作原理： 在路由决策之后、数据包离开网络堆栈之前，通过特殊的防火墙规则（PREROUTING 或 OUTPUT 链）拦截目标端口或 IP 的流量，并将其劫持转发给 OpenClash 进程处理。
 >
 >   + 特性：这种模式的劫持发生在非常早期的网络堆栈层面，几乎是数据包进入路由表后的第一站。它直接劫持了所有经过（或由设备发出）的符合规则的 `TCP`/`UDP` 流量。（无法接管 `ICMP` 流量）
 >
-> + TUN 模式：
+> + `TUN` 模式：
 >
 >   + 技术基础： 创建一个名为 utun 或类似名称的虚拟网卡 (TUN/TAP Device)。
 >
->   + 工作原理： Clash 进程将自己作为一个新的路由设备。所有符合规则的流量都会通过 iptables 规则将其路由到此虚拟接口，然后由 Clash 进程接管。
+>   + 工作原理： OpenClash 进程将自己作为一个新的路由设备。所有符合规则的流量都会通过 iptables 规则将其路由到此虚拟接口，然后由 OpenClash 进程接管。
 >
 >   + 特性：这种模式的劫持发生在 IP 层。它处理的是 IP 数据包，能够接管所有协议的流量（`TCP`/`UDP`/`ICMP` 等）。
+>
+> 因此：
+>
+> + 当 OpenClash 开启 `Enhance` 模式时：
+>
+>   OpenClash 在网络流量的 PREROUTING/OUTPUT 阶段，通过 iptables/nftables 规则直接在 IP 层以下劫持了所有符合条件的（通常是80/443/游戏端口等）`TCP`/`UDP` 流量。这个劫持发生在路由决策将流量发送到 tun163 之前，流量被 OpenClash 接管并代理，因此无法进入 UU 的加速通道。
+>
+> + 当 OpenClash 开启 `TUN` 模式时：
+>
+>   OpenClash 和 tun163 双方都是基于 IP 层的路由模式。UU 加速器会将需要加速的流量（通常是特定的游戏服务器 IP）通过路由表规则导向 tun163，而 OpenClash 的 TUN 模式只会接管没有被**更精确**的规则匹配的剩余流量。
+>
+>   因此游戏流量会首先被 UU 加速器精准匹配并路由到 tun163，成功进入 UU 的加速通道，而其他非游戏流量则被 OpenClash 的 TUN 路由规则接管，实现代理。
 
 ### 4.8 OpenWrt安装Openclash插件
 
