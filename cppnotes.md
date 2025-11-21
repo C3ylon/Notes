@@ -4781,7 +4781,7 @@ int main() {
 
 ```C++
 template<class T>
-T &unmove(T&& t) {
+T &unmove(T &&t) {
     return static_cast<T&>(t);
     // 注意这里最好加上 static_cast<T&>()
     // 以规避 C++20 引入的隐式移动 implicit move (?)
