@@ -4963,3 +4963,44 @@ struct _stat64 var;
 ```
 
 ***
+
+`new`与`delete`详解
+
++ `new`表达式：
+
+  + `new T` / `new T(...)` / `new T{...}`
+  + `new(...) T` / `new(...) T(...)` / `new(...) T{...}`
+
++ `operator new`函数：
+
+  + `void *operator new(std::size_t)`
+  + `void *operator new(std::size_t, ...)`
+
+  > `operator new`函数返回值必须是`void *`类型，至少有一个参数，且第一个参数必须是`std::size_t`类型。
+
++ `delete`表达式：
+
+  + `delete p`
+
+  > `delete`表达式没有`delete(...) p`的形式。
+
++ `operator delete`函数：
+
+  + `void operator delete(void *p)`
+  + `void operator delete(void *p, ...)`
+
+  > `operator delete`函数返回值必须是`void`类型，至少有一个参数，且第一个参数必须是`void *`类型。
+
+`new`表达式会依次执行以下两个动作：
+
+1. 执行对应的`operator new`函数，得到一个`void *`类型的指针。（即申请地址空间）
+2. 以第一步得到的`void *`指针所指向的地址为起始地址初始化`T`类型的对象。
+
+`delete`表达式会依次执行以下两个动作：
+
+1. 析构指针`p`所指向的对象。
+2. 执行对应的`operator delete`函数。（即释放地址空间）
+
+对于类的`operator new`函数和`operator delete`函数，即使不显式声明为`static`，也会隐式作为静态成员函数（即无法访问非静态类成员变量）。
+
+***
