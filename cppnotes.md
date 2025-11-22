@@ -5003,4 +5003,64 @@ struct _stat64 var;
 
 对于类的`operator new`函数和`operator delete`函数，即使不显式声明为`static`，也会隐式作为静态成员函数（即无法访问非静态类成员变量）。
 
+```C++
+#include <new>
+#include <iostream>
+#include <exception>
+
+using std::cout;
+using std::endl;
+
+class cl {
+public:
+    explicit cl(bool err) {
+        if (!err) {
+            cout << "construct normally" << endl;
+        }
+        if (err) {
+            cout << "construct with exception" << endl;
+            throw std::exception(std::runtime_error("simulate constructor error"));
+        }
+    }
+
+    void *operator new(size_t, int) {
+        cout << "in overload new" << endl;
+        return ::operator new(sizeof(cl));
+    }
+
+    void operator delete(void *p) {
+        cout << "in delete" << endl;
+        ::operator delete(p);
+    }
+
+    void operator delete(void *p, int param) {
+        cout << "in overload delete, param is: " << param << endl;
+        ::operator delete(p);
+    }
+};
+
+int main() {
+    try {
+        auto p = new(11) cl(false);
+        delete p;
+        cout << "==================" << endl;
+        p = new(22) cl(true);
+        delete p;
+    } catch(...) {
+        cout << "oops, in catch block" << endl;
+    }
+    return 0;
+}
+
+// 输出：
+// in overload new
+// construct normally
+// in delete
+// ==================
+// in overload new
+// construct with exception
+// in overload delete, param is: 22
+// oops, in catch block
+```
+
 ***
