@@ -5144,4 +5144,17 @@ int main () {
 }
 ```
 
+当需要用到抽象基类时，就需要定义一个纯虚析构函数。但是必须要在类外再定义一下该析构函数，否则编译器在生成子类析构函数代码时无法链接到基类的析构函数。
+
+```C++
+struct Base {
+    virtual ~Base() = 0;    // 纯虚析构函数
+};
+Base::~Base() { }           // 必须单独定义一下，否则编译时会报链接错误
+
+// Base base;
+// 错误，无法定义抽象基类的实例化对象
+// error: function "Base::~Base" is a pure virtual function.
+```
+
 ***
