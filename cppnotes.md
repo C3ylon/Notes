@@ -4971,6 +4971,8 @@ struct _stat64 var;
   + `new T` / `new T(...)` / `new T{...}`
   + `new(...) T` / `new(...) T(...)` / `new(...) T{...}`
 
+  > 对于`new T`和`new(...) T`来说，如果`T`的类型是基础类型或POD类型，则不被初始化，反之则会调用默认构造函数。（类比于定义对应的非静态变量）
+
 + `operator new`函数：
 
   + `void *operator new(std::size_t)`
@@ -4990,6 +4992,8 @@ struct _stat64 var;
   + `void operator delete(void *p, ...)`
 
   > `operator delete`函数返回值必须是`void`类型，至少有一个参数，且第一个参数必须是`void *`类型。
+  >
+  > 当`operator delete`函数有一个以上参数的时候，不能通过`delete`表达式显式触发（即不能写成`delete(...) p`）。这种形式的函数仅会在 `new(...) T` / `new(...) T(...)` / `new(...) T{...}` 成功执行完`operator new(std::size_t, ...)`函数之后且初始化`T`类型的对象过程中发生异常时被动触发，用作释放已经被分配的内存，避免内存泄露。
 
 `new`表达式会依次执行以下两个动作：
 
@@ -5001,7 +5005,7 @@ struct _stat64 var;
 1. 析构指针`p`所指向的对象。
 2. 执行对应的`operator delete`函数。（即释放地址空间）
 
-对于类的`operator new`函数和`operator delete`函数，即使不显式声明为`static`，也会隐式作为静态成员函数（即无法访问非静态类成员变量）。
+对于类的`operator new`函数和`operator delete`函数，即使不显式声明为`static`，也会隐式作为**静态成员函数**（即无法访问非静态类成员变量）。
 
 ```C++
 #include <new>
@@ -5062,5 +5066,40 @@ int main() {
 // in overload delete, param is: 22
 // oops, in catch block
 ```
+
+`new(...) T` / `new(...) T(...)` / `new(...) T{...}` 用法扩展：
+
++ Placement New（定位`new`）：
+
+  用于在已分配的内存上构造对象。其实现类似于：
+
+  ```C++
+  void* operator new(std::size_t, void* __p) noexcept {
+      return __p;
+  }
+  ```
+
++ 无异常的`new`：
+
+  使用的`new`表达式形式是`new(std::nothrow) T`，其实现类似于：
+
+  ```C++
+  void *operator new(std::size_t size, const std::nothrow_t&) noexcept {
+      void *p = nullptr;
+      try {
+          p = ::operator new(size);
+      } catch (...) {
+          return nullptr;
+      }
+      return p;
+  }
+  ```
+
+  > 为了避免异常的开销，在工业级标准库中通常会反过来实现，即以不抛异常的函数为基础：
+  >
+  > 首先实现一个底层核心函数（Core Internal Function）：这是一个不抛异常、只返回`nullptr`的内部函数（类似增强版`malloc`）。
+  >
+  > + `operator new`（抛异常版）：调用底层核心函数，检查如果不是`nullptr`则返回结果，否则抛出  `std::bad_alloc`。
+  > + `operator new`（nothrow版）： 调用底层核心函数，直接返回结果。
 
 ***
