@@ -2468,7 +2468,7 @@ const int *d = &(const int &)1;  // warning: temporary whose address is used as 
 #include <stdio.h>
 #include <utility>
 class cl;
-const cl & move_if_noexcept(cl & a) { return (cl&&)a; }
+const cl &move_if_noexcept(cl &a) { return (cl&&)a; }
 
 class cl {
     public:
@@ -2910,6 +2910,8 @@ C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。�
 >     auto vfn() const noexcept -> void override = 0;
 > };
 > ```
+
+通常情况下大多数场景都不必特意标注`noexcept`，唯有在创建移动构造函数和移动赋值运算符函数时必须标注`noexcept`，以提高自定义类在STL容器中的性能。
 
 ***
 
