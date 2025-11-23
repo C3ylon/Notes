@@ -5105,3 +5105,43 @@ int main() {
   > + `operator new`（nothrow版）： 调用底层核心函数，直接返回结果。
 
 ***
+
+虚函数详解
+
+类的静态成员函数不能定义为虚函数。因为即使是`p->static_func(...)`的调用形式，实际上在调用时也等同于`T::static_func(...)`，即直接调用的在编译期就确定的函数地址，而不会经过一次查找虚表的操作。
+
++ 基类中定义某个非析构函数为虚函数后，子类中同名且**参数类型相同**的函数即使不显式标注`virtual`也会自动成为虚函数。
++ 基类中定义析构函数为虚函数后，子类的析构函数都为虚函数。
+
+在定义虚函数时用`override`关键字标注，会强制检查该函数是否正确覆盖基类的虚函数。如果基类没有同名的虚函数或是函数参数类型与基类的虚函数参数类型不一致，则会在编译时报错。
+
+在使用基类指针调用某个虚函数时，尽量不要依赖默认参数，而是显式地把参数写全。因为如果缺省参数的话，虽然需要调用的函数能够通过虚表准确查找到，但是补全的默认参数会始终以基类中定义的虚函数的默认参数值为准。
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct base {
+    virtual void print(int x = 1) {
+        cout << "in base: " << x << endl;
+    }
+};
+
+struct derived : base {
+    void print(int x = 2) override {
+        cout << "in derived: " << x << endl;
+    }
+};
+
+int main () {
+    base b;
+    derived d;
+    b.print();      // in base: 1
+    d.print();      // in derived: 2
+    base *p = &d;
+    p->print();     // in derived: 1
+    return 0;
+}
+```
+
+***
