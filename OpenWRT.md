@@ -728,6 +728,13 @@ opkg update && opkg install kmod-tun
 > OpenWrt 的 Git 是精简版本，默认不包含 https 支持，执行`git clone [WEBLINK]`时会报错 *git: 'remote-https' is not a git command.*
 >
 > 在 OpenWrt 中安装完整 Git 需要执行`opkg update && opkg install git && opkg install git-http`。
+>
+> OpenWrt 的 less 也是精简版本，如果不安装完整版的 less，那么在执行`git log`指令时 log 信息里会出现看上去像乱码的 ANSI 颜色转义序列。为了使`git log`指令能够正确显示出不同字段的颜色，还需要再执行`opkg update && opkg install less`。
+>
+> ```sh
+> # 未安装完整版 less 时执行 git log 输出的 commit 信息示意
+> [[33mcommit 40a53c36e0336af45f7664abeb939f220f78273e[[m[[33m ([[m[[1;36mHEAD[[m[[33m -> [[m[[1;32mmaster[[m[[33m, [[m[[1;31morigin/master[[m[[33m, [[m[[1;31morigin/HEAD[[m[[33m)[[m
+> ```
 
 ***
 
