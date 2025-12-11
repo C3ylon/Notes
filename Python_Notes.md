@@ -289,3 +289,22 @@ python 中的运算符优先级顺序：
 |        ⑥        |                     `or`                     |
 
 ***
+
+创建多维列表时如果使用 `lst = [[[0]*n]*n]*n` 的形式，会导致最内层的一维列表引用被复制多份，体现出的结果就是当执行 `lst[x][y][z] = val` 时，`lst[ANY][ANY][z] == val`。
+
+正确的创建多维列表的方式是使用列表推导式 `lst = [[[0 for _ in range(n)] for _ in range(n)] for _ in range (n)]`。
+
+列表推导式的等效形式：
+
+```python
+lst = [[0 for _ in range(9)] for _ in range(9)]
+# 等效于：
+lst = []
+for _ in range(9):
+    lst2 = []
+    for _ in range(9):
+        lst2.append(0)
+    lst.append(lst2)
+```
+
+***
