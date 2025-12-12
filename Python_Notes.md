@@ -308,3 +308,168 @@ for _ in range(9):
 ```
 
 ***
+
+Python 中的整数是堆上的对象。
+
+对于 [-5, 256] 这个区间上所有的整数，由于在代码中会经常用到，因此在解释器初始化时就会在堆上创建这些整数的对象。这个机制称为小整数缓存机制(*small integer caching*)。
+
+查看某个变量绑定的对象的地址可以用内置函数`id()`。如果`id(var_a) == id(var_b)`，那么`var_a is var_b`。
+
+```python
+# 在 Python 交互式解释器中执行：
+>>> a = -5
+>>> b = -5
+>>> a is b
+True
+>>> a = -6
+>>> b = -6
+>>> a is b
+False
+>>> a = 256
+>>> b = 256
+>>> a is b
+True
+>>> a = 257
+>>> b = 257
+>>> a is b
+False
+# 如果不是在交互式解释器中执行，那么由于全部代码会被优化成 Python 虚拟机的字节码
+# 因此显示都为 True
+```
+
+***
+
+Python 闭包中捕获的变量的值并不会在闭包创建时就固定下来。
+
+```python
+def fn():
+    v = 1
+    def inner():
+        print(v)
+    v = "v is str"
+    return inner
+
+inner = fn()
+print(inner.__closure__)
+# (<cell at 0x0000019247A4B940: str object at 0x0000019247A1BDF0>,)
+inner()
+# v is str
+```
+
+由上面的代码可以看到，闭包`inner`中捕获到的变量`v`在闭包创建完毕之后类型从`int`变成了`str`，调用闭包函数时打印出的`v`的值是更新后的值。
+
+```python
+def fn(n):
+    i = 1
+    def inner():
+        print(i, n)
+    n = str(n)
+    return inner
+
+inner = fn(2)
+print(inner.__closure__)
+# (<cell at 0x0000024723469C30: int object at 0x00000247233000F0>,
+#  <cell at 0x000002472346A1A0: str object at 0x0000024723415930>)
+```
+
+当外层函数中的某个变量（不论是外层函数的入参还是外层函数定义的局部变量）被闭包捕获时，该变量就会从 **fast local** 变成 **cell variable**。外层函数访问该变量时，也会多一次间接访问，即先从 cell 中查找该变量的地址，再通过查找到的地址来访问变量。
+
+以上代码可以类比理解为：
+
+```python
+cell_of_inner = []
+
+def fn(n):
+    cell_of_inner.append(1)
+    cell_of_inner.append(n)
+    def inner():
+        print(cell_of_inner[0], cell_of_inner[1])
+    cell_of_inner[1] = str(cell_of_inner[1])
+    return inner
+
+inner = fn(2)
+inner() # 1 2
+```
+
+***
+
+Python 装饰器：
+
+```python
+def decorator(fn):
+    def inner(*args, **kargs):
+        print("before decorate")
+        fn(*args, **kargs)
+        print("after decorate")
+    return inner
+
+@decorator
+def fn1(a, b):
+    print(a, b)
+
+def fn2(a, b):
+    print(a, b)
+fn2 = decorator(fn2)
+# @decorator 可以看作是一个语法糖
+# fn1 fn2完全等效
+```
+
+以上实现有一个问题，`fn1.__name__ == "inner"`，`fn2.__name__ == inner`。
+
+为了避免这种情况，可以使用`functools.wraps`。
+
+```python
+from functools import wraps
+
+def decorator(fn):
+    @wraps(fn)
+    def inner(*args, **kargs):
+        print("before decorate")
+        fn(*args, **kargs)
+        print("after decorate")
+    return inner
+
+@decorator
+def fn1(a, b):
+    print(a, b)
+
+def fn2(a, b):
+    print(a, b)
+fn2 = decorator(fn2)
+
+print(fn1.__name__) # fn1
+print(fn2.__name__) # fn2
+```
+
+`functools.wraps`的实现可以类比理解为：
+
+```python
+def wraps(fn):
+    def inner(fn2):
+        def inner2(*args, **kargs):
+            fn2(*args, **kargs)
+        inner2.__name__ = fn.__name__
+        return inner2
+    return inner
+
+def decorator(fn):
+    @wraps(fn)
+    def inner(*args, **kargs):
+        print("before decorate")
+        fn(*args, **kargs)
+        print("after decorate")
+    return inner
+
+@decorator
+def fn1(a, b):
+    print(a, b)
+
+def fn2(a, b):
+    print(a, b)
+fn2 = decorator(fn2)
+
+print(fn1.__name__) # fn1
+print(fn2.__name__) # fn2
+```
+
+***
