@@ -474,6 +474,12 @@ print(fn2.__name__) # fn2
 
 ***
 
+Python 中的**索引**：
+
+`obj[key]`完全等价于`obj.__getitem__(key)`。其中，`key`可以是任何类型的对象：整数、元组、列表、字符串、自定义类型，只要`obj.__getitem__(self, key)`函数支持对应的操作即可。
+
+***
+
 Python 的切片（**slice**）本质上是对序列类型的一种通用协议支持，而不是字符串/列表的特例语法。
 
 `slice(start, stop, step)`是一个真正的内建对象：
@@ -489,12 +495,12 @@ class MySeq:
         if isinstance(key, slice):
             print("slice args: ", key.start, key.stop, key.step)
         else:
-            print("index: ", key)
+            print("key: ", key)
 
 s = MySeq()
 s["a":"z":"step"] # slice args:  a z step
 s["a":"z"]        # slice args:  a z None
-s["a"]            # index:  a
+s["a"]            # key:  a
 ```
 
 ***
