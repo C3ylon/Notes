@@ -473,3 +473,28 @@ print(fn2.__name__) # fn2
 ```
 
 ***
+
+Python 的切片（**slice**）本质上是对序列类型的一种通用协议支持，而不是字符串/列表的特例语法。
+
+`slice(start, stop, step)`是一个真正的内建对象：
+
++ `var[start:stop]`在解释器内部会被翻译为`var.__getitem__(slice(start, stop, None))`
++ `var[start:stop:step]`在解释器内部会被翻译为`var.__getitem__(slice(start, stop, step))`
+
+自定义类型实现切片的一个示例：
+
+```python
+class MySeq:
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            print("slice args: ", key.start, key.stop, key.step)
+        else:
+            print("index: ", key)
+
+s = MySeq()
+s["a":"z":"step"] # slice args:  a z step
+s["a":"z"]        # slice args:  a z None
+s["a"]            # index:  a
+```
+
+***
