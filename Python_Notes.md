@@ -498,9 +498,10 @@ class MySeq:
             print("key: ", key)
 
 s = MySeq()
-s["a":"z":"step"] # slice args:  a z step
-s["a":"z"]        # slice args:  a z None
-s["a"]            # key:  a
+s["a":"z":"step"]           # slice args:  a z step
+s[slice("a", "z", "step")]  # slice args:  a z step
+s["a":"z"]                  # slice args:  a z None
+s["a"]                      # key:  a
 ```
 
 ***
