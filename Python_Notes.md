@@ -492,12 +492,15 @@ s[[1, 2], ['a', 'z']]   # key: ([1, 2], ['a', 'z'])
 
 ***
 
-Python 的切片（**slice**）本质上是对序列类型的一种通用协议支持，而不是字符串/列表的特例语法。
+Python的切片（**slice**）本质上是对序列类型的一种通用协议支持，而不是字符串/列表的特例语法。
 
 `slice(start, stop, step)`是一个真正的内建对象：
 
 + `var[start:stop]`在解释器内部会被翻译为`var.__getitem__(slice(start, stop, None))`
 + `var[start:stop:step]`在解释器内部会被翻译为`var.__getitem__(slice(start, stop, step))`
+
+> 在Python中，`:`作为切片符号使用时，只会在下标语法（*subscript*）中生效。
+即只有在`[]`符号里`:`才有切片的语义。
 
 自定义类型实现切片的一个示例：
 
