@@ -476,7 +476,19 @@ print(fn2.__name__) # fn2
 
 Python 中的**索引**：
 
-`obj[key]`完全等价于`obj.__getitem__(key)`。其中，`key`可以是任何类型的对象：整数、元组、列表、字符串、自定义类型，只要`obj.__getitem__(self, key)`函数支持对应的操作即可。
+`obj[key]`完全等价于`obj.__getitem__(self, key)`。其中，`key`可以是任何类型的对象：整数、元组、列表、字符串、自定义类型，只要`obj.__getitem__(self, key)`函数支持对应的操作即可。
+
+当`key`是以`,`分隔的多个元素时，会自动组合成`tuple`传入`__getitem__()`的参数中。即`obj[a, b]`等效于`obj[(a,b)]`。
+
+```python
+class MySeq:
+    def __getitem__(self, key):
+        print("key:", key)
+
+s = MySeq()
+s[1, 2]                 # key: (1, 2)
+s[[1, 2], ['a', 'z']]   # key: ([1, 2], ['a', 'z'])
+```
 
 ***
 
@@ -495,13 +507,14 @@ class MySeq:
         if isinstance(key, slice):
             print("slice args: ", key.start, key.stop, key.step)
         else:
-            print("key: ", key)
+            print("key:", key)
 
 s = MySeq()
-s["a":"z":"step"]           # slice args:  a z step
-s[slice("a", "z", "step")]  # slice args:  a z step
-s["a":"z"]                  # slice args:  a z None
-s["a"]                      # key:  a
+s["a":"z":"step"]           # slice args: a z step
+s[slice("a", "z", "step")]  # slice args: a z step
+s["a":"z"]                  # slice args: a z None
+s["a":"z", 1:9]             # key: (slice('a', 'z', None), slice(1, 9, None))
+s["a"]                      # key: a
 ```
 
 ***
