@@ -58,3 +58,7 @@ macos中与配置信息有关的内容存放在`.plist`后缀的文件中(*prefe
 这样受SIP机制保护的文件也可以通过终端来删除了。
 
 ***
+
+使用 homebrew 包管理器时，在卸载程序时执行`brew uninstall xxx`指令并不会完全移除程序的配置文件。如果想要清理得彻底一点，可以执行`brew uninstall --zap xxx`，然后再执行`brew cleanup`指令。
+
+***
