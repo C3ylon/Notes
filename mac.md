@@ -48,7 +48,7 @@ macos中与配置信息有关的内容存放在`.plist`后缀的文件中(*prefe
 
 ***
 
-基于MACOS的**SIP**机制（即系统完整性保护，*System Integrity Protection**），导致在终端中即使用`sudo rm -rf`指令也无法删除某些文件，这时候可以按如下步骤操作：
+基于MACOS的**SIP**机制（即系统完整性保护，*System Integrity Protection*），导致在终端中即使用`sudo rm -rf`指令也无法删除某些文件，这时候可以按如下步骤操作：
 
 1. 打开系统设置(System Settings)。
 2. 进入隐私与安全性(Privacy & Security) -> 完全磁盘访问权限(Full Disk Access)。
