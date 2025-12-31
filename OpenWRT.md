@@ -63,7 +63,7 @@ OpenWrt是一个基于Linux的开源路由系统，选择OpenWrt的理由主要�
 > 文件名其余后缀区别：
 >
 > |文件名|是否含引导|是否支持 UEFI|说明|
-> | :--- |:---:|:---:|:---|
+> |:---|:---:|:---:|:---|
 > |`generic-ext4-combined-efi.img.gz`|√|√|带 UEFI 启动支持的完整 ext4 系统镜像|
 > |`generic-ext4-combined.img.gz`|√|×|只支持传统 BIOS 启动的完整 ext4 系统镜像|
 > |`generic-ext4-rootfs.img.gz`|×|×|仅包含 root 文件系统部分，不可单独启动|
