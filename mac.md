@@ -84,3 +84,21 @@ sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
 ```
 
 ***
+
+用SSH连接mac，并进行`git push`推送操作时，如果使用的是HTTPS协议连接Github，那么可能会看到如下报错：
+
+```sh
+failed to get: -25308
+failed to store: -25308
+```
+
+这是因为Git尝试访问MacOS的钥匙串(*Keychain*)来读取/存储GitHub的认证令牌，但通过ssh登录时会话处于非交互式状态，因此钥匙串处于锁定状态，导致系统拒绝这次访问。
+
+正确的解决方案是将mac的公钥添加到GitHub的设置里，然后修改本地仓库地址，改用SSH方式连接GitHub。
+
+```sh
+# 修改本地仓库地址的指令：
+git remote set-url origin git@github.com:xxx/xxx.git
+```
+
+***
