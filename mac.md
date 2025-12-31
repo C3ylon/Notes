@@ -62,3 +62,25 @@ macos中与配置信息有关的内容存放在`.plist`后缀的文件中(*prefe
 使用 homebrew 包管理器时，在卸载程序时执行`brew uninstall xxx`指令并不会完全移除程序的配置文件。如果想要清理得彻底一点，可以执行`brew uninstall --zap xxx`，然后再执行`brew cleanup`指令。
 
 ***
+
+通过SSH远程连接MacOS时，如果觉得卡顿可以执行`sudo vim /etc/ssh/sshd_config`修改相应配置文件。
+
+将以下内容取消注释（或新添加）：
+
+```sh
+# 禁用SSH的DNS反向解析
+UseDNS no
+# 关闭GSSAPI认证（GSSAPI常用于企业级身份验证，但在个人局域网中会拖慢速度）
+GSSAPIAuthentication no
+```
+
+修改完毕之后需要重启SSH服务。依次执行如下指令：
+
+```sh
+# 关闭远程登录
+sudo launchctl unload /System/Library/LaunchDaemons/ssh.plist
+# 开启远程登录
+sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+```
+
+***
