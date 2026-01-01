@@ -102,3 +102,13 @@ git remote set-url origin git@github.com:xxx/xxx.git
 ```
 
 ***
+
+在合上笔记本盖子一段时间后，MacOS会切断非必要外设的供电（比如USB网卡等）。因此在使用 USB to RJ45 转接头有线连接Mac笔记本时，为了能持续通过SSH连接到Mac，可以开启一个终端并执行：
+
+```sh
+caffeinate
+```
+
+执行完上述指令后，只要该终端没有关闭，那么就能一直保持MacOS处于非休眠状态，有线网络转接头也不会断开连接。
+
+***
