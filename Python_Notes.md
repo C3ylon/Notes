@@ -552,7 +552,7 @@ Python中的`os.walk()`函数是理解`yield`关键字非常好的示例。
 # top: 遍历的起始处
 # topdown: 是否自顶向下进行遍历
 # onerror: walk函数执行过程中发生异常调用的回调函数
-# followlinks: 是否需要跟踪符号链接
+# followlinks: 是否需要跟踪符号链接(symlink)
 def walk(top, topdown=True, onerror=None, followlinks=False):
     top = fspath(top)
     dirs = []
@@ -606,6 +606,10 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
         islink, join = path.islink, path.join
         for dirname in dirs:
             new_path = join(top, dirname)
+            # Issue #23605: os.path.islink() is used instead of caching
+            # entry.is_symlink() result during the loop on os.scandir() because
+            # the caller can replace the directory entry during the "yield"
+            # above.
             if followlinks or not islink(new_path):
                 yield from walk(new_path, topdown, onerror, followlinks)
     else:
