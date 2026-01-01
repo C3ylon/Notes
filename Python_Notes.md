@@ -546,6 +546,53 @@ finally:
 
 ***
 
+在Python中`yield`是实现生成器(*Generator*)的核心关键字。
+
+`yield`的作用是将一个普通的函数变成一个**生成器函数**。当函数执行到`yield`时会向调用者返回一个值，并暂停在该处，保留所有的局部变量状态。
+
+定义一个函数`fn()`，里面有`yield`关键字，当执行`foo = fn()`时，Python解释器发现函数体里有 `yield`，就不会执行函数体里的任何一行代码，而是创建并返回一个生成器对象(**Generator Object**)。
+
+只有当显式调用`next(foo)`，或者在`for`循环中迭代`foo`时，函数的代码才会真正开始运行。
+
+```python
+def fn():
+    print("in yield fn")
+    yield 0
+    yield 1
+    yield 2
+    yield 3
+
+y = fn()
+print("===========")
+print(next(y))
+print("===========")
+for i in y:
+    print(i)
+# ===========
+# in yield fn
+# 0
+# ===========
+# 1
+# 2
+# 3
+```
+
+`yield from`是在 Python 3.3 中引入的，主要用于**委托生成器**。
+
+```python
+def fn():
+    lst1 = [1, 2, 3]
+    for i in lst1:
+        yield i
+    # 等价写法
+    lst2 = ['A', 'B', 'C']
+    yield from lst2
+
+y = fn()
+for i in y:
+    print(i, end="") # 123ABC
+```
+
 Python中的`os.walk()`函数是理解`yield`关键字非常好的示例。
 
 ```python
