@@ -521,3 +521,97 @@ s["a"]                      # key: a
 ```
 
 ***
+
+在Python里，`with`是上下文管理器(*context manager*)语法糖，其核心作用是在一段代码前后，自动执行`__enter__()`和`__exit__(...)`，即使发生异常也能保证执行退出的收尾逻辑。
+
+```python
+with ContextManager as mng:
+    body
+```
+
+逻辑上等价于：
+
+```python
+mng = ContextManager.__enter__()
+try:
+    body
+finally:
+    ContextManager.__exit__(...)
+```
+
+任何对象只要实现了以下两个方法，就能用于`with`：
+
++ `__enter__(self)`
++ `__exit__(self, exc_type, exc_val, exc_tb)`
+
+***
+
+Python中的`os.walk()`函数是理解`yield`关键字非常好的示例。
+
+```python
+# top: 遍历的起始处
+# topdown: 是否自顶向下进行遍历
+# onerror: walk函数执行过程中发生异常调用的回调函数
+# followlinks: 是否需要跟踪符号链接
+def walk(top, topdown=True, onerror=None, followlinks=False):
+    top = fspath(top)
+    dirs = []
+    nondirs = []
+    walk_dirs = []
+    try:
+        scandir_it = scandir(top)
+    except OSError as error:
+        if onerror is not None:
+            onerror(error)
+        return
+
+    with scandir_it:
+        while True:
+            try:
+                try:
+                    entry = next(scandir_it)
+                except StopIteration:
+                    break
+            except OSError as error:
+                if onerror is not None:
+                    onerror(error)
+                return
+
+            try:
+                is_dir = entry.is_dir()
+            except OSError:
+                is_dir = False
+
+            if is_dir:
+                dirs.append(entry.name)
+            else:
+                nondirs.append(entry.name)
+
+            if not topdown and is_dir:
+                if followlinks:
+                    walk_into = True
+                else:
+                    try:
+                        is_symlink = entry.is_symlink()
+                    except OSError:
+                        is_symlink = False
+                    walk_into = not is_symlink
+
+                if walk_into:
+                    walk_dirs.append(entry.path)
+
+    if topdown:
+        yield top, dirs, nondirs
+
+        islink, join = path.islink, path.join
+        for dirname in dirs:
+            new_path = join(top, dirname)
+            if followlinks or not islink(new_path):
+                yield from walk(new_path, topdown, onerror, followlinks)
+    else:
+        for new_path in walk_dirs:
+            yield from walk(new_path, topdown, onerror, followlinks)
+        yield top, dirs, nondirs
+```
+
+***
