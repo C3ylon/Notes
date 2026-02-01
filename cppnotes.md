@@ -4266,6 +4266,8 @@ public:
     void pr(short) { }
     void pr(int) { }
     void pr(int) const { }
+private:
+    void pr(double) { }
 };
 
 int main() {
@@ -4275,6 +4277,10 @@ int main() {
     auto cl::*fn2 = static_cast<void(cl::*)(int)>(&cl::pr);
     // 对于 const 成员函数，指针类型中 const 的位置依然在参数列表后
     auto fn3 = static_cast<void(cl::*)(int) const>(&cl::pr);
+
+    // private 属性的成员函数无法在类外部获取指针
+    // error: 'pr' is a private member of 'cl
+    // auto fn4 = static_cast<void(cl::*)(double)>(&cl::pr);
 
     // 使用取到的指针时要按照如下格式
     cl a;
