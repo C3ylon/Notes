@@ -4265,12 +4265,22 @@ class cl {
 public:
     void pr(short) { }
     void pr(int) { }
+    void pr(int) const { }
 };
 
-auto fn = static_cast<void(cl::*)(int)>(&cl::pr);
-// 使用 static_cast 而不是 reinterpret_cast
-auto cl::*fn2 = static_cast<void(cl::*)(int)>(&cl::pr);
-// 显式指明指针符号 "*" 时必须使用 cl::*
+int main() {
+    // 使用 static_cast 而不是 reinterpret_cast
+    auto fn = static_cast<void(cl::*)(int)>(&cl::pr);
+    // 显式指明指针符号 "*" 时必须使用 cl::*
+    auto cl::*fn2 = static_cast<void(cl::*)(int)>(&cl::pr);
+    // 对于 const 成员函数，指针类型中 const 的位置依然在参数列表后
+    auto fn3 = static_cast<void(cl::*)(int) const>(&cl::pr);
+
+    // 使用取到的指针时要按照如下格式
+    cl a;
+    (a.*fn)(1);
+    return 0;
+}
 ```
 
 ***
