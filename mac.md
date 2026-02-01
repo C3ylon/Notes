@@ -124,3 +124,24 @@ mac进行电源选项设置的指令是`pmset`，执行`pmset -g`可以查看到
 > 如果有另一个终端在执行`caffeinate`，其对应的影响也会体现在`pmset -g`呈现出的结果上。
 
 ***
+
+在 SSH 连接默认终端 (zsh) 时，如果想要用上下方向键来快速调出非重复指令，需要在`~/.zshrc`文件中添加如下内容：
+
+```sh
+setopt HIST_IGNORE_DUPS
+```
+
+***
+
+在 SSH 连接默认终端 (zsh) 时，如果想要用 `Ctrl` + 左右方向键 来快速跳过单词，需要在`~/.zshrc`文件中添加如下内容：
+
+```sh
+# 允许 Ctrl + 左右方向键跳单词
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+# 允许 Alt (Option 键) + 左右方向键跳单词
+bindkey "^[[1;3C" forward-word
+bindkey "^[[1;3D" backward-word
+```
+
+***
