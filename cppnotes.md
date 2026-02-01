@@ -1911,6 +1911,52 @@ int main() {
 
 ***
 
+当需要用 lambda 函数以 `const &` 类型捕获一个变量时，可以手动模拟一个 lambda 函数。
+
+```C++
+#include <iostream>
+using namespace std;
+
+class Cl {
+public:
+    void print(int i) {
+        cout << "in non-const, i=" << i << endl;
+    }
+
+    void print(int i) const {
+        cout << "in const, i=" << i << endl;
+    }
+};
+
+template <typename Fn>
+void print(Fn &&fn, int i) {
+    fn(i);
+}
+
+int main() {
+    Cl a;
+
+    auto lambda = [&](int i) {
+        a.print(i);
+    };
+
+    struct Functor {
+        explicit Functor(const Cl &capCl) : capturedCl(capCl) { };
+        void operator()(int i) {
+            capturedCl.print(i);
+        }
+        const Cl &capturedCl;
+    };
+    Functor functor(a);
+
+    print(lambda, 1);   // in non-const, i=1
+    print(functor, 2);  // in const, i=2
+    return 0;
+}
+```
+
+***
+
 `delete []`作用于某类对象的数组指针时会按从后至前的顺序依次析构，最后再释放内存。
 
 ***
