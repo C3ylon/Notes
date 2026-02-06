@@ -2959,6 +2959,33 @@ C++11中析构函数默认带有`noexcept`，即使没有显式标注出来。�
 
 通常情况下大多数场景都不必特意标注`noexcept`，唯有在创建移动构造函数和移动赋值运算符函数时必须标注`noexcept`，以提高自定义类在STL容器中的性能。
 
+从C++17开始，`noexcept`正式成为函数类型(*function type*)的一部分，函数指针的类型检查变得更加严格：
+
++ 带有`noexcept`的函数指针只能指向`noexcept`标注的函数
++ 不带`noexcept`的函数指针可以指向`noexcept`标注的函数
+
+```C++
+struct st {
+    void fn1() const noexcept { }
+    void fn2() const { }
+};
+
+int main() {
+    st a;
+    auto st::*p1 = &st::fn1;
+    // C++11/14: void (st::*p)() const
+    // C++17   : void (st::*p)() const noexcept
+
+    void (st::*p2)() const = &st::fn1;
+
+    // void (st::*p3)() const noexcept= &st::fn2;
+    // error: different exception specifications
+    // a value of type "void (st::*)() const" cannot be used to initialize
+    // an entity of type "void (st::*)() const noexcept"
+    return 0;
+}
+```
+
 ***
 
 自定义范围表达式的实现要点：必须要有名为`begin`和`end`的成员函数，返回指针。
