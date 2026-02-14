@@ -5233,17 +5233,92 @@ int main () {
 }
 ```
 
-当需要用到抽象基类时，就需要定义一个纯虚析构函数。但是必须要在类外再定义一下该析构函数，否则编译器在生成子类析构函数代码时无法链接到基类的析构函数。
+纯虚函数声明方式是在虚函数声明的末尾加上`= 0`。
+
+当一个类包含至少一个纯虚函数时，这个类就是抽象类(**abstract class**)。抽象类不可实例化，且如果继承了抽象类的子类没有完成所有纯虚函数的实现时，该子类也为抽象类，不可实例化。
+
+纯虚函数可以有具体的实现。对应的用途是在抽象基类的纯虚函数中提供一个默认的基类行为，供其子类在重写对应方法时手动调用。
+
+> 纯虚函数具体的实现必须写在类外。
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct Base {
+    virtual ~Base() = default;
+    virtual void print() = 0;
+};
+
+// 对抽象基类 Base 中的纯虚函数 print() 的具体实现
+void Base::print() {
+    cout << "in print function" << endl;
+}
+
+struct Derived : Base {
+    virtual ~Derived() override = default;
+    virtual void print() override {
+        Base::print();
+        cout << "in derived print" << endl;
+    }
+};
+
+int main() {
+    Derived b;
+    b.print();
+    return 0;
+}
+```
+
+抽象类中的纯虚函数地址在虚表中通常被设置为0，或者指向一个特殊的错误处理函数（如`__purecall`）。在其子类的虚表中才会用真正实现的函数地址来替代无效的纯虚函数地址。
+
+因此如果一个抽象类的构造函数或析构函数中对纯虚函数进行了**虚调用**(**virtual call**)，则是未定义行为。
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct base {
+    virtual void npvf() {
+        cout << "in non pure virtual function" << endl;
+    }
+    virtual void pvf() = 0;
+    base() {
+        // 可以对非纯虚函数直接调用
+        npvf();
+        // 可以对纯虚函数以非虚调用的形式进行调用
+        // 这样避免查找虚表找到一个无效的调用地址
+        base::pvf();
+        // 对纯虚函数直接调用是未定义行为
+        // pvf();
+        // warning: call to pure virtual member function 'pvf' has undefined behavior
+        // overrides of 'pvf' in subclasses are not available in the constructor of 'base'
+        // 运行期报错：
+        // libc++abi: Pure virtual function called!
+    }
+};
+
+void base::pvf() {
+    cout << "in pure virtual functon" << endl;
+}
+
+struct derived : base {
+    void pvf() override { }
+};
+
+int main() {
+    derived a;
+    return 0;
+}
+```
+
+当需要用到抽象类且又不需要声明其他纯虚函数时，就需要声明一个纯虚析构函数。但是必须要在类外再定义一下该析构函数，否则编译器在生成子类析构函数代码时无法链接到基类的析构函数。
 
 ```C++
 struct Base {
     virtual ~Base() = 0;    // 纯虚析构函数
 };
 Base::~Base() { }           // 必须单独定义一下，否则编译时会报链接错误
-
-// Base base;
-// 错误，无法定义抽象基类的实例化对象
-// error: function "Base::~Base" is a pure virtual function.
 ```
 
 ***
