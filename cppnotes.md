@@ -418,7 +418,12 @@ st2 b = st1(1);
 
 在未显式标注链接属性时，(*非`const`修饰的*或*有`const`修饰的且是类的静态成员对象的*)**全局变量**和(*全局或局部*)**函数声明**的链接属性默认为`external`，(*有`const`修饰的且不是类的静态成员对象的*)**全局变量**的链接属性默认为`internal`，其余皆为`none`。
 
-类的静态成员对象无法更改其默认链接属性（如果类定义在非匿名命名空间中，则它的静态成员对象不能定义在匿名命名空间中）。对于不是类的静态成员的对象，更改其默认链接属性的方式有两种：
+类的静态成员对象无法更改其默认链接属性：
+
++ 如果类定义在匿名命名空间中，则其静态成员对象固定具有`internal`链接属性
++ 如果类定义在非匿名命名空间中，则其静态成员对象固定具有`external`链接属性（如果类定义在非匿名命名空间中，则它的静态成员对象不能定义在匿名命名空间中）
+
+对于不是类的静态成员的对象，更改其默认链接属性的方式有两种：
 
 + `extern`作用于默认链接属性为`none`或`internal`的对象上，可以将链接属性改为`external`
 + `static`作用于默认链接属性为`external`的对象上，可以将链接属性更改为`internal`（若作用于默认链接属性为`none`的对象上则不会更改其链接属性，而是更改其储存的生命周期至静态生命周期）
@@ -435,8 +440,8 @@ st2 b = st1(1);
 > /*==================================================*/
 > // static出现在extern后，错误
 > extern int b;
-> // error: 'b' was declared 'extern' and later 'static'
 > // static int b = 1;
+> // error: 'b' was declared 'extern' and later 'static'
 > /*==================================================*/
 > // 先声明static函数，在之后定义函数的时候缺省static，正确
 > // 定义函数时默认缺省extern，但是不影响之前声明的static，该函数链接属性仍为internal
@@ -445,14 +450,34 @@ st2 b = st1(1);
 > /*==================================================*/
 > // 先声明函数，默认缺省extern，在之后定义函数的时候添加static，错误
 > void func2();
-> // error: 'void func2()' was declared 'extern' and later 'static'
 > // static void func2() { }
+> // error: 'void func2()' was declared 'extern' and later 'static'
 > ```
 
 对于`const`修饰的全局变量来说：
 
 + 如果不是类的静态成员对象，则具有内部链接属性
 + 如果是类的静态成员对象，则具有外部链接属性
+
+```C++
+// a.cpp
+struct st {
+    static const int a = 1;
+};
+const int st::a;
+
+int main() {
+    return 0;
+}
+
+// b.cpp
+struct st {
+    static const int a = 1;
+};
+const int st::a;
+// 链接时报错：
+// ld: 1 duplicate symbols
+```
 
 全局且非类的静态成员对象的`const`变量具有内部链接属性，仅在该文件内有效。如果想在多个文件之间共享`const`变量，需要在变量的定义之前加上`extern`关键字。比如：
 
