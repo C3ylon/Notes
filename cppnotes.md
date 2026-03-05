@@ -5424,3 +5424,57 @@ int main() {
 ```
 
 ***
+
+定义类模板中的静态成员变量时，如果该变量所在的类未被完全特化(*full template specialization*)，则即使该变量出现在多个翻译单元中也不会违背ODR(*One Definition Rule*)。
+
+```C++
+// a.cpp
+template <class T, class U>
+struct st {
+    static int a;
+};
+
+template <class T, class U>
+int st<T, U>::a = 1;
+
+template <class T>
+struct st<T, int> {
+    static int a;
+};
+
+template <class T>
+int st<T, int>::a = 2;
+
+// template <>
+// int st<int, int>::a = 3;
+
+int main() {
+    return 0;
+}
+
+// b.cpp
+template <class T, class U>
+struct st {
+    static int a;
+};
+
+template <class T, class U>
+int st<T, U>::a = 1;
+
+template <class T>
+struct st<T, int> {
+    static int a;
+};
+
+template <class T>
+int st<T, int>::a = 2;
+
+// template <>
+// int st<int, int>::a = 3;
+// 此时变量 a 所在的类 st<int, int> 已被完全特化
+// 链接时报错：
+// ld: 1 duplicate symbols
+// duplicate symbol 'st<int, int>::a'
+```
+
+***
