@@ -5478,3 +5478,91 @@ int st<T, int>::a = 2;
 ```
 
 ***
+
+SFINAE 规则实际使用场景的一个例子：
+
+```C++
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+template <class T>
+struct is_p {
+    const static bool value;
+    static void pr() { cout << "in is_p 1" << endl;}
+};
+
+template <class T>
+struct is_p<T *> {
+    const static bool value;
+    static void pr() { cout << "in rm_p 2" << endl;}
+};
+
+template <class T>
+const bool is_p<T>::value = false;
+
+template <class T>
+const bool is_p<T *>::value = true;
+
+template <class T>
+struct rm_c {
+    using type = T;
+    static void pr() { cout << "in rm_c 1" << endl;}
+};
+
+template <class T>
+struct rm_c<const T> {
+    using type = T;
+    static void pr() { cout << "in rm_c 2" << endl;}
+};
+
+template <bool, class T = void>
+struct enable_if {
+    // using type = T;
+    static void pr() { cout << "in enable_if 1" << endl;}
+};
+
+// 偏特化时不能指定默认模板参数
+template <class T>
+struct enable_if<true, T> {
+    using type = T;
+    static void pr() { cout << "in enable_if 2" << endl;}
+};
+
+template <class T, class En = void>
+struct st {
+    static void pr() { cout << "in st 1" << endl;}
+};
+
+struct ss {
+    using type = void;
+};
+
+// template <class T>
+// struct st<T, typename enable_if<true>::type> {
+//     static void pr() { cout << "in st 2.1" << endl;}
+// };
+// 当两个 enable_if 同时生效时，实例化时会触发二义性报错
+// error: ambiguous template instantiation for 'struct st<int* const>'
+
+// template <class T>
+// struct st<T, void> {
+//     static void pr() { cout << "in st 2.2" << endl;}
+// };
+// 即使显式写出 void 类型，实例化时仍会触发二义性报错
+// 因为对于 st3 来说最终确认谁更特化的时候第二个模板参数用的就是 void 类型
+// error: ambiguous template instantiation for 'struct st<int* const>'
+
+template <class T>
+struct st<T, typename enable_if<is_p<typename rm_c<T>::type>::value>::type> {
+    static void pr() { cout << "in st 3" << endl;}
+};
+
+int main() {
+    st<int *const>::pr();
+    return 0;
+}
+```
+
+***
