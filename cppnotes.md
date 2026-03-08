@@ -2396,42 +2396,150 @@ int main() {
 
 综上，在代码编写中，应当尽量避免出现函数模板实例化之后的函数原型出现重复的情况，否则函数匹配的情况是未知的，既有可能匹配向重复的原型中任意一个函数实现，也有可能无法匹配到任何函数实现。
 
-*据说*模板特例化程度排序是`const T&` > `T&` > `const T&&` > `T&&`，在显式传入模板实参后，如果得到的函数原型相同，则会按照以上优先级顺序进行模板选择。
+***
 
-如下代码，由上至下依次注释每个函数模板，理应依次显式1，2，3，4。在gcc和msvc中确实如此，但是在clang17.0.1下，注释掉第一个之后会出现二义性调用报错，clang将第二个模板和第三个模板视为同等程度的特例化。
+在考虑模板的场景下重载决议选择最终调用的函数的优先级：
+
+1. 如果候选集中只有一个最佳函数，则选择该函数。
+2. 如果候选集中有多个并列的最佳函数，且最佳函数中只有一个非模板函数，则选择该非模板函数。
+3. 如果候选集中有多个并列的最佳函数，且所有最佳函数都为模板函数，则选择最为特化的模板函数。
+4. 否则出现二义性调用。
 
 ```C++
 #include <iostream>
 using namespace std;
 
-struct st {
-    int a;
-};
-
-template <typename T>
-void fun(const T&) {
-    std::cout << "1" << std::endl;
+template<typename T>
+void fn(const T &){
+    cout << "const T &" << endl;
 }
 
-template <typename T>
-void fun(T&) {
-    std::cout << "2" << std::endl;
-}
-template <typename T>
-void fun(const T&&) {
-    std::cout << "3" << std::endl;
+template<typename T>
+void fn(T &&){
+    cout << "T &&" << endl;
 }
 
-template <typename T>
-void fun(T&&) {
-    std::cout << "4" << std::endl;
-}
+int main(){
+    int a = 1;
+    const int b = 2;
 
-int main() {
-    fun<const st&>(st{1});
-    return 0;
+    fn(a); // T &&
+    // fn(const int &) 和 fn(int &)比较
+    // 前者多余底层 const，因此后者更佳
+    fn(b); // const T &
+    // fn(const int &) 和 fn(const int &)比较
+    // const T & 比 T && 更特化，前者更佳
+    fn(static_cast<int &&>(a)); // T &&
+    // fn(const int &) 和 fn(int &&)比较
+    // 前者多余底层 const，因此后者更佳
+    fn(static_cast<const int &&>(b)); // T &&
+    // fn(const int &) 和 fn(const int &&)比较
+    // 传入的实参是右值，因此后者更佳
 }
 ```
+
+***
+
+在判断谁 **更特化(more specialized)** 时，类模板和函数模板的判断策略稍有不同。
+
++ 类模板在类型推导时不能触发引用折叠，在比较特化程度时不能省略引用
+
+  ```C++
+  #include <iostream>
+  using namespace std;
+
+  template <class T>
+  struct st {
+      static void pr() { cout << "in st1" << endl; }
+  };
+
+  template <class T>
+  struct st<T *> {
+      static void pr() { cout << "in st2" << endl; }
+  };
+
+  template <class T>
+  struct st<const T &> {
+      static void pr() { cout << "in st3" << endl; }
+  };
+
+  int main() {
+      st<int *>::pr(); // in st2
+      return 0;
+  }
+  ```
+
+  对于以上代码来说，`st1`的类型取自定义的 class 类型`T`时，`st2`的类型不论取什么都无法得到`T`，反之`st2`的类型取`T`时，`st1`的类型取`T *`即可得到`T *`，因此`st2`接受的范围是`st1`接受的范围的子集，因此说`st2`更特化。
+
+  对于`st2`和`st3`来说，`st2`的类型取任意类型`T`时，`st3`的类型不论取什么都无法得到与`T *`一致的类型，反之`st3`的类型取任意类型`T`时，`st2`的类型不论取什么都无法得到与`const T &`一致的类型，因此说`st2`与`st3`的特化程度相同。
+
+  `st<int *>::pr()`无法选取到`st3`，因为对于`const T &`来说无论`T`取什么类型都无法得到与`int *`一致的类型。
+
++ 函数模板在类型推导时可以触发引用折叠，在比较特化程度时，需要先忽略所有引用（左值引用和右值引用），再忽略底层cv修饰符，然后比较剩下类型的特化程度。如果剩下类型的特化程度相等，则再带上引用和底层cv修饰符来比较，即左值引用比右值引用更特化，底层cv修饰符更多的更特化。
+
+  > + If A was lvalue reference and P was rvalue reference, A is considered to be more specialized than P.
+  > + If A was more cv-qualified than P, A is considered to be more specialized than P.
+
+  ```C++
+  #include <iostream>
+  using namespace std;
+
+  template <class T>
+  void fn(T *) {
+      cout << "in fn1" << endl;
+  }
+
+  template <class T>
+  void fn(const T &) {
+      cout << "in fn2" << endl;
+  }
+
+  int main() {
+      int *p = nullptr;
+      fn(p); // in fn1
+      return 0;
+  }
+  ```
+
+  对于以上代码来说，`fn1`和`fn2`比较特化程度时，把`fn2`的形参类型忽略引用，再忽略底层cv修饰符，得到`T`类型。`T *`类型比`T`类型更特化，因此`fn1`比`fn2`更特化。
+
+  ```C++
+  #include <iostream>
+  using namespace std;
+
+  template <typename T>
+  void fun(const T &) {
+      std::cout << "1" << std::endl;
+  }
+
+  template <typename T>
+  void fun(T &) {
+      std::cout << "2" << std::endl;
+  }
+  template <typename T>
+  void fun(const T &&) {
+      std::cout << "3" << std::endl;
+  }
+
+  template <typename T>
+  void fun(T &&) {
+      std::cout << "4" << std::endl;
+  }
+
+  int main() {
+      fun<const int &>(1);
+      return 0;
+  }
+  ```
+
+  对于以上代码来说，`fun`显式传入`const int &`模板实参后，得到的函数形参类型都为`const int &`，函数原型相同。因此需要判断`const T &`、`T &`、`const T &&`、`T &&`的特化程度。
+
+  由上至下依次注释每个函数模板，在gcc和msvc中依次显式1，2，3，4。在clang21.1.0下，注释掉第一个之后会出现二义性调用报错，因为clang将第二个模板和第三个模板视为同等程度的特化。
+
+  推测造成这种差异现象是因为不同编译器对于"左值引用比右值引用更特化"与"底层cv修饰符更多的更特化"这两条规则间的优先级判定不同：
+
+  + 对于gcc和msvc来说，引用的判断优先级更高，因此`T &`比`const T &&`更特化。
+  + 对于clang来说，引用和cv修饰符的判断优先级相等，因此`T &`与`const T &&`是同等程度的特化。
 
 ***
 
