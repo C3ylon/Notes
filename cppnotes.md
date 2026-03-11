@@ -2442,7 +2442,7 @@ int main(){
 
 在判断谁 **更特化(more specialized)** 时，类模板和函数模板的判断策略稍有不同。
 
-+ 类模板在类型推导时不能触发引用折叠，在比较特化程度时不能省略引用
++ 类模板在类型推导时不能触发引用折叠，在比较特化程度时不能忽略引用
 
   ```C++
   #include <iostream>
@@ -2540,6 +2540,70 @@ int main(){
 
   + 对于gcc和msvc来说，引用的判断优先级更高，因此`T &`比`const T &&`更特化。
   + 对于clang来说，引用和cv修饰符的判断优先级相等，因此`T &`与`const T &&`是同等程度的特化。
+
+  函数模板在判断特化程度时，不能带入数组可以退化成指针的观点来比较。
+
+  ```C++
+  #include <iostream>
+  using namespace std;
+
+  template <class T>
+  void fn(T *) {
+      cout << "in fn1" << endl;
+  }
+
+  template <class T, int N>
+  void fn(T (&)[N]) {
+      cout << "in fn2" << endl;
+  }
+
+  int main() {
+      int a[4];
+      fn(a);
+      // error: call to 'fn' is ambiguous
+      // fn1 和 fn2 的特化程度相同
+      // 不能理解为 T * 可以接受 T[N] 类型的参数，所以 T[N] 就更特化
+      // 实际上 T * 和 T[N] 在覆盖的类型范围上互不为子集，因此同等特化
+      return 0;
+  }
+  ```
+
+***
+
+当偏特化的类模板参数列表中有`typename`关键字修饰的模板参数时，在实例化模板选择偏特化对象的时候，该类模板`typename`关键字修饰的模板参数会被替换成实际的类型来参与特化程度的比较。
+
+```C++
+#include <iostream>
+using namespace std;
+
+template <class T>
+struct get_type {
+    using type = T;
+};
+
+template <class T, class U>
+struct st {
+    static void print() { cout << "in st1" << endl; }
+};
+
+template <class T>
+struct st<T, void> {
+    static void print() { cout << "in st2" << endl; }
+};
+
+template <class T>
+struct st<T, typename get_type<T>::type> {
+    static void print() { cout << "in st3" << endl; }
+};
+
+int main() {
+    st<void, void>::print();
+    // error: ambiguous partial specializations of 'st<void, void>'
+    // st3 的特化程度和 st2 的特化程度相同
+    // 因为 st3 的第二个模板参数在实例化的时候直接被等效替换成了 void 类型
+    return 0;
+}
+```
 
 ***
 
