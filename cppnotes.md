@@ -5738,3 +5738,34 @@ int main() {
 ```
 
 ***
+
+从C++11起，局部静态变量的初始化是线程安全的。
+
+```C++
+void fn() {
+    static int i = init();
+}
+```
+
+对于上述代码来说，当有多个线程同时调用 `fn()` 时，语言标准保证 `init()` 只会被执行一次，不会发生数据竞争。
+
+> If control enters the declaration concurrently while the variable is being initialized, the concurrent execution shall wait for completion of the initialization.
+>
+> 即：如果某个线程中的局部静态变量正在初始化，同时还有其他线程也正在进入该局部静态变量的声明，那么其他线程必须等待该线程中的变量初始化完成。
+
+具体实现等价于：
+
+```C++
+if (!initialized) {
+    lock();
+    if (!initialized) {
+        init();
+        initialized = true;
+    }
+    unlock();
+}
+```
+
+对于以上实现来说，如果两个线程同时进入外层判断，那么必定有一个线程在另一个线程完全初始化之后才能获取锁，且由于内层判断的存在也不会多次执行初始化。当某个线程完成初始化之后，其余的线程再在外层判断中读取 `initialized` 布尔量时就不需要再获取锁了，这样实现能把使用锁的场景最小化。
+
+***
