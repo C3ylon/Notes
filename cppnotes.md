@@ -5769,3 +5769,72 @@ if (!initialized) {
 对于以上实现来说，如果两个线程同时进入外层判断，那么必定有一个线程在另一个线程完全初始化之后才能获取锁，且由于内层判断的存在也不会多次执行初始化。当某个线程完成初始化之后，其余的线程再在外层判断中读取 `initialized` 布尔量时就不需要再获取锁了，这样实现能把使用锁的场景最小化。
 
 ***
+
+在定义具有**静态生命周期**且具有**非平凡析构函数**(*non-trivial destructor*)的对象时，在执行到构造函数结束时，会将该对象的析构函数压入一个全局的栈里。当整个程序执行结束时，会按FILO的原则依次弹出这个栈中的析构函数并执行。
+
+如果某个静态变量`A`的析构函数中触发了另一个静态变量`B`的构造，那么此时记录析构函数的栈已经将正在执行的析构函数`~A()`弹出（即先出栈后执行），在`B`构造结束时新压入待执行的析构函数`~B()`。对栈中析构函数的处理进行到下一个循环时，会执行析构函数`~B()`。从宏观上来看执行流程就是 `A`构造完成 -> `B`构造完成 -> `A`析构完成 -> `B`析构完成，并不是严格意义上的先构造完成的一定会后析构完成。
+
+> + 不论是全局的还是局部的静态变量都会如此处理
+>
+> + GCC的实现通常是`__cxa_atexit()`函数
+>
+>   ```C++
+>   int __cxa_atexit(
+>       void (*destructor)(void*),  // 析构函数地址
+>       void* obj,                  // 析构对象地址
+>       void* dso_handle            // 所属的动态库
+>   );
+>   ```
+
+通过以上机制，确保了所有(单个翻译单元内的)静态变量按构造的逆序进行析构。
+
+***
+
+关于静态变量析构的触发顺序可能会产生的坑点：
+
+```C++
+#include <iostream>
+using namespace std;
+
+struct log {
+    log() { cout << "log init" << endl; }
+    ~log() { cout << "log dist" << endl; }
+    static log &instance() {
+        static log l;
+        return l;
+    }
+    void work(const char *s) { cout << "log: " << s << endl; }
+};
+
+struct st {
+    st() {
+        // log::instance().work("st init");
+        cout << "st init" << endl;
+    }
+    ~st() { log::instance().work("st dist"); }
+};
+
+st s;
+
+int main() {
+    log::instance().work("...");
+    // 当 st 的构造函数中未触发 log 的构造时：
+    // st init
+    // log init
+    // log: ...
+    // log dist
+    // log: st dist
+    // 错误，s 执行析构函数时使用了已经析构的 log 静态对象
+
+    // 当 st 的构造函数中触发了 log 的构造时：
+    // log init
+    // log: st init
+    // log: ...
+    // log: st dist
+    // log dist
+    // 正确，log 静态对象最先构造，最后析构
+    return 0;
+}
+```
+
+***
