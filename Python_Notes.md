@@ -21,16 +21,12 @@ print(10 % -3)  # -2
 
 > `round()`为四舍五入，正好为5时向偶数取整。
 >
-> 取整对应到的还有`math.ceil()`和`math.floor()`,分别对应向上取整和向下取整。
+> 取整对应到的还有`math.ceil()`，`math.floor()`，`math.trunc()`,分别对应向上取整、向下取整、向零取整。其中，向零取整还可以直接用`int()`。
 > > `-3.7 // 1`的值是 -4.0，而`math.floor(-3.7)`的值是 -4。
 
 ***
 
 在Unix系统终第一行加入`#!/usr/bin/env python`就可以直接执行`foo.py`。此时可以删除文件扩展名`.py`。
-
-***
-
-`repr('xxx')`等效于`r'xxx'`的值两端加上引号，其类型仍为`str`。两者末尾都不能以反斜杠结尾，否则会报错。
 
 ***
 
@@ -40,9 +36,9 @@ print(10 % -3)  # -2
 
 表示Unicode字符串的三种方法：
 
-+ `\u` 解析1字节或2字节
-+ `\U` 解析4字节
-+ `\N{cat}` 解析括号内的emoji
++ `'\u'` 解析1字节或2字节
++ `'\U'` 解析4字节
++ `'\N{cat}'` 解析括号内的emoji
 
 ***
 
@@ -476,18 +472,31 @@ print(fn2.__name__) # fn2
 
 Python 中的**索引**：
 
-`obj[key]`完全等价于`obj.__getitem__(self, key)`。其中，`key`可以是任何类型的对象：整数、元组、列表、字符串、自定义类型，只要`obj.__getitem__(self, key)`函数支持对应的操作即可。
++ 当通过索引**读取**时：
 
-当`key`是以`,`分隔的多个元素时，会自动组合成`tuple`传入`__getitem__()`的参数中。即`obj[a, b]`等效于`obj[(a,b)]`。
+  `obj[key]`等价于`obj.__getitem__(key)`。调用的魔术方法原型是`__getitem__(self, key)`。
+
++ 当通过索引**写入**时：
+
+  `obj[key]`等价于`obj.__setitem__(key, value)`。调用的魔术方法原型是`__setitem__(self, key, value)`。
+
+其中，`key`可以是任何类型的对象：整数、元组、列表、字符串、自定义类型，只要`obj.__getitem__(key)`或`obj.__setitem__(key, value)`函数支持对应的操作即可。
+
+当`key`是以`,`分隔的多个元素时，会自动组合成`tuple`传入`__getitem__()`或`__setitem__()`的参数中。即`obj[a, b]`等效于`obj[(a,b)]`。
 
 ```python
 class MySeq:
     def __getitem__(self, key):
         print("key:", key)
 
+    def __setitem__(self, key, value):
+        print("key:", key, end=" ")
+        print("value:", value)
+
 s = MySeq()
 s[1, 2]                 # key: (1, 2)
 s[[1, 2], ['a', 'z']]   # key: ([1, 2], ['a', 'z'])
+s[1, 2] = ['a', 'z']    # key: (1, 2) value: ['a', 'z']
 ```
 
 ***
