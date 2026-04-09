@@ -675,3 +675,17 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
 ```
 
 ***
+
+从3.7开始，`dict`的遍历顺序严格等同于键的插入顺序。
+
+```python
+a = { 'a' : 1, 'b' : 2 ,'c' : 3 }
+print(a)
+b = { 'c' : 3, 'b' : 2 ,'a' : 1 }
+print(b)
+
+# {'a': 1, 'b': 2, 'c': 3}
+# {'c': 3, 'b': 2, 'a': 1}
+```
+
+***
