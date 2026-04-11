@@ -203,6 +203,7 @@ cpp标准库头文件通常不带后缀。
   };
   st a = 1;
   // 能正常初始化，说明 "1" 隐式转换之后是以直接初始化的形式来初始化 st
+  // ======================================================================
   struct st2;
   struct st1 {
     operator st2();
@@ -218,6 +219,10 @@ cpp标准库头文件通常不带后缀。
     st3(const st2 &) { }
   };
 
+  struct st4 {
+    st4(const st3 &) { }
+  };
+
   st1 a;
   // st2 b = a;
   // 即使在C++17及其之上版本也会报错 ambiguous
@@ -230,16 +235,24 @@ cpp标准库头文件通常不带后缀。
 
   st3 d = { st1{} };
   // 正确，调用到 st1::operator st2(); 无 ambiguous
-  // 如果定义：st2(const st1&); 依然会调用到 st1::operator st2();
-  // 虽然 const 引用可以引用到临时变量 st1{}，但是由于多了一个底层const
+  // st2(st1 &) 无法接收临时变量 st1{}
+  // 如果定义 st2(const st1 &); 依然会调用到 st1::operator st2();
+  // 虽然 const 引用可以引用到临时变量 st1{}，但是由于多了一个底层 const
   // 因此仍会优先选择 st1::operator st2();
+  // 如果使 st1::operator st2(); 变为 const 函数，则都多了一个底层 const
+  // 此时编译会报错 ambiguous
 
   // st3 e = { a };
   // error: conversion from 'st1' to 'const st2' is ambiguous
 
-  st3 f = { {a} };
+  st3 f = { { a } };
   // 正确，相当于 const st2 &_param = { a };
   // 列表初始化相当于"直接"调用构造函数，不会考虑到 st1::operator st2();
+
+  // st4 g = { { a } };
+  // error: conversion from 'st1' to 'const st2' is ambiguous
+
+  st4 h = { { { a } } };
   ```
 
 `T var = val;`与`T var = { val }`（即复制初始化和复制列表初始化）都不会调用`explicit`修饰的构造函数。
@@ -1045,7 +1058,7 @@ int main() {
   }
   ```
 
-  > 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次复制构造及其析构。(即使是在未开  启`-fno-elide-constructors`和开启`-O3`的情况下)
+  > 上述两种类型转换都可以把左值转换为右值，区别是类型转换1会多一次复制构造及其析构。(即使是在未开启`-fno-elide-constructors`和开启`-O3`的情况下)
   >
   > 因此左值到右值的转换最好用`(T &&)val`的形式。
 
