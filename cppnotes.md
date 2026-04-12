@@ -1201,6 +1201,8 @@ int main() {
 
 一个类内可以创建多条*由其他类型向本类类型转换*和*由本类类型向其他类型转换*的规则，要注意类比于函数重载的匹配优先级区分出转换优先级，如果在需要用到类型转换的地方有多个同优先级转换规则则会报错。(error: conversion from 'type1' to 'type2' is ambiguous)
 
+> 在底层`const`的使用状况一致时，即`T2(T1 &)`与`T1::operator T2()`，或`T2(const T1 &)`与`T1::operator T2() const`在用于处理类类型转换时优先级是一致的。
+
 ```C++
 struct st1 {
     int a;
@@ -1290,6 +1292,29 @@ int main() {
     // 错误
     // st1::operator st2() 应定义为 const 类型
     // 即：st1::operator st2() const;
+    return 0;
+}
+
+/************************************************************/
+
+struct st2;
+struct st1 {
+    operator st2();
+};
+struct st2 {
+    st2() { }
+    st2(st1 &) { }
+};
+st1::operator st2() {
+    return st2();
+}
+
+int main() {
+    st1 a;
+    // st2 b = a;
+    // error: conversion from 'st1' to 'st2' is ambiguous
+    // candidate 1: 'st1::operator st2()'
+    // candidate 2: 'st2::st2(st1&)'
     return 0;
 }
 
