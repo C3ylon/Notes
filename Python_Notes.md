@@ -1,5 +1,141 @@
 # Python
 
+## Python中的变量
+
+## 核心要点
+
+Python中的所有名称都是绑定在实体对象上。整数、浮点数、字符串、函数等，都具有实体的对象。一个变量重新赋值相当于把这个变量重新绑定到一个新的实体对象上。不同于C语言中一个变量名称对应固定的内存空间地址，Python中的变量名称可以任意绑定到具有不同内存空间地址的实体对象上。
+
+## 作用域
+
+Python中的变量名称作用域可以划分为三个部分：
+
++ 全局（非函数内也非类内）
+
+  定义在全局的变量名称会出现在`globals()`函数返回的字典里。
+
+  ```python
+  a = 1
+  b = {}
+  print(globals())
+  # {... 'a': 1, 'b': {}}
+  ```
+
++ 函数内
+
+  定义在函数内的变量名称会出现在`locals()`函数返回的字典里。
+
+  ```python
+  def fn():
+      a = 1
+      print(locals())
+  fn()
+  # {'a': 1}
+  ```
+
+  在函数内使用关键字`global`声明变量名称时，可以将该变量名称绑定到同名的全局变量名称上。此时该变量名称不会出现在`locals()`函数返回的字典里。
+
+  ```python
+  g = 1
+  def fn():
+      global g
+      print(locals())
+  fn()
+  # {}
+  ```
+
+  注意当在函数内使用关键字`global`声明变量名称时，在当前函数内且声明语句前的代码中不能出现对该变量名称的读写操作。
+
+  ```python
+  g = 1
+  def fn():
+      # 在声明 global g 前的读操作：
+      # print(g)
+      # SyntaxError: name 'g' is used prior to global declaration
+      # 在声明 global g 前的写操作：
+      # g = 2
+      # SyntaxError: name 'g' is assigned to before global declaration
+      global g
+  fn()
+  ```
+
+  函数内可以嵌套函数的定义。在内层函数中使用与外层函数中同名的变量名称时，如果在内层函数中第一次出现时是：
+
+  + 读场景：视为将该变量名称作为闭包变量来处理，内层函数和外层函数共同使用。
+  + 写场景：视为内层函数作用域内独立的变量名称，此后使用该变量名称与外层函数无关。
+
+  在内层函数内使用关键字`nonlocal`声明变量名称时，可以将该变量名称绑定到同名的最内层外围局部变量名称上。此时该变量名称仍会出现在`locals()`函数返回的字典里，因为该变量是作为闭包变量被内层函数和外层函数共同使用。
+
+  ```python
+  def fn():
+      i = 1
+      def gn():
+          nonlocal i
+          print(locals())
+      gn()
+      # {'i': 1}
+      print(gn.__closure__)
+      # (<cell at 0x1051ba890: int object at 0x100b3a318>,)
+
+      j = 1
+      def hn():
+          j = 2
+          def kn():
+              nonlocal j
+              j = 3
+          kn()
+          print(j)
+      hn()
+      # 3
+      print(j)
+      # 1
+  fn()
+  ```
+
+  注意当在内层函数内使用关键字`nonlocal`声明变量名称时，在当前函数内且声明语句前的代码中不能出现对该变量名称的读写操作。
+
+  ```python
+  def fn():
+      a = 1
+      def gn():
+          # 在声明 nonlocal a 前的读操作：
+          # print(a)
+          # SyntaxError: name 'a' is used prior to nonlocal declaration
+          # 在声明 nonlocal a 前的写操作：
+          # a = 2
+          # SyntaxError: name 'a' is assigned to before nonlocal declaration
+          nonlocal a
+  fn()
+  ```
+
+  函数默认参数绑定的默认值只会在定义函数时首次初始化，其后不会再初始化。
+
+  ```python
+  def fn(l=[]):
+      l.append('a')
+      print(l)
+  fn()
+  # ['a']
+  fn()
+  # ['a', 'a']
+  ```
+
++ 类内
+
+  类内成员变量名称绑定的默认值只会在定义类时首次初始化，其后不会再初始化
+
+  ```python
+  class cl:
+      l = []
+  a = cl()
+  a.l.append('a');
+  b = cl()
+  print(b.l)
+  # ['a']
+  ```
+
+***
+
 Python的整除为向下取整。取余公式`x % y = x - ((x // y) * y)`。
 
 ```python
