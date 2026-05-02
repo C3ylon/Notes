@@ -69,6 +69,7 @@ Python中的变量名称作用域可以划分为三个部分：
   ```python
   def fn():
       i = 1
+      not_use = 2
       def gn():
           nonlocal i
           print(locals())
