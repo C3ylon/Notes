@@ -163,7 +163,7 @@ print(10 % -3)  # -2
 
 ***
 
-在Unix系统终第一行加入`#!/usr/bin/env python`就可以直接执行`foo.py`。此时可以删除文件扩展名`.py`。
+在Unix系统中第一行加入`#!/usr/bin/env python`就可以直接执行`foo.py`。此时可以删除文件扩展名`.py`。
 
 ***
 
