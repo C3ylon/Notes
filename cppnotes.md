@@ -4490,6 +4490,32 @@ cl b = { {} };
 // 当注释掉默认构造函数 cl() 后，两者都会输出 initializer_list init
 ```
 
+clang和gcc对于列表初始化两种不同的解析方式：
+
+```C++
+#include <initializer_list>
+
+struct st1 {
+    explicit st1() { };
+};
+struct st2 {
+    st2(std::initializer_list<st1>) { };
+};
+
+st2 a{ {} };
+// clang中编译正确
+// gcc中编译错误，error: converting to 'st1' from initializer list
+// would use explicit constructor 'st1::st1()'
+// 推测解析原理：
+// 对于gcc来说，列表不为空，匹配到 st2 的 std::initializer_list 构造函数，
+// 外层的 {} 相当于 std::initializer_list<st1>{} 的 {}，
+// 内层的 {} 相当于默认构造一个 st1 对象，因此出错，
+// 改为 st2 a{ std::initializer_list<st1>{} }; 即可正常编译
+// 对于clang来说，同样触发到与gcc相同的出错的地方，分歧点在于clang
+// 可以"回退"错误，把外层的 {} 当作列表初始化的 {}，
+// 内层的 {} 当作 std::initializer_list<st1>{}，因此能正常编译
+```
+
 对于POD结构体而言，列表初始化最优先考虑POD式的初始化，而不会考虑类类型转换后再调用复制构造函数。
 
 ```C++
