@@ -4520,7 +4520,17 @@ st3 d { st4{} };
 
 使用列表初始化(`T var { val... }`或`T var = { val... }`)时需要注意性能损失产生的情况。
 
-使用 `T var { val... }` 或 `T var = { val... }` 初始化 `var` 时通常需要经过两波复制初始化。第一波复制初始化是通过 `val...` 的值构造出一个 `std::initializer_list<T>` 临时量，第二波复制初始化是通过构造出的临时量来构造 `var` 的成员。
+`std::initializer_list<T>`是只读视图，其内部实现等效于以下结构：
+
+```C++
+template<class T>
+class initializer_list {
+    const T *array;
+    size_t len;
+};
+```
+
+因此使用 `T var { val... }` 或 `T var = { val... }` 初始化 `var` 时通常需要经过两波复制初始化。第一波复制初始化是通过 `val...` 的值构造出一个 `std::initializer_list<T>` 临时量，第二波复制初始化是通过构造出的临时量的各个成员来构造 `var` 的成员。
 
 通常情况下能通过 `T var { std::move(val)... }` 优化的是第一波复制初始化，而不能优化第二波复制初始化，在这里容易出现性能损失。
 
