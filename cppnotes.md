@@ -252,6 +252,7 @@ unsigned long long c = a + b; // 0
   // 因此仍会优先选择 st1::operator st2();
   // 如果使 st1::operator st2(); 变为 const 函数，则都多了一个底层 const
   // 此时编译会报错 ambiguous
+  // 如果使 st2(st1 &); 变为 st2(st1 &&); 此时同样编译会报错ambiguous
 
   // st3 e = { a };
   // error: conversion from 'st1' to 'const st2' is ambiguous
