@@ -4818,7 +4818,7 @@ int main() {
 
 或：
 
-1. allocate memory for the `T1
+1. allocate memory for the `T1`
 2. allocate memory for the `T2`
 3. construct the `T1`
 4. construct the `T2`
@@ -5479,7 +5479,7 @@ struct _stat64 var;
 
   > `operator delete`函数返回值必须是`void`类型，至少有一个参数，且第一个参数必须是`void *`类型。
   >
-  > 当`operator delete`函数有一个以上参数的时候，不能通过`delete`表达式显式触发（即不能写成`delete(...) p`）。这种形式的函数仅会在 `new(...) T` / `new(...) T(...)` / `new(...) T{...}` 成功执行完`operator new(std::size_t, ...)`函数之后且初始化`T`类型的对象过程中发生异常时被动触发，用作释放已经被分配的内存，避免内存泄露。
+  > 当`operator delete`函数有一个以上参数的时候，不能通过`delete`表达式显式执行（即不能写成`delete(...) p`）。这种形式的函数仅会在 `new(...) T` / `new(...) T(...)` / `new(...) T{...}` 成功执行完`operator new(std::size_t, ...)`函数之后且初始化`T`类型的对象过程中发生异常时隐式执行，用作释放已经被分配的内存，避免内存泄露。（此时隐式执行的`operator delete(void *p, ...)`函数的自定义参数列表需要与被回滚对象`operator new(std::size_t, ...)`的自定义参数列表完全一致，否则无法匹配上，导致初始化对象失败时不会执行对`operator new`函数的回滚操作）
 
 `new`表达式会依次执行以下两个动作：
 
@@ -5535,7 +5535,6 @@ int main() {
         delete p;
         cout << "==================" << endl;
         p = new(22) cl(true);
-        delete p;
     } catch(...) {
         cout << "oops, in catch block" << endl;
     }
