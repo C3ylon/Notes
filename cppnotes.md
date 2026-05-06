@@ -5554,7 +5554,7 @@ int main() {
 
 `new(...) T` / `new(...) T(...)` / `new(...) T{...}` 用法扩展：
 
-+ Placement New（定位`new`）：
++ Non-allocating placement allocation functions：
 
   用于在已分配的内存上构造对象。其实现类似于：
 
