@@ -826,3 +826,22 @@ print(b)
 ```
 
 ***
+
+`and`和`or`两侧的类型可以不一致。
+
++ `A and B`表达式的值:
+  + 当`A`为`False`时返回`A`
+  + 当`A`为`True`时返回`B`
++ `A or B`表达式的值:
+  + 当`A`为`False`时返回`B`
+  + 当`A`为`True`时返回`A`
+
+```python
+a = {}
+b = set()
+c = a and b
+d = a or b
+print(c, d) # {} set()
+```
+
+***
