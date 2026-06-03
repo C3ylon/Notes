@@ -28,12 +28,16 @@ cpp标准库头文件通常不带后缀。
 无符号和有符号类型混合运算时：
 
 + 当有符号类型能完全覆盖无符号类型的取值范围时，把无符号类型转换为该有符号类型计算（注意这种场景下不能发生溢出）
-+ 其余情况把有符号类型转换为该无符号类型计算
++ 其余情况选择具有更高整数转换等级的类型的无符号版本作为无符号类型和有符号类型需要转换到的公共类型，转换为公共类型之后再进行计算。
 
 ```C++
 unsigned int a = 0xffffffff;
 int b = 1;
-unsigned long long c = a + b; // 0
+auto c = a + b; // c类型为 unsigned int，值为 0
+long d = 1;
+auto e = a + d;
+// Linux 下 e 类型为 long(8 bytes)，值为4294967296
+// Windows 下 e 类型为 unsigned long(4 bytes)，值为0
 ```
 
 ***
