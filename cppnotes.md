@@ -66,6 +66,20 @@ unsigned char g = 0xff;
 auto h = f + g;
 // f 和 g 在相加时整型提升为 int 类型
 // h 类型为 int，值为 256
+enum E1 {
+    e1a = 1,
+    e1b = 0xffffffff
+};
+enum E2 {
+    e2a = 1,
+    e2b = 0x100000000
+};
+auto i = a + E1::e1a;
+auto j = a + E2::e2a;
+// i 类型为 unsigned int，值为 0
+// Linux 下 j 类型为 long(8 bytes)，值为 4294967296
+// Windows 下 j 类型为 long long(8 bytes)，值为 4294967296
+
 ```
 
 ***
