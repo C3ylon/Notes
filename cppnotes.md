@@ -6041,3 +6041,14 @@ int main() {
 > 对于C而言：如果局部静态变量的初始值不是编译期常量，则编译时会报错(*error: initializer element is not constant*)。
 
 ***
+
+C++中的六种内存序：
+
++ `memory_order_relaxed`
++ `memory_order_consume` (*deprecated in C++26*)
++ `memory_order_acquire`
++ `memory_order_release`
++ `memory_order_acq_rel`
++ `memory_order_seq_cst`
+
+***
