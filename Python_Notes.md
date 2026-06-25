@@ -547,7 +547,7 @@ fn2 = decorator(fn2)
 # fn1 fn2完全等效
 ```
 
-以上实现有一个问题，`fn1.__name__ == "inner"`，`fn2.__name__ == inner`。
+以上实现有一个问题，`fn1.__name__ == "inner"`，`fn2.__name__ == "inner"`。
 
 为了避免这种情况，可以使用`functools.wraps`。
 
@@ -604,6 +604,8 @@ fn2 = decorator(fn2)
 print(fn1.__name__) # fn1
 print(fn2.__name__) # fn2
 ```
+
+当`@`后出现与`def`命名的名称相同的名称时，可以看作`def`定义的一个临时函数对象还没有绑定名称，然后用`@`后的表达式来调用这个临时函数对象，最后调用的结果绑定到`def`命名的名称上。
 
 ***
 
