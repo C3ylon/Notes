@@ -607,6 +607,52 @@ print(fn2.__name__) # fn2
 
 当`@`后出现与`def`命名的名称相同的名称时，可以看作`def`定义的一个临时函数对象还没有绑定名称，然后用`@`后的表达式来调用这个临时函数对象，最后调用的结果绑定到`def`命名的名称上。
 
+```python
+class MyPro:
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, instance, owner):
+        return self.fget(instance)
+
+    def setter(self, fset):
+        self.fset = fset
+        return self
+
+    def __set__(self, instance, value):
+        self.fset(instance, value)
+
+class cl:
+    def __init__(self, i):
+        self.i = i
+
+    @property
+    def x(self):
+        return self.i ** 2
+
+    @x.setter
+    def x(self, i):
+        self.i = i + 1
+
+    @MyPro
+    def y(self):
+        return self.i ** 2
+
+    @y.setter
+    def y(self, i):
+        self.i = i + 1
+
+a = cl(2)
+print(a.x) # 4
+a.x = 3
+print(a.x) # 16
+
+b = cl(2)
+print(b.y) # 4
+b.y = 3
+print(b.y) # 16
+```
+
 ***
 
 Python 中的**索引**：
