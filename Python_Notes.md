@@ -653,6 +653,20 @@ b.y = 3
 print(b.y) # 16
 ```
 
+内置类`property`定义在 builtins.pyi 文件中，其内部只声明了两个`__get__`函数：
+
+```python
+# 1. 直接通过类来访问
+@overload
+def __get__(self, instance: None, owner: type, /) -> Self: ...
+# 2. 通过类的实例对象来访问
+@overload
+def __get__(self, instance: Any, owner: type | None = None, /) -> Any: ...
+# 3. 缺失，没有非 overload 修饰的真正实现
+```
+
+原因是 .pyi 文件作用是提供给 IDE 和静态类型检查工具作为说明，而 Python 解释器在运行代码时会直接调用底层的 C 语言模块来执行对应的逻辑。在 .pyi 文件中所有的函数体都用`...`代替，表示实现被省略。
+
 ***
 
 Python 中的**索引**：
