@@ -72,13 +72,16 @@ print(df)
 # 0  1  4  2   4
 # 1  2  5  4  10
 # 2  3  6  6  18
-print(df['b'] >= 5)
+s = df['b'] >= 5
+print(type(s))
+# <class 'pandas.core.series.Series'>
+print(s)
 # 0    False
 # 1     True
 # 2     True
 
 #注意 index 是原 df 被选中的行，而不是直接按从零开始递增
-print(df[df['b'] >= 5])
+print(df[s])
 #    a  b  c   d
 # 1  2  5  4  10
 # 2  3  6  6  18
