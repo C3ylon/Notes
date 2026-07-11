@@ -236,6 +236,32 @@ Python内置**容器**：
 
 ***
 
+函数参数：
+
+```python
+def fn(a, /, b, d1=1, *args, c, d2=3, **kwargs):
+    pass
+```
+
++ a 是**仅限位置参数**(**positional-only parameter**)，出现在`/`符号前。`/`符号用于形参列表中的特性是从 Python 3.8 开始引入。调用函数时对应的实参只能通过位置参数的形式传入，而不能通过关键字参数的形式传入。
++ b 是**位置参数**(**positional parameter**)。调用函数时对应的实参既可以通过位置参数的形式传入，又可以通过关键字参数的形式传入。
++ d1 是位置参数列表对应的**默认参数**(**default parameter**)。这一类默认参数必须在所有仅限位置参数以及位置参数的最后。即允许`fn(a, d1=1, /)`和`fn(a, /, b, d1=1)`，不允许`fn(a, d1=1, /, b)`
++ args 是**可变位置参数**(**variable positional parameter**)。如果仅有一个`*`号是不能接收可变参数列表的，必须要有`args`这样的参数名称才可以接收可变参数列表。
++ c 是**关键字参数**(**keyword-only parameter**)。调用函数时对应的实参只能通过关键字参数的形式传入，而不能通过位置参数的形式传入。
++ d2 是关键字参数列表对应的**默认参数**(**default parameter**)。这一类默认参数必须在所有关键字参数的最后，在可变关键字参数之前。
++ kwargs 是**可变关键字参数**(**variable keyword parameter**)。不能仅有`**`号，必须要有`kwargs`这样的参数名称。
+
+实参传递形式：
+
++ **positional argument**: 位置实参
++ **keyword argument**: 关键字实参
+
+```python
+fn(positional_argument, keyword_argument=0)
+```
+
+***
+
 格式化输出:
 
 | 替换字段名 | 转换标志 | 冒号 | 填充字符 | 对齐方式 | 正号 | 对齐数 | 逗号分位符 | 小数位数 | 类型说明 |
