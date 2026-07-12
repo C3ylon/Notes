@@ -165,3 +165,72 @@ df.info()
 # dtypes: int64(3)
 # memory usage: 200.0 bytes
 ```
+
+选取指定行/列的数据：
+
+```python
+df = pd.DataFrame({'a': [1, 4, 7], 'b': [2, 5, 8], 'c': [3, 6, 9]})
+
+# 1.1 选取单列，返回 Series 类型
+print(df['a'])
+# 0    1
+# 1    2
+# 2    3
+# Name: a, dtype: int64
+
+# 1.2 选取多列，返回 DataFrame 类型
+print(df[['a']])
+#    a
+# 0  1
+# 1  2
+# 2  3
+print(df[['a', 'c']])
+#    a  c
+# 0  1  7
+# 1  2  8
+# 2  3  9
+
+# 2.1 选取单行，返回 Series 类型
+print(df.loc[0])
+# a    1
+# b    4
+# c    7
+# Name: 0, dtype: int64
+
+# 2.2 选取多行，返回 DataFrame 类型
+print(df.loc[[0]])
+#    a  b  c
+# 0  1  4  7
+print(df.loc[[0, 2]])
+#    a  b  c
+# 0  1  4  7
+# 2  3  6  9
+
+# 2.3 以切片形式选取多行
+print(df[1:2])
+#    a  b  c
+# 1  2  5  8
+
+# 2.4 以布尔掩码形式选取多行
+print(df[[False, True, False]])
+print(df[pd.Series([False, True, False])])
+#    a  b  c
+# 1  2  5  8
+#    a  b  c
+# 1  2  5  8
+
+# 3 选取对应行和列的交点
+print(df.loc[1, 'b':'c'])
+# b    5
+# c    8
+# Name: 1, dtype: int64
+print(df.loc[1:2, 'b':'c'])
+#    b  c
+# 1  5  8
+# 2  6  9
+print(df.iloc[1:2, 1:2])
+#    b
+# 1  5
+print(df.iloc[1, 1])
+# 5
+```
