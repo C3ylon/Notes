@@ -5592,6 +5592,44 @@ int main() {
 // oops, in catch block
 ```
 
+如果仅需要分配空间而不希望执行初始化的动作，可以直接调用`::operator new()`函数，不过需要注意的是如果调用的是`void *::operator new(std::size_t)`函数，则分配空间的默认对齐大小由宏`__STDCPP_DEFAULT_NEW_ALIGNMENT__`决定。如果需要更大的内存对齐，则需要调用`void *::operator new(std::size_t, std::align_val_t)`函数。
+
+如果直接使用`new`表达式，则一定能保证对应的内存对齐大小。
+
+```C++
+#include <iostream>
+
+struct alignas(64) OverAligned {
+    int data;
+};
+
+int main() {
+    std::cout << "__STDCPP_DEFAULT_NEW_ALIGNMENT__ = "
+        << __STDCPP_DEFAULT_NEW_ALIGNMENT__ << std::endl; // 16
+
+    new long double;
+    // mov     edi, 16
+    // call    "operator new(unsigned long)"
+
+    new OverAligned;
+    // mov     esi, 64
+    // mov     edi, 64
+    // call    "operator new(unsigned long, std::align_val_t)"
+
+    (void)::operator new(64, static_cast<std::align_val_t>(64));
+    // mov     esi, 64
+    // mov     edi, 64
+    // call    "operator new(unsigned long, std::align_val_t)"
+
+    new(static_cast<std::align_val_t>(64)) unsigned char;
+    // mov     esi, 64
+    // mov     edi, 1
+    // call    "operator new(unsigned long, std::align_val_t)"
+
+    return 0;
+}
+```
+
 `new(...) T` / `new(...) T(...)` / `new(...) T{...}` 用法扩展：
 
 + Non-allocating placement allocation functions：
