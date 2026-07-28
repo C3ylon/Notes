@@ -2004,7 +2004,11 @@ lambda 函数默认情况下不能修改到按值捕获的变量的值，因为�
 ```C++
 void fn() {
     int i = 0;
-    auto l = [i] { };
+    auto l = [i] {
+        // i = 1;
+        // error: cannot assign to a variable
+        // captured by copy in a non-mutable lambda
+    };
 }
 // fn() 等效于以下内容：
 void fn() {
@@ -2013,7 +2017,11 @@ void fn() {
     class __lambda {
     public:
         __lambda(int i) : i{i} { }
-        void operator()() const { }
+        void operator()() const {
+            // i = 1;
+            // error: cannot assign to non-static data member
+            // within const member function 'operator()'
+        }
     private:
         int i;
     };
@@ -2027,7 +2035,9 @@ void fn() {
 ```C++
 void gn() {
     int i = 0;
-    auto l = [i]() mutable { };
+    auto l = [i]() mutable {
+        i = 1;
+    };
 }
 // gn() 等效于以下内容：
 void gn() {
@@ -2036,7 +2046,9 @@ void gn() {
     class __lambda {
     public:
         __lambda(int i) : i{i} { }
-        void operator()() { }
+        void operator()() {
+            i = 1;
+        }
     private:
         int i;
     };
