@@ -1999,9 +1999,55 @@ int main() {
 
 ***
 
-默认情况下不能修改到按值捕获变量的值。如果希望能修改，需要在参数列表尾加上 `mutable` 关键字。
+lambda 函数默认情况下不能修改到按值捕获的变量的值，因为编译器生成的等效闭包类中定义的 `operator()` 函数是默认带有 `const` 修饰符的。
+
+```C++
+void fn() {
+    int i = 0;
+    auto l = [i] { };
+}
+// fn() 等效于以下内容：
+void fn() {
+    int i = 0;
+
+    class __lambda {
+    public:
+        __lambda(int i) : i{i} { }
+        void operator()() const { }
+    private:
+        int i;
+    };
+
+    __lambda l = __lambda{i};
+}
+```
+
+如果希望能修改，需要在参数列表尾加上 `mutable` 关键字，此时编译器生成的等效闭包类中定义的 `operator()` 函数不会再带有 `const` 修饰符。
+
+```C++
+void gn() {
+    int i = 0;
+    auto l = [i]() mutable { };
+}
+// gn() 等效于以下内容：
+void gn() {
+    int i = 0;
+
+    class __lambda {
+    public:
+        __lambda(int i) : i{i} { }
+        void operator()() { }
+    private:
+        int i;
+    };
+
+    __lambda l = __lambda{i};
+}
+```
 
 `mutable` 关键字的位置在参数列表之后，尾置返回类型的 `->` 符号之前。形如 `[capture_list](parameter_list) mutable -> return_type { function_body }`。这种情况下即使参数列表为空也不能省略参数列表两端的括号。
+
+`mutable` 关键字修饰的 lambda 函数中按值捕获的变量发生的修改也会在两次不同的函数调用间传递下去。
 
 ```C++
 #include <iostream>
@@ -2015,10 +2061,12 @@ void fn() {
         // captured by copy in a non-mutable lambda
         cout << a << endl; // 1
     }();
-    [a]() mutable {
+    auto l = [a]() mutable {
         ++a;
-        cout << a << endl; // 2
-    }();
+        cout << a << endl;
+    };
+    l(); // 2
+    l(); // 3
     cout << a << endl; // 1
 }
 
@@ -2159,7 +2207,7 @@ int main() {
 
     struct Functor {
         explicit Functor(const Cl &capCl) : capturedCl(capCl) { };
-        void operator()(int i) {
+        void operator()(int i) const {
             capturedCl.print(i);
         }
         const Cl &capturedCl;
