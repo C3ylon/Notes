@@ -6156,3 +6156,61 @@ C++中的六种内存序：
 | `memory_order_seq_cst` | 在**写**操作中前面的读/写指令不能被推后，在**读**操作中后面的读/写指令不能被提前，在**读改写**(**RMW**)操作中同时满足双向屏障 | 所有`seq_cst`操作满足单一全序(*single total order*)，即所有线程观测到的结果相同，且各个线程中的 sequenced-before 都可以在全序中找到子序列 |
 
 ***
+
+类的非静态成员函数除了可以使用cv限定符 (*cv-qualifier*) 之外还可以使用引用限定符 (*Ref-qualifier*)：
+
++ 如果某个成员函数使用了引用限定符，那么该函数的所有重载版本必须全部使用引用限定符，不能再定义无引用限定符修饰的版本
++ 引用限定符可以和cv限定符叠加使用
++ cv限定符修饰的函数体内`*this`也会带上同样的cv特性，而引用限定符修饰的函数体内`*this`不会带上对应的左右值属性，`*this`始终是一个左值表达式
+
+```C++
+#include <iostream>
+using namespace std;
+
+class cl {
+public:
+    void fn() & { cout << "1" << endl; }           // --- a
+    void fn() const & { cout << "2" << endl; }     // --- b
+    void fn() && { cout << "3" << endl; }          // --- c
+    void fn() const && { cout << "4" << endl; }    // --- d
+    // void fn() { }
+    // error: cannot overload a member function without a ref-qualifier
+    // with a member function with ref-qualifier.
+
+};
+
+int main() {
+    cl a;
+    a.fn();
+    static_cast<const cl&>(a).fn();
+    static_cast<cl&&>(a).fn();
+    static_cast<const cl&&>(a).fn();
+    return 0;
+}
+// 输出: 1 2 3 4
+// 当注释 a 时，输出: 2 2 3 4
+// 当注释 c 时，输出: 1 2 4 4
+// 当注释 c d 时，输出: 1 2 2 2
+
+// ========================================================
+
+#include <iostream>
+using namespace std;
+
+class cl {
+    void gn() { cout << "in non-const" << endl; }
+    void gn() const { cout << "in const" << endl; }
+public:
+    void fn() { gn(); }
+    void fn() const { gn(); }
+};
+
+int main() {
+    cl a;
+    a.fn();                                // in non-const
+    static_cast<const cl &>(a).fn();       // in const
+    return 0;
+}
+```
+
+***
