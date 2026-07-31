@@ -6214,3 +6214,35 @@ int main() {
 ```
 
 ***
+
+函数模板中避免模板参数隐式推导的一种技巧：
+
+```C++
+template <typename T>
+struct identity {
+    typedef T type;
+};
+
+template <typename T>
+using identity_t = typename identity<T>::type;
+
+template <typename T>
+T add_bad(T a, T b) {
+    return a + b;
+}
+
+template <typename T>
+T add_good(T a, identity_t<T> b) {
+    return a + b;
+}
+
+int main() {
+    // add_bad(1.0, 2);
+    // error: template argument deduction/substitution failed:
+    //        deduced conflicting types for parameter 'T' ('double' and 'int')
+    add_good(1.0, 2); // double add_good<double>(double a, double b)
+    return 0;
+}
+```
+
+***
