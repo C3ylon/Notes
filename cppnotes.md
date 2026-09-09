@@ -4349,7 +4349,16 @@ void printValInB() {
   >     // NS3::a 作为内层作用域中的名称
   >     // 屏蔽了在全局命名空间层级下的名称查找范围中才能找到的 NS1::a 和 NS2::a
   > }
-  > ```
+  >
+  > namespace NS4 {
+  >     namespace NS5 {
+  >         using namespace NS1::NS2;
+  >     }
+  >     using namespace NS5;
+  >     int a = 4;
+  >     int b = a;
+  >     // 正确，直接查找到 NS4::a，屏蔽了 NS1::a 和 NS2::a
+  > }
 
 ***
 
