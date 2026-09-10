@@ -5120,7 +5120,6 @@ template <class T>
 class cl1 {
     template <class U>
     class cl2;
-
 };
 
 template <>
@@ -5171,8 +5170,9 @@ public:
 template <class T>
 int cl<T>::a;
 
-// 此处"定义" a 时，cl<int> 未有特化定义
-// 因此实际上 a 并没有定义，只能算作一种声明
+// 此处"定义" cl<int>::a 时，cl<int> 未有特化定义
+// 因此实际上 cl<int>::a 并没有定义，只能算作一种声明
+// 后续对 cl<int>::a 操作时会链接不到具体的实体变量
 template<>
 int cl<int>::a;
 
@@ -5228,8 +5228,6 @@ int main() {
     cl<int>::a = 1;
     return 0;
 }
-
-
 ```
 
 ***
