@@ -5078,6 +5078,85 @@ int main() {
 
 ***
 
+(完全)特化模板可以不给出完整的定义，只在通用基础模板上覆盖部分指定函数或类的定义。所有未显式覆盖的函数和类默认沿用通用基础模板的函数和类。当不给出完整定义时，在类外定义函数时需要在最外层加上`template <>`，当给出完整定义时，则需要省略`template <>`。
+
+```C++
+#include <iostream>
+using namespace std;
+
+template <typename T>
+struct st {
+    static void fn() {
+        cout << "in general fn" << endl;
+    }
+    static void gn() {
+        cout << "in general gn" << endl;
+    }
+    template <typename U>
+    struct inner {
+        static void hn() {
+            cout << "in general hn" << endl;
+        }
+    };
+};
+
+template <>
+void st<int>::gn() {
+    cout << "in specialized gn" << endl;
+}
+
+// template <>
+// template <typename T>
+// void st<int>::inner<T>::hn() {
+//     cout << "in specialized hn" << endl;
+// }
+// error: invalid use of incomplete type 'struct st<int>::inner<U>'
+
+template <>
+template <typename T>
+struct st<int>::inner {
+    static void hn();
+};
+
+template <>
+template <typename T>
+void st<int>::inner<T>::hn() {
+    cout << "in specialized hn" << endl;
+}
+
+template <>
+struct st<double> {
+    static void gn();
+    template <typename T>
+    struct inner {
+        static void hn();
+    };
+};
+
+void st<double>::gn() {
+    cout << "in specialized gn 2" << endl;
+}
+
+template <typename T>
+void st<double>::inner<T>::hn() {
+    cout << "in specialized hn 2" << endl;
+}
+
+int main() {
+    st<int>::fn();                  // in general fn
+    st<int>::gn();                  // in specialized gn
+    st<int>::inner<int>::hn();      // in specialized hn
+
+    // st<double>::fn();
+    // fn 的定义已在 st<double> 的完整定义中被覆盖
+    st<double>::gn();               // in specialized gn 2
+    st<double>::inner<int>::hn();   // in specialized hn 2
+    return 0;
+}
+```
+
+***
+
 对于定义模板成员时是否需要加 `template <>` 的探讨：
 
 ```C++
