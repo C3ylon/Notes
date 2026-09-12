@@ -5078,7 +5078,63 @@ int main() {
 
 ***
 
-(完全)特化模板可以不给出完整的定义，只在通用基础模板上覆盖部分指定函数或类的定义。所有未显式覆盖的函数和类默认沿用通用基础模板的函数和类。当不给出完整定义时，在类外定义函数时需要在最外层加上`template <>`，当给出完整定义时，则需要省略`template <>`。
+对一个类模板进行显式特化(*explicit specialization*)有两种形式（也即完全特化一个类模板）：
+
++ 仅对通用基础模板内的指定函数或类进行重定义。当对函数进行重定义时，需要使同名函数的返回值类型、形参数量及类型等效一致。当对类进行重定义时，需要使同名类的模板参数等效一致。所有未显式重定义的函数和类默认沿用通用基础模板的函数和类。此时需注意在最外层加上`template <>`。
+
+  ```C++
+  template <typename T>
+  struct st {
+      void fn(T);
+
+      template <typename U>
+      void gn(T, U);
+
+      template <typename U>
+      struct inner { };
+
+      void hn() { }
+  };
+
+  template <>
+  void st<int>::fn(int) { }
+
+  template <>
+  template <typename T>
+  void st<int>::gn(int, T) { }
+
+  template <>
+  template <typename T>
+  struct st<int>::inner { };
+
+  // 未显式重定义 hn，默认沿用通用基础模板中的 hn
+  void (st<int>::*p)() = &st<int>::hn;
+  ```
+
+  对指定静态成员函数的重定义将默认沿用其静态属性（即默认`static`），但是`inline`、`constexpr`等属性是通用基础模板的成员函数和显式特化模板的成员函数所各自独有的，不会默认沿用。
+
+  > `static`之所以会默认沿用，更准确地说其实不是显式特化继承了`static`，而是其成员身份(*static member* / *non-static member*)已经由通用基础模板内的声明所确定。而`inline`、`constexpr`、`consteval`等属性则被视为由显式特化自身的声明决定。
+
+  ```C++
+  template <typename T>
+  struct st {
+      static inline void fn();
+  };
+
+  template <>
+  inline void st<int>::fn() { }
+  // st<int>::fn 如果定义在头文件中且被多个翻译单元引用
+  // 则这里必须显式加上 inline 关键字
+  // 否则由于显式特化时会直接生成一份 fn 的实现而导致多重定义报错
+
+  void (*p)() = &st<int>::fn;
+  // void (st<int>::*p)() = &st<int>::fn;
+  // error: cannot initialize a variable of type 'void (st<int>::*)()'
+  // with an rvalue of type 'void (*)()'
+  // st<int>::fn 自带静态属性
+  ```
+
++ 对整个通用基础模板进行重定义。这种情况下可以免除指定重定义中需要名称和类型一致的限制，且也不会再默认沿用通用基础模板中未显式重定义的成员。此时需注意在最外层省略`template <>`。
 
 ```C++
 #include <iostream>
@@ -5126,31 +5182,31 @@ void st<int>::inner<T>::hn() {
 
 template <>
 struct st<double> {
-    static void gn();
-    template <typename T>
+    static void gn(int);
+    template <typename T, typename U>
     struct inner {
         static void hn();
     };
 };
 
-void st<double>::gn() {
+void st<double>::gn(int) {
     cout << "in specialized gn 2" << endl;
 }
 
-template <typename T>
-void st<double>::inner<T>::hn() {
+template <typename T, typename U>
+void st<double>::inner<T, U>::hn() {
     cout << "in specialized hn 2" << endl;
 }
 
 int main() {
-    st<int>::fn();                  // in general fn
-    st<int>::gn();                  // in specialized gn
-    st<int>::inner<int>::hn();      // in specialized hn
+    st<int>::fn();                          // in general fn
+    st<int>::gn();                          // in specialized gn
+    st<int>::inner<int>::hn();              // in specialized hn
 
     // st<double>::fn();
     // fn 的定义已在 st<double> 的完整定义中被覆盖
-    st<double>::gn();               // in specialized gn 2
-    st<double>::inner<int>::hn();   // in specialized hn 2
+    st<double>::gn(1);                      // in specialized gn 2
+    st<double>::inner<int, double>::hn();   // in specialized hn 2
     return 0;
 }
 ```
