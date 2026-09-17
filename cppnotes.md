@@ -4352,12 +4352,14 @@ void printValInB() {
   >
   > namespace NS4 {
   >     namespace NS5 {
-  >         using namespace NS1::NS2;
+  >         using namespace NS1;
   >     }
   >     using namespace NS5;
   >     int a = 4;
   >     int b = a;
   >     // 正确，直接查找到 NS4::a，屏蔽了 NS1::a 和 NS2::a
+  >     // 如果没有 int a = 4; 则会报错 reference to 'a' is ambiguous
+  >     // 同时匹配到 NS1::a 和 NS1::NS2::a
   > }
 
 ***
