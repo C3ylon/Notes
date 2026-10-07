@@ -934,3 +934,29 @@ print(c, d) # {} set()
 ```
 
 ***
+
+Python在获取类成员函数名称时，同时也会获取到具体实例对象的指针(`__self__`)。
+
+```python
+def caller(fn, *args):
+    fn(*args)
+    print(fn.__func__)
+    print(fn.__self__)
+    # 等效：
+    fn.__func__(fn.__self__, *args)
+
+class cl:
+    def __init__(self):
+        self.s = "cl: "
+    def call(self, content):
+        print(self.s + content)
+
+a = cl()
+caller(a.call, "bingo")
+# cl: bingo
+# <function cl.call at 0x104d18040>
+# <__main__.cl object at 0x104c2e660>
+# cl: bingo
+```
+
+***
