@@ -4554,6 +4554,30 @@ int &&
 
 ```C++
 #include <iostream>
+using namespace std;
+
+class cl {
+public:
+    cl() { cout << "default init" << endl; }
+    cl(int) { cout << "int init" << endl; }
+    template <typename T>
+    cl(const std::initializer_list<T> &) {
+        cout << "initializer_list init" << endl;
+    }
+};
+
+cl a {};    // default init
+cl b { 1 }; // initializer_list init
+// 当列表不为空时，仍优先匹配到参数类型为 std::initializer_list<T> 的模板函数
+// 而不会匹配到参数类型为 int 的非模板函数
+
+int main() {
+    return 0;
+}
+
+// ==================================================================
+
+#include <iostream>
 #include <initializer_list>
 
 using namespace std;
