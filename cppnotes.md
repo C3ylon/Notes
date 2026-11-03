@@ -509,9 +509,66 @@ st2 b = st1(1);
   + `T`类型的非`explicit`修饰的可以用单个实参调用的构造函数，且需满足从实参类型（即`b`的类型）到形参类型（即构造函数的形参类型）最多只能经过一次内置类型转换，不能经过自定义类型转换
   + `b`类型的 `operator T()` 类型转换函数
 
+```C++
+struct qt;
+struct st {
+    st() = default;
+    st(const qt &) { }
+};
+struct qt {
+    operator st() const { return st{}; }
+};
+
+qt a;
+st b = a;
+// error: conversion from 'qt' to 'st' is ambiguous
+// 注：以上报错在clang中能正常触发，在GCC中需要开启 -Wpedantic 选项才会触发
+// 但是在GCC中定义 qt::operator st() const & { return st{}; } 时又能正常触发
+// 推测是GCC对 st::st(const qt &) 和 qt::operator st() const 这一特定场景采取了规则放宽处理
+```
+
 对于复制列表初始化来说，完全省略了隐式转换的环节，可以理解为本质上是按照重载决议的规则从`T`的构造函数列表中选择最优匹配的一个函数然后直接调用（`T`的构造函数列表中如果包括`std::initializer_list`则会最优先尝试匹配该构造函数）。
 
+```C++
+struct qt;
+struct st {
+    st() = default;
+    st(const qt &) { }
+};
+struct qt {
+    operator st() const { return st{}; }
+};
+
+qt a;
+st b = {a};
+// 无歧义匹配到 st::st(const qt &)
+```
+
 需要注意的是，对于构造函数是否被`explicit`修饰以及实参是否发生窄化的检查在重载决议的步骤之后，即在重载决议阶段复制列表初始化和直接列表初始化表现是完全等价的。当重载决议完成之后，进入真正调用最优匹配函数的阶段，此时如果检查到该函数被`explicit`修饰或从实参到形参会发生窄化则会报错。
+
+```C++
+struct st {
+    explicit st(int) {}
+    st(double) {}
+};
+
+st a = {1};
+// error: chosen constructor is explicit in copy-initialization
+// ============================================================
+struct stInt {
+    stInt(int i) {}
+};
+
+struct st {
+    st(unsigned) { }
+    st(stInt) {}
+};
+
+int i = 1;
+st a = {i};
+// error: non-constant-expression cannot be narrowed
+// from type 'int' to 'unsigned int' in initializer list
+```
 
 ***
 
