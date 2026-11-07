@@ -572,6 +572,32 @@ st a = {i};
 
 ***
 
+(直接或复制)列表初始化与直接初始化的一些细节区别：
+
+对于形如`T a { {args...} };`或形如`T a = { {args...} };`的初始化来说，初始化列表只有一个元素，且这个元素本身也为一个初始化列表，为了避免构造时发生递归调用，`{args...}`不会匹配到第一个参数类型为`T`（及其衍生类型，如增加引用、cv限定符）的构造函数。
+
+```C++
+struct st0 {};
+struct st1 {
+    st1(const st0 &) {}
+};
+struct st2 {
+    st2(const st1 &) {}
+};
+
+st2 a{{st0{}}};
+st2 b = {{st0{}}};
+
+// st2 c({st0{}});
+// error: call to constructor of 'st2' is ambiguous
+// there are 3 candidates
+// candidate 1: 'st2::st2(const st1&)'
+// candidate 2: 'constexpr st2::st2(const st2&)'
+// candidate 3: 'constexpr st2::st2(st2&&)'
+```
+
+***
+
 C++标准中对一些场景做出限制实际上是为了收束编译期需要执行的底层逻辑。比如以下例子：
 
 + 即使复制构造函数用`explicit`关键字修饰也不影响`T var = val;` 形式的复制初始化（前提是`val`的类型不是`T`类型）。
