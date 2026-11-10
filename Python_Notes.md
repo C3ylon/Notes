@@ -935,9 +935,28 @@ print(c, d) # {} set()
 
 ***
 
-Python在获取类成员函数名称时，同时也会获取到具体实例对象的指针(`__self__`)。
+Python在获取类实例的方法时，同时也会获取到该实例自身(`__self__`)。
 
 ```python
+class cl:
+    def __init__(self, i):
+        self.i = i
+    def add(self, j):
+        print(self.i + j)
+
+a = cl(0)
+fn1 = cl.add
+fn1(a, 1)               # 1
+fn2 = a.add
+fn2(2)                  # 2
+
+print(type(fn1))        # <class 'function'>
+print(type(fn2))        # <class 'method'>
+print(fn2.__self__)     # <__main__.cl object at 0x100cd2660>
+print(fn2.__func__)     # <function cl.add at 0x100ce8670>
+
+###################################
+
 def caller(fn, *args):
     fn(*args)
     print(fn.__func__)
