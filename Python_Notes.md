@@ -677,6 +677,18 @@ b = cl(2)
 print(b.y) # 4
 b.y = 3
 print(b.y) # 16
+
+#####################################
+# 类比于：
+cl = 1
+
+class cl:
+    print(cl)
+# 输出 1
+# 此时 cl 还未绑定到类上
+# 如果注释掉前面的 cl = 1
+# 那么这里会报错
+# NameError: name 'cl' is not defined
 ```
 
 内置类`property`定义在 builtins.pyi 文件中，其内部只声明了两个`__get__`函数：
