@@ -8,7 +8,7 @@ Python中的所有名称都是绑定在实体对象上。整数、浮点数、�
 
 ## 作用域
 
-Python中的变量名称作用域可以划分为三个部分：
+Python中的变量名称作用域可以划分为四个部分：
 
 + 全局（非函数内也非类内）
 
@@ -129,11 +129,26 @@ Python中的变量名称作用域可以划分为三个部分：
   class cl:
       l = []
   a = cl()
-  a.l.append('a');
+  a.l.append('a')
   b = cl()
   print(b.l)
   # ['a']
   ```
+
++ 列表推导式中
+
+    列表推导式中的变量名称作用域仅在该推导式内生效
+
+    ```python
+    i = 0
+    l = [i for i in range(5)]
+    print(i) # 0
+
+    l = []
+    for i in range(5):
+        l.append(i)
+    print(i) # 4
+    ```
 
 ***
 
