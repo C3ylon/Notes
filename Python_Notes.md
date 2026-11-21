@@ -561,19 +561,23 @@ print(inner.__closure__)
 #  <cell at 0x000002472346A1A0: str object at 0x0000024723415930>)
 ```
 
-当外层函数中的某个变量（不论是外层函数的入参还是外层函数定义的局部变量）被闭包捕获时，该变量就会从 **fast local** 变成 **cell variable**。外层函数访问该变量时，也会多一次间接访问，即先从 cell 中查找该变量的地址，再通过查找到的地址来访问变量。
+当外层函数中的某个变量（不论是外层函数的入参还是外层函数定义的局部变量）被闭包捕获时，在编译期就会被确定为 **cell variable**，而不是 **fast local**。外层函数访问该变量时，也会多一次间接访问，即先从 cell 中查找该变量的地址，再通过查找到的地址来访问变量。
 
 以上代码可以类比理解为：
 
 ```python
-cell_of_inner = []
+class Inner:
+    def __init__(self, closure):
+        self.closure = closure
+
+    def __call__(self):
+        print(self.closure[0][0], self.closure[1][0])
 
 def fn(n):
-    cell_of_inner.append(1)
-    cell_of_inner.append(n)
-    def inner():
-        print(cell_of_inner[0], cell_of_inner[1])
-    cell_of_inner[1] = str(cell_of_inner[1])
+    cell_0 = [1]
+    cell_1 = [n]
+    inner = Inner((cell_0, cell_1))
+    cell_1[0] = str(cell_1[0])
     return inner
 
 inner = fn(2)
